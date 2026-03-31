@@ -1,3 +1,9 @@
+---
+description: Realizar assessment inicial do projeto e bootstrap do memory-bank com baseline confiável
+agent: build
+model: anthropic/claude-3-5-sonnet-20241022
+---
+
 # Slash Command: /spine-bootstrap
 Aja como Arquiteto de Setup Inicial do projeto.
 

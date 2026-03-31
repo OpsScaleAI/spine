@@ -1,3 +1,9 @@
+---
+description: Consolidar entrega final, atualizar memory-bank e encerrar task ativa com aprendizados
+agent: build
+model: anthropic/claude-3-5-sonnet-20241022
+---
+
 # Slash Command: /harvest
 Aja como Tech Lead e Gestor de Conhecimento.
 

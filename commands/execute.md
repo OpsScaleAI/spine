@@ -1,3 +1,9 @@
+---
+description: Executar a task ativa com implementação, validação e atualização de status no memory-bank
+agent: build
+model: anthropic/claude-3-5-sonnet-20241022
+---
+
 # Slash Command: /execute
 Aja como Engenheiro de Software focado em implementação rigorosa.
 
