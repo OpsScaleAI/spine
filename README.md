@@ -48,6 +48,8 @@ commands/
   ... (execution command templates)
 rules/
 oc_rules/
+scripts/
+  ... (maintenance scripts, e.g. sync_oc_rules.sh)
 tests/
 ```
 
@@ -80,6 +82,18 @@ Practical skill activation strategy:
 - Start with one base profile from `docs/governance/skills-policy.md`.
 - Add at most two temporary trial skills.
 - Target 5 to 8 active skills per project to reduce context noise.
+
+### Slash Commands
+
+Available command templates in `commands/`:
+- `/spine-bootstrap` for initial project assessment and memory bootstrap.
+- `/plan` to create the active task plan in memory-bank.
+- `/execute` to implement the selected active task with validation cycle.
+- `/harvest` to consolidate delivery learnings and close the task.
+
+### Opencode rules sync
+
+From the repository root, run `scripts/sync_oc_rules.sh` to refresh symlinks in `oc_rules/` from `rules/*.mdc`.
 
 ## Compatibility (Claude Code and Antigravity)
 

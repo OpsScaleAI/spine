@@ -2,8 +2,9 @@
 set -euo pipefail
 
 script_dir="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
-source_dir="$script_dir/rules"
-target_dir="$script_dir/oc_rules"
+repo_root="$(cd "$script_dir/.." && pwd)"
+source_dir="$repo_root/rules"
+target_dir="$repo_root/oc_rules"
 
 mkdir -p "$target_dir"
 

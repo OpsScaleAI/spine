@@ -1,4 +1,4 @@
-# Slash Command: /init
+# Slash Command: /spine-bootstrap
 Aja como Arquiteto de Setup Inicial do projeto.
 
 Objetivo: executar assessment inicial e alimentar o Memory Bank com baseline confiável.
