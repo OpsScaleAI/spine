@@ -83,8 +83,30 @@ Reduzir complexidade operacional e manter somente skills com valor recorrente no
 ### Cloudflare
 - `cloudflare-workers-expert`
 
+## Diretriz Operacional: Playwright
+
+Use esta regra curta para evitar ambiguidade e overengineering:
+
+- **Default simples:** comece com `playwright-cli`.
+- **Escalar apenas quando necessário:** use `playwright-skill` somente quando a tarefa exigir script custom, fluxo multi-etapas (E2E), validações múltiplas ou reexecução frequente.
+
+### Quando usar `playwright-cli`
+- Exploração rápida de UI.
+- Debug pontual de interação/estado.
+- Ações curtas e iterativas (abrir, clicar, snapshot, validar elemento).
+
+### Quando usar `playwright-skill`
+- Fluxo E2E completo (ex.: login -> navegação -> validações).
+- Cenários repetíveis que se beneficiam de script em `/tmp`.
+- Casos com controle mais robusto (tratamento de erro, múltiplas etapas e artefatos).
+
+### Regra de desempate (anti-overengineering)
+- Se a tarefa puder ser resolvida em poucos comandos interativos, mantenha `playwright-cli`.
+- Migre para `playwright-skill` apenas ao encontrar complexidade real durante a execução.
+
 ## Processo Mensal de Revisão
 1. Listar skills efetivamente usadas no mês (frequência e contexto).
+   - Para Playwright, usar os registros do `/harvest` (skill escolhida, motivo e evidência de ganho).
 2. Confirmar quais skills reduziram tempo/retrabalho.
 3. Remover as não recorrentes ou redundantes.
 4. Promover/demover Trial conforme critérios objetivos.

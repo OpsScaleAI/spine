@@ -16,6 +16,10 @@ Aja como Tech Lead e Gestor de Conhecimento.
    - Marque `docs/memory/active_tasks/<numero-sequencial>-<nome-descritivo>.md` como `DONE`.
    - Adicione um bloco final "Resumo da entrega" na task ativa.
    - Registre aprendizado: causa raiz + prevenção + teste de regressão.
+   - Se houve UI/E2E com Playwright, registrar também:
+     - skill usada (`playwright-cli` ou `playwright-skill`);
+     - motivo da escolha (curta e objetiva);
+     - evidência de ganho (tempo, retrabalho evitado, risco reduzido).
 4. **Consolidação Git:**
    - Faça o commit final com uma mensagem semântica.
    - Realize o merge da feature branch para a `develop`.

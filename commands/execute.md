@@ -13,6 +13,10 @@ Aja como Engenheiro de Software focado em implementação rigorosa.
 3. **Seleção de Skill para Execução:**
    - Priorize o skill sugerido na task ativa (ex.: `Skill sugerido para execução: @executing-plans`).
    - Respeite `docs/governance/skills-policy.md` para validar allowlist/trial e limite de skills por projeto.
+   - Para UI/E2E com Playwright, siga a decisão definida na task ativa:
+     - manter `playwright-cli` em tarefas curtas/interativas;
+     - usar `playwright-skill` apenas para fluxo multi-etapas, validações múltiplas e script reexecutável.
+   - Não troque `playwright-cli` por `playwright-skill` (ou vice-versa) sem registrar justificativa objetiva na task ativa.
 4. **Implementação Atômica:** Implemente o código necessário seguindo `docs/memory/global/system-patterns.md` e as diretrizes da task ativa.
 5. **Ciclo de Validação:**
    - Execute o comando de teste definido na task ativa (`<numero-sequencial>-<nome-descritivo>.md`).

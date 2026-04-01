@@ -17,6 +17,10 @@ Aja como Arquiteto de Software Senior. Siga as instruções passadas em $ARGUMEN
 3. **Skill Recomendado (obrigatório para qualidade do plano):**
    - Use o skill `@writing-plans` para estruturar o plano em tarefas pequenas, testáveis e executáveis.
    - Selecione skills adicionais respeitando `docs/governance/skills-policy.md` (allowlist/trial/limite por projeto).
+   - Para tarefas de UI/E2E com Playwright, defina explicitamente na task ativa:
+     - usar `playwright-cli` para exploração rápida, debug pontual e ações curtas;
+     - usar `playwright-skill` apenas quando houver fluxo multi-etapas, validações múltiplas ou necessidade de script reexecutável.
+   - Regra anti-overengineering: na dúvida, começar com `playwright-cli` e só escalar para `playwright-skill` se a complexidade real surgir.
    - Se houver conflito entre skill e comando, **este comando prevalece** para manter o workflow do projeto.
 4. **Plano da Task no Memory Bank:**
    - Garanta a pasta `docs/memory/active_tasks/`.
@@ -35,5 +39,6 @@ Aja como Arquiteto de Software Senior. Siga as instruções passadas em $ARGUMEN
    - Inclua no topo da task a linha:
      - `Skill sugerido para execução: @executing-plans`
 5. **Estratégia de Testes:** Defina quais testes serão criados/atualizados em `tests/` e o comando de execução.
+   - Se houver UI/E2E, registrar na estratégia qual skill Playwright será usada e o porquê.
 6. **Portão de Aprovação:** Pare e peça confirmação:
    - "Plano criado em docs/memory/active_tasks/<numero-sequencial>-<nome-descritivo>.md. Posso executar?"

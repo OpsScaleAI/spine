@@ -1,6 +1,7 @@
 # Progress
 
 ## O que funciona
+- Comando `/spine-bootstrap` documenta seed automático: resolve template via caminho real do arquivo do comando (symlink-aware), copia recursivamente `docs/` do repositório Spine para o projeto alvo quando ausente, depois assessment incremental.
 - Estratégia de workflow definida para solo dev sem overengineering.
 - Estrutura de governança documental criada (workflow, policy e qualidade).
 - Direcionamento de curadoria de skills por allowlist mínima.
