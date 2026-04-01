@@ -46,7 +46,8 @@ Reduzir complexidade operacional e manter somente skills com valor recorrente no
 - Core obrigatório
 - `cloudflare-workers-expert`
 - `astro`
-- `playwright-skill` (quando houver fluxo UI/E2E)
+- `playwright-cli` (default para UI/E2E curto e iterativo)
+- `playwright-skill` (escalar para fluxo UI/E2E multi-etapas)
 
 ### Perfil backend-py-php
 - Core obrigatório
@@ -75,7 +76,8 @@ Reduzir complexidade operacional e manter somente skills com valor recorrente no
 ### Frontend Assistido (principal)
 - `frontend-dev-guidelines`
 - `astro` (quando Astro no projeto)
-- `playwright-skill` (quando UI/E2E)
+- `playwright-cli` (default quando UI/E2E)
+- `playwright-skill` (escalar quando houver complexidade real)
 
 ### Frontend (opcional, quando React/Next)
 - `react-best-practices`
