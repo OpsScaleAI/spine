@@ -121,5 +121,5 @@ Always include:
 - [ ] With `PROJECT_ROOT/docs` missing, flow does not block: it performs recursive seed from `SPINE_REPO_ROOT/docs` resolved via the real path of `commands/spine-bootstrap.md`.
 - [ ] With `commands/` as a symbolic link, template is still found (symlink-aware resolution of command file).
 - [ ] With `docs/` already present in target project, there is no destructive mass copy; only incremental enrichment in steps 2-3.
-- [ ] After bootstrap, required paths for `plan`, `execute`, and `harvest` commands exist (structure under `docs/memory/` according to copied or existing baseline).
+- [ ] After bootstrap, required paths for `spine-plan`, `spine-execute`, and `spine-harvest` commands exist (structure under `docs/memory/` according to copied or existing baseline).
 - [ ] Final summary clearly distinguishes initial seed from enrichment.

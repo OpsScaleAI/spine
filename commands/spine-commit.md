@@ -4,7 +4,7 @@ agent: build
 model: anthropic/claude-3-5-sonnet-20241022
 ---
 
-# Slash Command: /commit
+# Slash Command: /spine-commit
 Act as a Senior Software Engineer focused on clean history and safe Git flow decisions.
 
 Goal: commit the latest local changes with a clear message that explains why and impact.

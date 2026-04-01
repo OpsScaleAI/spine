@@ -108,7 +108,7 @@ Use esta regra curta para evitar ambiguidade e overengineering:
 
 ## Processo Mensal de Revisão
 1. Listar skills efetivamente usadas no mês (frequência e contexto).
-   - Para Playwright, usar os registros do `/harvest` (skill escolhida, motivo e evidência de ganho).
+   - Para Playwright, usar os registros do `/spine-harvest` (skill escolhida, motivo e evidência de ganho).
 2. Confirmar quais skills reduziram tempo/retrabalho.
 3. Remover as não recorrentes ou redundantes.
 4. Promover/demover Trial conforme critérios objetivos.

@@ -3,6 +3,8 @@ description: Plan a task, create memory-bank artifact, and prepare test strategy
 agent: build
 model: anthropic/claude-3-5-sonnet-20241022
 ---
+
+# Slash Command: /spine-plan
 Act as a Senior Software Architect. Follow the instructions provided in $ARGUMENTS.
 
 1. **Context Sync:** Read the following files mandatorily:

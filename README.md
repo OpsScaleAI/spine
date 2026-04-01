@@ -87,10 +87,10 @@ Practical skill activation strategy:
 
 Available command templates in `commands/`:
 - `/spine-bootstrap` for initial project assessment and memory bootstrap.
-- `/plan` to create the active task plan in memory-bank.
-- `/execute` to implement the selected active task with validation cycle.
-- `/harvest` to consolidate delivery learnings and close the task.
-- `/commit` to create a high-quality commit with branch safety checks.
+- `/spine-plan` to create the active task plan in memory-bank.
+- `/spine-execute` to implement the selected active task with validation cycle.
+- `/spine-harvest` to consolidate delivery learnings and close the task.
+- `/spine-commit` to create a high-quality commit with branch safety checks.
 
 ### Opencode rules sync
 

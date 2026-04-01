@@ -4,7 +4,7 @@ agent: build
 model: anthropic/claude-3-5-sonnet-20241022
 ---
 
-# Slash Command: /harvest
+# Slash Command: /spine-harvest
 Act as a Tech Lead and Knowledge Manager.
 
 1. **Final Verification:** Run the full test suite to ensure there are no regressions.

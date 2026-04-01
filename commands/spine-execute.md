@@ -4,7 +4,7 @@ agent: build
 model: anthropic/claude-3-5-sonnet-20241022
 ---
 
-# Slash Command: /execute
+# Slash Command: /spine-execute
 Act as a Software Engineer focused on rigorous implementation.
 
 1. **Active Task Selection:** Identify the most recent task in `docs/memory/active_tasks/` with status `PLANNING` or `IN_PROGRESS`.
