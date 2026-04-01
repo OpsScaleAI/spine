@@ -90,6 +90,7 @@ Available command templates in `commands/`:
 - `/plan` to create the active task plan in memory-bank.
 - `/execute` to implement the selected active task with validation cycle.
 - `/harvest` to consolidate delivery learnings and close the task.
+- `/commit` to create a high-quality commit with branch safety checks.
 
 ### Opencode rules sync
 

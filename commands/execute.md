@@ -1,29 +1,29 @@
 ---
-description: Executar a task ativa com implementação, validação e atualização de status no memory-bank
+description: Execute the active task with implementation, validation, and status updates in the memory-bank
 agent: build
 model: anthropic/claude-3-5-sonnet-20241022
 ---
 
 # Slash Command: /execute
-Aja como Engenheiro de Software focado em implementação rigorosa.
+Act as a Software Engineer focused on rigorous implementation.
 
-1. **Seleção da Task Ativa:** Identifique a task mais recente em `docs/memory/active_tasks/` com status `PLANNING` ou `IN_PROGRESS`.
-   - Se houver mais de uma task candidata, PARE e peça confirmação do humano.
-2. **Leitura de Contexto:** Leia obrigatoriamente a task ativa selecionada (`<numero-sequencial>-<nome-descritivo>.md`) e os testes relacionados.
-3. **Seleção de Skill para Execução:**
-   - Priorize o skill sugerido na task ativa (ex.: `Skill sugerido para execução: @executing-plans`).
-   - Respeite `docs/governance/skills-policy.md` para validar allowlist/trial e limite de skills por projeto.
-   - Para UI/E2E com Playwright, siga a decisão definida na task ativa:
-     - manter `playwright-cli` em tarefas curtas/interativas;
-     - usar `playwright-skill` apenas para fluxo multi-etapas, validações múltiplas e script reexecutável.
-   - Não troque `playwright-cli` por `playwright-skill` (ou vice-versa) sem registrar justificativa objetiva na task ativa.
-4. **Implementação Atômica:** Implemente o código necessário seguindo `docs/memory/global/system-patterns.md` e as diretrizes da task ativa.
-5. **Ciclo de Validação:**
-   - Execute o comando de teste definido na task ativa (`<numero-sequencial>-<nome-descritivo>.md`).
-   - Se falhar, analise o erro e corrija o código (não o teste, a menos que o teste esteja logicamente errado).
-   - Repita até que todos os testes passem.
-6. **Status de Execução:** Atualize `<numero-sequencial>-<nome-descritivo>.md` para `IN_PROGRESS` no início e `REVIEW` ao finalizar a implementação.
-   - Ao marcar `REVIEW`, registre um checklist mínimo com:
-     - testes executados
-     - resultado dos testes
-7. **Restrição:** Não realize refatorações fora do escopo da task ativa. Se encontrar melhoria necessária, registre em "Notas" da própria task.
+1. **Active Task Selection:** Identify the most recent task in `docs/memory/active_tasks/` with status `PLANNING` or `IN_PROGRESS`.
+   - If there is more than one candidate task, STOP and ask for human confirmation.
+2. **Context Reading:** Read the selected active task (`<sequential-number>-<descriptive-name>.md`) and related tests mandatorily.
+3. **Execution Skill Selection:**
+   - Prioritize the skill suggested in the active task (e.g., `Suggested execution skill: @executing-plans`).
+   - Respect `docs/governance/skills-policy.md` to validate allowlist/trial and per-project skill limits.
+   - For UI/E2E with Playwright, follow the decision defined in the active task:
+     - keep `playwright-cli` for short/interactive tasks;
+     - use `playwright-skill` only for multi-step flows, multiple validations, and re-runnable scripts.
+   - Do not switch from `playwright-cli` to `playwright-skill` (or vice versa) without recording an objective justification in the active task.
+4. **Atomic Implementation:** Implement the required code by following `docs/memory/global/system-patterns.md` and the active task guidelines.
+5. **Validation Cycle:**
+   - Run the test command defined in the active task (`<sequential-number>-<descriptive-name>.md`).
+   - If it fails, analyze the error and fix the code (not the test, unless the test is logically wrong).
+   - Repeat until all tests pass.
+6. **Execution Status:** Update `<sequential-number>-<descriptive-name>.md` to `IN_PROGRESS` at the beginning and `REVIEW` when implementation is complete.
+   - When marking `REVIEW`, record a minimal checklist with:
+     - tests executed
+     - test results
+7. **Restriction:** Do not perform refactors outside the active task scope. If you find a necessary improvement, record it in "Notes" in the task itself.

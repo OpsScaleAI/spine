@@ -1,125 +1,125 @@
 ---
-description: Assessment inicial e bootstrap do memory-bank; $ARGUMENTS opcional para briefing do projeto
+description: Initial assessment and memory-bank bootstrap; optional $ARGUMENTS for project briefing
 agent: build
 model: anthropic/claude-3-5-sonnet-20241022
 ---
 
 # Slash Command: /spine-bootstrap
-Aja como Arquiteto de Setup Inicial do projeto.
+Act as the project's Initial Setup Architect.
 
-Objetivo: executar assessment inicial e alimentar o Memory Bank com baseline confiável.
+Goal: execute an initial assessment and populate the Memory Bank with a reliable baseline.
 
-**Contexto opcional (`$ARGUMENTS`):** O usuário pode passar texto livre após o comando (o Cursor injeta em `$ARGUMENTS`). Se **houver** conteúdo não vazio, trate como briefing do projeto: domínio, stack, restrições, stakeholders, links, dúvidas. Incorpore isso no assessment (etapa 1) e ao preencher `project-brief.md`, `product-context.md`, `system-patterns.md` e `tech-context.md`, sem contradizer fatos já presentes nos arquivos. Se **`$ARGUMENTS` estiver ausente ou vazio**, ignore esta linha e baseie-se só no que for inferido do repositório e no seed da etapa 0.
+**Optional context (`$ARGUMENTS`):** The user may provide free text after the command (Cursor injects it into `$ARGUMENTS`). If there is **non-empty** content, treat it as a project briefing: domain, stack, constraints, stakeholders, links, open questions. Incorporate it into the assessment (step 1) and when filling `project-brief.md`, `product-context.md`, `system-patterns.md`, and `tech-context.md`, without contradicting facts already present in files. If **`$ARGUMENTS` is absent or empty**, ignore this line and rely only on what can be inferred from the repository and the step 0 seed.
 
-**Regra geral:** Ausência de `docs/` ou de `docs/memory` no projeto invocado **não é erro** — é a condição esperada deste comando. Não pare com “bloqueio por contexto ausente”; execute primeiro a etapa 0.
+**General rule:** Absence of `docs/` or `docs/memory` in the invoked project **is not an error** — it is the expected condition for this command. Do not stop due to "missing-context blockage"; execute step 0 first.
 
 ---
 
-## 0. Seed automático (template + cópia recursiva)
+## 0. Automatic seed (template + recursive copy)
 
-Antes de qualquer leitura do Memory Bank no projeto alvo, resolva a origem do template e, se necessário, materialize `docs/` na raiz do projeto onde o comando foi invocado.
+Before any Memory Bank read in the target project, resolve the template source and, if needed, materialize `docs/` at the root of the project where the command was invoked.
 
-### 0.1 Resolver o caminho do template (symlink-aware)
+### 0.1 Resolve template path (symlink-aware)
 
-- O arquivo deste comando vive em `.../<repo-spine>/commands/spine-bootstrap.md` (ou um **link simbólico** que aponta para ele).
-- Resolva o caminho **absoluto e canônico** deste arquivo, **seguindo symlinks** (ex.: `realpath`, `readlink -f`, ou equivalente no ambiente).
-- O repositório fonte do Spine é o diretório **pai** de `commands/`:  
+- This command file lives at `.../<spine-repo>/commands/spine-bootstrap.md` (or a **symbolic link** pointing to it).
+- Resolve the **absolute and canonical** path of this file, **following symlinks** (e.g., `realpath`, `readlink -f`, or equivalent in the environment).
+- The Spine source repository is the **parent** directory of `commands/`:  
   `SPINE_REPO_ROOT = dirname(dirname(<caminho-resolvido-de-spine-bootstrap.md>))`
-- O diretório template de documentação é:  
+- The documentation template directory is:  
   `TEMPLATE_DOCS = SPINE_REPO_ROOT/docs`  
-  (ou seja, `docs/` na raiz do repositório Spine, **não** assuma que esse conteúdo já exista no projeto alvo.)
+  (that is, `docs/` at the root of the Spine repository; do **not** assume this content already exists in the target project.)
 
-### 0.2 Projeto alvo
+### 0.2 Target project
 
-- Considere a **raiz do workspace / repositório** onde o usuário executou o comando como `PROJECT_ROOT`.
-- O destino do seed é: `PROJECT_ROOT/docs`.
+- Treat the **workspace/repository root** where the user ran the command as `PROJECT_ROOT`.
+- The seed destination is: `PROJECT_ROOT/docs`.
 
-### 0.3 Quando copiar
+### 0.3 When to copy
 
-- Se **`PROJECT_ROOT/docs` não existir** (ou estiver vazio de propósito de primeiro bootstrap — trate “não existe” como ausência do diretório ou diretório inexistente):
-  - Copie **recursivamente todo** o conteúdo do template: todo arquivo e subdiretório sob `TEMPLATE_DOCS` deve existir espelhado em `PROJECT_ROOT/docs`.
-  - Use cópia recursiva no shell, por exemplo:  
+- If **`PROJECT_ROOT/docs` does not exist** (or is intentionally empty for first bootstrap — treat "does not exist" as missing/nonexistent directory):
+  - Copy **all** template content recursively: every file and subdirectory under `TEMPLATE_DOCS` must be mirrored in `PROJECT_ROOT/docs`.
+  - Use recursive copy in shell, for example:  
     `cp -R "$TEMPLATE_DOCS/." "$PROJECT_ROOT/docs/"`  
-    (crie `PROJECT_ROOT/docs` antes se necessário; preserve estrutura e arquivos como `.gitkeep`.)
-- Se **`PROJECT_ROOT/docs` já existir** com conteúdo:
-  - **Não** apague nem sobrescreva o tree inteiro por padrão.
-  - Passe direto para o assessment e enriquecimento incremental (etapas seguintes): complete o que faltar sem destruir contexto válido já documentado.
+    (create `PROJECT_ROOT/docs` first if needed; preserve structure and files such as `.gitkeep`.)
+- If **`PROJECT_ROOT/docs` already exists** with content:
+  - Do **not** delete or overwrite the entire tree by default.
+  - Go directly to assessment and incremental enrichment (next steps): fill gaps without destroying already-valid documented context.
 
-### 0.4 Idempotência
+### 0.4 Idempotency
 
-- Primeira execução sem `docs/`: seed completo via cópia recursiva.
-- Execuções seguintes com `docs/` presente: apenas atualização incremental e preenchimento de lacunas.
-
----
-
-## 1. Assessment inicial (Projeto)
-
-- Se `$ARGUMENTS` tiver conteúdo, integre-o aqui como fonte prioritária junto ao código e configs do repo.
-- Identifique stack principal (linguagens, frameworks, banco, infra).
-- Identifique objetivo do projeto, escopo e limites.
-- Identifique riscos técnicos iniciais e prioridades de curto prazo.
+- First run without `docs/`: full seed via recursive copy.
+- Subsequent runs with `docs/` present: only incremental updates and gap filling.
 
 ---
 
-## 2. Bootstrap do Memory Bank (global)
+## 1. Initial assessment (Project)
 
-- Verifique os arquivos existentes antes de alterar.
-- Complete campos faltantes sem sobrescrever contexto válido já documentado.
-- Preencha/normalize quando necessário:
+- If `$ARGUMENTS` has content, integrate it here as a priority source along with repo code and configs.
+- Identify the primary stack (languages, frameworks, database, infrastructure).
+- Identify project objective, scope, and boundaries.
+- Identify initial technical risks and short-term priorities.
+
+---
+
+## 2. Memory Bank bootstrap (global)
+
+- Check existing files before changing them.
+- Fill missing fields without overwriting already-valid documented context.
+- Fill/normalize when needed:
   - `docs/memory/global/project-brief.md`
   - `docs/memory/global/product-context.md`
   - `docs/memory/global/system-patterns.md`
   - `docs/memory/global/tech-context.md`
-- Registre decisões iniciais em:
+- Record initial decisions in:
   - `docs/memory/global/decision-log.md`
 
 ---
 
-## 3. Bootstrap do Memory Bank (ledger)
+## 3. Memory Bank bootstrap (ledger)
 
-- Inicialize/atualize sem apagar histórico útil:
+- Initialize/update without deleting useful history:
   - `docs/memory/ledger/roadmap.md`
   - `docs/memory/ledger/progress.md`
 
 ---
 
-## 4. Task inicial (quando houver escopo de entrega)
+## 4. Initial task (when there is delivery scope)
 
-- Garanta a pasta `docs/memory/active_tasks/`.
-- Defina o mesmo `<nome-descritivo>` da branch `feature/<nome-descritivo>`.
-- Crie a task inicial no formato:
-  - `docs/memory/active_tasks/<numero-sequencial>-<nome-descritivo>.md`
-- Exemplo:
+- Ensure the folder `docs/memory/active_tasks/` exists.
+- Define the same `<descriptive-name>` as branch `feature/<descriptive-name>`.
+- Create the initial task in this format:
+  - `docs/memory/active_tasks/<sequential-number>-<descriptive-name>.md`
+- Example:
   - branch: `feature/setup-memory-bank`
   - task: `docs/memory/active_tasks/001-setup-memory-bank.md`
-- Estruture a task com:
-  - objetivo
+- Structure the task with:
+  - objective
   - inputs
-  - outputs esperados
-  - critérios de aceite
-  - estratégia de testes
+  - expected outputs
+  - acceptance criteria
+  - test strategy
   - status `PLANNING`
-- Se a task inicial envolver UI/E2E, já registrar diretriz Playwright baseada em simplicidade:
-  - default `playwright-cli` para exploração/validação rápida;
-  - escalar para `playwright-skill` apenas com complexidade real (fluxo multi-etapas, validações múltiplas, reexecução frequente).
+- If the initial task includes UI/E2E, already record a Playwright guideline based on simplicity:
+  - default to `playwright-cli` for quick exploration/validation;
+  - escalate to `playwright-skill` only with real complexity (multi-step flow, multiple validations, frequent re-execution).
 
 ---
 
-## 5. Resumo obrigatório
+## 5. Mandatory summary
 
-Inclua sempre:
+Always include:
 
-- **Seed:** O que foi copiado na etapa 0 (árvore `docs/` vinda do template), se aplicável.
-- **Criado vs. atualizado:** O que foi criado nesta execução vs. o que foi apenas atualizado no assessment.
-- **Preservado:** O que permaneceu intocado por já estar válido.
-- **Gaps:** Informações que ainda dependem do humano.
+- **Seed:** What was copied in step 0 (the `docs/` tree from template), if applicable.
+- **Created vs. updated:** What was created in this run vs. what was only updated in assessment.
+- **Preserved:** What remained untouched because it was already valid.
+- **Gaps:** Information still dependent on the human.
 
 ---
 
-## Critérios de aceite (comportamento do comando)
+## Acceptance criteria (command behavior)
 
-- [ ] Com `PROJECT_ROOT/docs` ausente, o fluxo não bloqueia: executa seed recursivo a partir de `SPINE_REPO_ROOT/docs` resolvido via caminho real de `commands/spine-bootstrap.md`.
-- [ ] Com `commands/` como link simbólico, o template ainda é encontrado (resolução symlink-aware do arquivo do comando).
-- [ ] Com `docs/` já presente no projeto alvo, não há cópia destrutiva em massa; apenas enriquecimento incremental nas etapas 2–3.
-- [ ] Após o bootstrap, existem os caminhos necessários para os comandos `plan`, `execute` e `harvest` (estrutura sob `docs/memory/` conforme baseline copiado ou já existente).
-- [ ] O resumo final distingue claramente seed inicial de enriquecimento.
+- [ ] With `PROJECT_ROOT/docs` missing, flow does not block: it performs recursive seed from `SPINE_REPO_ROOT/docs` resolved via the real path of `commands/spine-bootstrap.md`.
+- [ ] With `commands/` as a symbolic link, template is still found (symlink-aware resolution of command file).
+- [ ] With `docs/` already present in target project, there is no destructive mass copy; only incremental enrichment in steps 2-3.
+- [ ] After bootstrap, required paths for `plan`, `execute`, and `harvest` commands exist (structure under `docs/memory/` according to copied or existing baseline).
+- [ ] Final summary clearly distinguishes initial seed from enrichment.

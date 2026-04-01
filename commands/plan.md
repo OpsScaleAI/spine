@@ -1,11 +1,11 @@
 ---
-description: Planejar task, criar artefato em memory-bank e preparar estratégia de testes
+description: Plan a task, create memory-bank artifact, and prepare test strategy
 agent: build
 model: anthropic/claude-3-5-sonnet-20241022
 ---
-Aja como Arquiteto de Software Senior. Siga as instruções passadas em $ARGUMENTS.
+Act as a Senior Software Architect. Follow the instructions provided in $ARGUMENTS.
 
-1. **Sync do Contexto:** Leia obrigatoriamente:
+1. **Context Sync:** Read the following files mandatorily:
    - `docs/memory/global/project-brief.md`
    - `docs/memory/global/product-context.md`
    - `docs/memory/global/system-patterns.md`
@@ -13,32 +13,32 @@ Aja como Arquiteto de Software Senior. Siga as instruções passadas em $ARGUMEN
    - `docs/memory/global/decision-log.md`
    - `docs/memory/ledger/roadmap.md`
    - `docs/memory/ledger/progress.md`
-2. **Git Flow:** Crie branch `feature/<nome-descritivo>` a partir de `develop`.
-3. **Skill Recomendado (obrigatório para qualidade do plano):**
-   - Use o skill `@writing-plans` para estruturar o plano em tarefas pequenas, testáveis e executáveis.
-   - Selecione skills adicionais respeitando `docs/governance/skills-policy.md` (allowlist/trial/limite por projeto).
-   - Para tarefas de UI/E2E com Playwright, defina explicitamente na task ativa:
-     - usar `playwright-cli` para exploração rápida, debug pontual e ações curtas;
-     - usar `playwright-skill` apenas quando houver fluxo multi-etapas, validações múltiplas ou necessidade de script reexecutável.
-   - Regra anti-overengineering: na dúvida, começar com `playwright-cli` e só escalar para `playwright-skill` se a complexidade real surgir.
-   - Se houver conflito entre skill e comando, **este comando prevalece** para manter o workflow do projeto.
-4. **Plano da Task no Memory Bank:**
-   - Garanta a pasta `docs/memory/active_tasks/`.
-   - Use o mesmo `<nome-descritivo>` da branch e crie:
-     - `docs/memory/active_tasks/<numero-sequencial>-<nome-descritivo>.md`
-   - Exemplo:
-     - branch: `feature/ajuste-login-social`
-     - task: `docs/memory/active_tasks/007-ajuste-login-social.md`
-   - Crie o arquivo da task com:
-     - Status inicial: `PLANNING`
-     - Objetivo
+2. **Git Flow:** Create branch `feature/<descriptive-name>` from `develop`.
+3. **Recommended Skill (mandatory for plan quality):**
+   - Use the `@writing-plans` skill to structure the plan into small, testable, executable tasks.
+   - Select additional skills while respecting `docs/governance/skills-policy.md` (allowlist/trial/per-project limit).
+   - For UI/E2E tasks with Playwright, explicitly define in the active task:
+     - use `playwright-cli` for quick exploration, targeted debugging, and short actions;
+     - use `playwright-skill` only when there is a multi-step flow, multiple validations, or need for a re-runnable script.
+   - Anti-overengineering rule: when in doubt, start with `playwright-cli` and only escalate to `playwright-skill` if real complexity emerges.
+   - If there is a conflict between a skill and this command, **this command takes precedence** to preserve the project workflow.
+4. **Task Plan in the Memory Bank:**
+   - Ensure the folder `docs/memory/active_tasks/` exists.
+   - Use the same `<descriptive-name>` as the branch and create:
+     - `docs/memory/active_tasks/<sequential-number>-<descriptive-name>.md`
+   - Example:
+     - branch: `feature/social-login-adjustment`
+     - task: `docs/memory/active_tasks/007-social-login-adjustment.md`
+   - Create the task file with:
+     - Initial status: `PLANNING`
+     - Objective
      - Inputs
-     - Outputs esperados (artefatos e diretórios de destino)
-     - Critérios de aceite (checklist)
-     - Estratégia de teste (positivo, negativo, regressão)
-   - Inclua no topo da task a linha:
-     - `Skill sugerido para execução: @executing-plans`
-5. **Estratégia de Testes:** Defina quais testes serão criados/atualizados em `tests/` e o comando de execução.
-   - Se houver UI/E2E, registrar na estratégia qual skill Playwright será usada e o porquê.
-6. **Portão de Aprovação:** Pare e peça confirmação:
-   - "Plano criado em docs/memory/active_tasks/<numero-sequencial>-<nome-descritivo>.md. Posso executar?"
+     - Expected outputs (artifacts and target directories)
+     - Acceptance criteria (checklist)
+     - Test strategy (positive, negative, regression)
+   - Include this line at the top of the task:
+     - `Suggested execution skill: @executing-plans`
+5. **Test Strategy:** Define which tests will be created/updated in `tests/` and the execution command.
+   - If there is UI/E2E, record in the strategy which Playwright skill will be used and why.
+6. **Approval Gate:** Stop and ask for confirmation:
+   - "Plan created at docs/memory/active_tasks/<sequential-number>-<descriptive-name>.md. Can I execute?"

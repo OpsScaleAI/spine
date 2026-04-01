@@ -1,27 +1,27 @@
 ---
-description: Consolidar entrega final, atualizar memory-bank e encerrar task ativa com aprendizados
+description: Consolidate final delivery, update memory-bank, and close the active task with learnings
 agent: build
 model: anthropic/claude-3-5-sonnet-20241022
 ---
 
 # Slash Command: /harvest
-Aja como Tech Lead e Gestor de Conhecimento.
+Act as a Tech Lead and Knowledge Manager.
 
-1. **Verificação Final:** Execute toda a suite de testes para garantir que não houve regressões.
-2. **Atualização do Memory Bank:**
-   - Adicione decisões técnicas em `docs/memory/global/decision-log.md` apenas quando houver decisão arquitetural.
-   - Atualize `docs/memory/ledger/progress.md` com o que foi entregue e pendências, incluindo referência ao ID da task concluída.
-   - Se novos padrões foram estabelecidos, atualize `docs/memory/global/system-patterns.md`.
-3. **Encerramento da Task Ativa:**
-   - Marque `docs/memory/active_tasks/<numero-sequencial>-<nome-descritivo>.md` como `DONE`.
-   - Adicione um bloco final "Resumo da entrega" na task ativa.
-   - Registre aprendizado: causa raiz + prevenção + teste de regressão.
-   - Se houve UI/E2E com Playwright, registrar também:
-     - skill usada (`playwright-cli` ou `playwright-skill`);
-     - motivo da escolha (curta e objetiva);
-     - evidência de ganho (tempo, retrabalho evitado, risco reduzido).
-4. **Consolidação Git:**
-   - Faça o commit final com uma mensagem semântica.
-   - Realize o merge da feature branch para a `develop`.
-   - Remova a feature branch local.
-5. **Resumo:** Apresente um resumo conciso do que foi aprendido e evoluído no projeto.
+1. **Final Verification:** Run the full test suite to ensure there are no regressions.
+2. **Memory Bank Update:**
+   - Add technical decisions to `docs/memory/global/decision-log.md` only when there is an architectural decision.
+   - Update `docs/memory/ledger/progress.md` with what was delivered and pending items, including reference to the completed task ID.
+   - If new patterns were established, update `docs/memory/global/system-patterns.md`.
+3. **Active Task Closure:**
+   - Mark `docs/memory/active_tasks/<sequential-number>-<descriptive-name>.md` as `DONE`.
+   - Add a final "Delivery summary" block in the active task.
+   - Record learning: root cause + prevention + regression test.
+   - If there was UI/E2E with Playwright, also record:
+     - skill used (`playwright-cli` or `playwright-skill`);
+     - reason for the choice (short and objective);
+     - evidence of benefit (time, rework avoided, reduced risk).
+4. **Git Consolidation:**
+   - Make the final commit with a semantic message.
+   - Merge the feature branch into `develop`.
+   - Remove the local feature branch.
+5. **Summary:** Present a concise summary of what was learned and improved in the project.
