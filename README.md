@@ -90,7 +90,7 @@ Available command templates in `commands/`:
 - `/spine-plan` to create the active task plan in memory-bank.
 - `/spine-execute` to implement the selected active task with validation cycle.
 - `/spine-harvest` to consolidate delivery learnings and close the task.
-- `/spine-commit` to create a high-quality commit with branch safety checks.
+- `/spine-commit` to create a high-quality commit with branch safety checks (solo default: push and confirm-before-merge; no default PR nudge).
 
 ### Opencode rules sync
 

@@ -67,10 +67,20 @@ Goal: commit the latest local changes with a clear message that explains why and
        - tracking branch (`branch -vv` or equivalent)
    - If mode is `commit-only`, skip push.
 
-7. **Mandatory Final Report:**
+7. **Solo workflow (default for SPINE):**
+   - **Do not** recommend opening a Pull Request as the default next step. Solo developers should not be nudged into self-approval PR loops.
+   - After `git push`, GitHub (or similar) may print a `.../pull/new/...` URL. Treat it as **informational only** unless the user explicitly asks to open a PR or the project policy requires PR-based review.
+   - **After push** (when on a `feature/*`, `hotfix/*`, or `release/*` branch), prefer this sequence instead of PR:
+     1. Confirm push succeeded and branch is tracked on `origin`.
+     2. Ask **interactive validation questions** before any merge, for example:
+        - Were the tests or checks listed in the active task run? Anything else to run?
+        - Ready to merge `<current-branch>` into `develop` locally?
+     3. **Only after explicit human confirmation**, perform or describe the local merge (for example: `git checkout develop && git merge <branch>`). Do not merge without approval.
+   - If the user or `docs/` explicitly defines a **team / PR-required** workflow, then suggesting a PR link is acceptable; otherwise default to the solo path above.
+
+8. **Mandatory Final Report:**
    - Final branch used.
    - Commit hash + full commit message.
    - Files included in the commit.
    - Push result (performed or skipped).
-   - Recommended next step:
-     - merge path in the current workflow (for example: `feature/* -> develop`).
+   - **Next step (solo default):** summarize push outcome; offer **optional** merge into `develop` **only as questions** (validation first, then merge only if the user confirms). Do **not** list “open PR” as the recommended step unless the user asked for it or policy requires it.
