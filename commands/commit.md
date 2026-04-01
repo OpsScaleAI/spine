@@ -9,6 +9,11 @@ Act as a Senior Software Engineer focused on clean history and safe Git flow dec
 
 Goal: commit the latest local changes with a clear message that explains why and impact.
 
+**Optional context (`$ARGUMENTS`):**
+- If `$ARGUMENTS` is empty, run in `commit-only` mode.
+- If `$ARGUMENTS` includes words like `push`, `commit and push`, or `commit+push`, run in `commit-and-push` mode.
+- If `$ARGUMENTS` is ambiguous, ask for confirmation before pushing.
+
 1. **Pre-flight Context:**
    - Run:
      - `git status --short --branch`
@@ -53,9 +58,19 @@ Goal: commit the latest local changes with a clear message that explains why and
      - `git show --name-only --oneline HEAD`
      - `git status --short --branch`
 
-6. **Mandatory Final Report:**
+6. **Optional Push (when requested via `$ARGUMENTS`):**
+   - If mode is `commit-and-push`:
+     - Ensure upstream exists for current branch; if not, push with `-u`.
+     - Push current branch to `origin`.
+     - Show:
+       - `git status --short --branch`
+       - tracking branch (`branch -vv` or equivalent)
+   - If mode is `commit-only`, skip push.
+
+7. **Mandatory Final Report:**
    - Final branch used.
    - Commit hash + full commit message.
    - Files included in the commit.
+   - Push result (performed or skipped).
    - Recommended next step:
      - merge path in the current workflow (for example: `feature/* -> develop`).
