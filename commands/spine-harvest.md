@@ -1,10 +1,14 @@
 ---
 description: Consolidate final delivery, update memory-bank, and close the active task with learnings
 agent: build
-model: anthropic/claude-3-5-sonnet-20241022
+model: opencode/minimax-m2.5-free
 ---
 
-# Slash Command: /spine-harvest
+# Slash Command: /spine-harvest <plan_file_path>
+Act as a Tech Lead and Knowledge Manager.
+
+1. **Plan File Selection:** Use the provided `<plan_file_path>` argument.
+   - Validate if the file exists and has a `.md` extension.
 Act as a Tech Lead and Knowledge Manager.
 
 1. **Final Verification:** Run the full test suite to ensure there are no regressions.
@@ -13,7 +17,7 @@ Act as a Tech Lead and Knowledge Manager.
    - Update `docs/memory/ledger/progress.md` with what was delivered and pending items, including reference to the completed task ID.
    - If new patterns were established, update `docs/memory/global/system-patterns.md`.
 3. **Active Task Closure:**
-   - Mark `docs/memory/active_tasks/<sequential-number>-<descriptive-name>.md` as `DONE`.
+   - Mark the `<plan_file_path>` as `DONE`.
    - Add a final "Delivery summary" block in the active task.
    - Record learning: root cause + prevention + regression test.
    - If there was UI/E2E with Playwright, also record:

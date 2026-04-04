@@ -1,7 +1,7 @@
 ---
 description: Create a high-quality commit for current changes with safe branch checks
 agent: build
-model: anthropic/claude-3-5-sonnet-20241022
+model: opencode/minimax-m2.5-free
 ---
 
 # Slash Command: /spine-commit

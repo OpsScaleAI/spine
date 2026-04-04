@@ -1,7 +1,7 @@
 ---
 description: Initial assessment and memory-bank bootstrap; optional $ARGUMENTS for project briefing
 agent: build
-model: anthropic/claude-3-5-sonnet-20241022
+model: opencode/qwen3.6-plus-free
 ---
 
 # Slash Command: /spine-bootstrap

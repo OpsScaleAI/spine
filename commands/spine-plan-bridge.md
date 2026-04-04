@@ -1,7 +1,7 @@
 ---
 description: Enforce SPINE task and approval flow for native planning modes and conversational changes
 agent: build
-model: anthropic/claude-3-5-sonnet-20241022
+model: opencode/qwen3.6-plus-free
 ---
 
 # Slash Command: /spine-plan-bridge

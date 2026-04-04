@@ -1,14 +1,14 @@
 ---
 description: Execute the active task with implementation, validation, and status updates in the memory-bank
 agent: build
-model: anthropic/claude-3-5-sonnet-20241022
+model: opencode/claude-sonnet-4-6
 ---
 
-# Slash Command: /spine-execute
+# Slash Command: /spine-execute <plan_file_path>
 Act as a Software Engineer focused on rigorous implementation.
 
-1. **Active Task Selection:** Identify the most recent task in `docs/memory/active_tasks/` with status `PLANNING` or `IN_PROGRESS`.
-   - If there is more than one candidate task, STOP and ask for human confirmation.
+1. **Active Task Selection:** Use the provided `<plan_file_path>` argument.
+   - Validate if the file exists and has a `.md` extension.
 2. **Context Reading:** Read the selected active task (`<sequential-number>-<descriptive-name>.md`) and related tests mandatorily.
 3. **Execution Skill Selection:**
    - Prioritize the skill suggested in the active task (e.g., `Suggested execution skill: @executing-plans`).
