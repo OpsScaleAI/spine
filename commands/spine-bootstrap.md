@@ -1,7 +1,7 @@
 ---
 description: Initial assessment and memory-bank bootstrap; optional $ARGUMENTS for project briefing
 agent: build
-model: opencode/qwen3.6-plus-free
+model: nvidia/z-ai/glm5
 ---
 
 # Slash Command: /spine-bootstrap
@@ -15,40 +15,67 @@ Goal: execute an initial assessment and populate the Memory Bank with a reliable
 
 ---
 
-## 0. Automatic seed (template + recursive copy)
+## 0. Automatic seed (GitHub raw download)
 
-Before any Memory Bank read in the target project, resolve the template source and, if needed, materialize `docs/` at the root of the project where the command was invoked.
+Before any Memory Bank read in the target project, download the template from the canonical Spine repository on GitHub and materialize `docs/` at the root of the project where the command was invoked.
 
-### 0.1 Resolve template path (symlink-aware)
+### 0.1 Source repository
 
-- This command file lives at `.../<spine-repo>/commands/spine-bootstrap.md` (or a **symbolic link** pointing to it).
-- Resolve the **absolute and canonical** path of this file, **following symlinks** (e.g., `realpath`, `readlink -f`, or equivalent in the environment).
-- The Spine source repository is the **parent** directory of `commands/`:  
-  `SPINE_REPO_ROOT = dirname(dirname(<caminho-resolvido-de-spine-bootstrap.md>))`
-- The documentation template directory is:  
-  `TEMPLATE_DOCS = SPINE_REPO_ROOT/docs`  
-  (that is, `docs/` at the root of the Spine repository; do **not** assume this content already exists in the target project.)
+- Spine is hosted at: `https://github.com/OpsScaleAI/spine`
+- Raw content base URL: `https://raw.githubusercontent.com/OpsScaleAI/spine/refs/heads/master`
+- This is the canonical source; no local path resolution required.
 
 ### 0.2 Target project
 
 - Treat the **workspace/repository root** where the user ran the command as `PROJECT_ROOT`.
 - The seed destination is: `PROJECT_ROOT/docs`.
 
-### 0.3 When to copy
+### 0.3 Download mechanism
 
-- If **`PROJECT_ROOT/docs` does not exist** (or is intentionally empty for first bootstrap — treat "does not exist" as missing/nonexistent directory):
-  - Copy **all** template content recursively: every file and subdirectory under `TEMPLATE_DOCS` must be mirrored in `PROJECT_ROOT/docs`.
-  - Use recursive copy in shell, for example:  
-    `cp -R "$TEMPLATE_DOCS/." "$PROJECT_ROOT/docs/"`  
-    (create `PROJECT_ROOT/docs` first if needed; preserve structure and files such as `.gitkeep`.)
-- If **`PROJECT_ROOT/docs` already exists** with content:
-  - Do **not** delete or overwrite the entire tree by default.
-  - Go directly to assessment and incremental enrichment (next steps): fill gaps without destroying already-valid documented context.
+1. Detect available tool: check `curl` first, fallback to `wget`.
+2. Create directory structure:
+   - `mkdir -p "$PROJECT_ROOT/docs/memory/global"`
+   - `mkdir -p "$PROJECT_ROOT/docs/memory/ledger"`
+   - `mkdir -p "$PROJECT_ROOT/docs/memory/active_tasks"`
+   - `mkdir -p "$PROJECT_ROOT/docs/governance"`
+   - `mkdir -p "$PROJECT_ROOT/docs/quality"`
+   - `mkdir -p "$PROJECT_ROOT/docs/workflow"`
+3. Download files sequentially (in order of importance):
+   - Memory Bank global files (project-brief, product-context, system-patterns, tech-context, decision-log)
+   - Memory Bank ledger files (roadmap, progress)
+   - Governance and workflow docs (skills-policy, guardrails, gitflow-operacional, ciclo-de-entrega)
+   - Create empty `.gitkeep` in `active_tasks/` (download or create if not available)
+4. Download command: prefer `curl -fsSL <URL> -o <path>`, fallback to `wget -q <URL> -O <path>`.
 
-### 0.4 Idempotency
+### 0.4 Files to download
 
-- First run without `docs/`: full seed via recursive copy.
-- Subsequent runs with `docs/` present: only incremental updates and gap filling.
+Base URL: `https://raw.githubusercontent.com/OpsScaleAI/spine/refs/heads/master/`
+
+Paths:
+- `templates/docs/memory/global/project-brief.md`
+- `templates/docs/memory/global/product-context.md`
+- `templates/docs/memory/global/system-patterns.md`
+- `templates/docs/memory/global/tech-context.md`
+- `templates/docs/memory/global/decision-log.md`
+- `templates/docs/memory/ledger/roadmap.md`
+- `templates/docs/memory/ledger/progress.md`
+- `templates/docs/governance/skills-policy.md`
+- `templates/docs/quality/guardrails.md`
+- `templates/docs/workflow/gitflow-operacional.md`
+- `templates/docs/workflow/ciclo-de-entrega.md`
+- Create `.gitkeep` in `docs/memory/active_tasks/` (no download needed)
+
+### 0.5 Error handling
+
+- If GitHub unreachable: output clear message with manual download instructions (provide full GitHub repo URL).
+- If individual file fails: continue with remaining files, report in summary.
+- Never fail entire bootstrap because of one file.
+
+### 0.6 Idempotency
+
+- First run without `docs/`: full download from GitHub.
+- Subsequent runs with `docs/` present: only fill missing files.
+- Never overwrite existing content.
 
 ---
 
@@ -109,7 +136,9 @@ Before any Memory Bank read in the target project, resolve the template source a
 
 Always include:
 
-- **Seed:** What was copied in step 0 (the `docs/` tree from template), if applicable.
+- **Source:** Downloaded from GitHub (raw URLs) or preserved from existing `docs/`.
+- **Downloaded:** List of files successfully downloaded from GitHub in step 0.
+- **Failed downloads:** List any files that could not be downloaded (if any).
 - **Created vs. updated:** What was created in this run vs. what was only updated in assessment.
 - **Preserved:** What remained untouched because it was already valid.
 - **Gaps:** Information still dependent on the human.
@@ -118,8 +147,10 @@ Always include:
 
 ## Acceptance criteria (command behavior)
 
-- [ ] With `PROJECT_ROOT/docs` missing, flow does not block: it performs recursive seed from `SPINE_REPO_ROOT/docs` resolved via the real path of `commands/spine-bootstrap.md`.
-- [ ] With `commands/` as a symbolic link, template is still found (symlink-aware resolution of command file).
-- [ ] With `docs/` already present in target project, there is no destructive mass copy; only incremental enrichment in steps 2-3.
-- [ ] After bootstrap, required paths for `spine-plan`, `spine-execute`, and `spine-harvest` commands exist (structure under `docs/memory/` according to copied or existing baseline).
-- [ ] Final summary clearly distinguishes initial seed from enrichment.
+- [ ] With `PROJECT_ROOT/docs` missing, flow downloads template from GitHub raw URLs using `curl` or `wget` (auto-detected).
+- [ ] Download mechanism creates required directory structure before downloading files.
+- [ ] With `docs/` already present in target project, only fills gaps without overwriting existing content.
+- [ ] GitHub unavailability produces clear error message with manual download instructions (GitHub repo URL).
+- [ ] Individual file download failures do not block the entire bootstrap; remaining files continue to download.
+- [ ] After bootstrap, required paths for `spine-plan`, `spine-execute`, and `spine-harvest` commands exist (structure under `docs/memory/`).
+- [ ] Final summary clearly distinguishes: downloaded files, failed downloads, preserved content, and gaps filled during assessment.

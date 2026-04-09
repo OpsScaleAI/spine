@@ -1,1 +1,23 @@
+# Memory bank local (uso interno do Spine)
+/docs/
+
+# Agent local config
 .cursor/
+AGENTS.md
+CLAUDE.md
+
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+.pytest_cache/
+.mypy_cache/
+
+# IDE / OS
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+.DS_Store
+Thumbs.db

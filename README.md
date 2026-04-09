@@ -24,33 +24,23 @@ The goal is to avoid rebuilding process from scratch on every new repository.
 ## Repository Layout
 
 ```text
-docs/
-  workflow/
-    gitflow-operacional.md
-    ciclo-de-entrega.md
-  governance/
-    skills-policy.md
-  quality/
-    guardrails.md
-  memory/
-    global/
-      project-brief.md
-      product-context.md
-      system-patterns.md
-      tech-context.md
-      decision-log.md
-    ledger/
-      roadmap.md
-      progress.md
-skills/
-  ... (central skill repository)
-commands/
-  ... (execution command templates)
-rules/
-oc_rules/
-scripts/
-  ... (maintenance scripts, e.g. sync_oc_rules.sh)
-tests/
+spine/
+├── templates/
+│   └── docs/
+│       ├── memory/ (templates vazios para bootstrap)
+│       ├── governance/
+│       ├── quality/
+│       └── workflow/
+├── docs/ (uso interno do Spine - não versionado)
+├── commands/
+│   ... (execution command templates)
+├── skills/
+│   ... (central skill repository)
+├── rules/
+├── oc_rules/
+├── scripts/
+│   ... (maintenance scripts, e.g. sync_oc_rules.sh)
+└── tests/
 ```
 
 ## Quick Start (Recommended)
@@ -60,11 +50,13 @@ Use SPINE as a source repository and link it into your active project via symlin
 Example:
 
 ```bash
-ln -s /path/to/spine/docs /path/to/your-project/docs-spine
+ln -s /path/to/spine/commands /path/to/your-project/commands-spine
 ln -s /path/to/spine/skills /path/to/your-project/skills-spine
 ```
 
 This keeps one maintained source of truth while allowing multiple projects to consume the same framework.
+
+> **Note:** `templates/` contains setup files for new projects. `docs/` is the internal memory bank of Spine itself (not versioned).
 
 ## Installation and Use (Cursor + Opencode)
 
