@@ -1,1 +1,0 @@
-../rules/02-memory-bank.mdc

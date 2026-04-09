@@ -1,1 +1,0 @@
-../rules/04-code-quality.mdc

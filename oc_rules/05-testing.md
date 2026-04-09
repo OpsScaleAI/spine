@@ -1,1 +1,0 @@
-../rules/05-testing.mdc

@@ -1,1 +1,0 @@
-../rules/01-core-protocol.mdc

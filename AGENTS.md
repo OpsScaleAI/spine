@@ -25,9 +25,7 @@ spine/
 │   ├── quality/ # (symlink to templates/ - optional)
 │   └── workflow/ # (symlink to templates/ - optional)
 ├── commands/ # Slash-command templates (/spine-bootstrap, /spine-plan, etc.)
-├── oc_rules/ # Symlinks to rules/*.mdc (renamed .md) consumed by OpenCode
-├── rules/ # Source-of-truth rules in .mdc (consumed by Cursor)
-├── scripts/ # Maintenance utilities (sync_oc_rules.sh)
+├── rules/ # Source-of-truth rules in .md (consumed by Cursor, Claude Code, OpenCode)
 ├── skills/ # 30+ curated AI skill definitions (each has a SKILL.md)
 └── tests/ # pytest scaffold (conftest.py + unit/ + integration/)
 ```
@@ -41,11 +39,17 @@ spine/
 
 ## 2. Build / Lint / Test Commands
 
-Spine has no compiled artifact. The only maintenance script is:
+Spine has no compiled artifact.
+
+### Global Installation
 
 ```bash
-# Rebuild oc_rules/ symlinks from rules/*.mdc
-bash scripts/sync_oc_rules.sh
+# Install Spine globally (symlinks to Cursor, OpenCode, Claude Code)
+bash install.sh
+# With --force to replace existing directories (creates .spine-backup)
+bash install.sh --force
+# Preview without making changes
+bash install.sh --dry-run
 ```
 
 ### Running Tests (pytest)
@@ -94,7 +98,7 @@ configured in the consumer projects that symlink or vendor Spine.
 
 ### Language and Encoding
 - All code, comments, docstrings, commit messages, and generated file content must be in **English**.
-  _(Cursor rule: `.cursor/rules/english.mdc`)_
+  _(Cursor rule: `.cursor/rules/english.md`)_
 - Exception: preserve user-provided literals (translations, UI copy) exactly as given.
 
 ### Imports
@@ -251,7 +255,7 @@ Every non-trivial change must follow this cycle:
 - Use `docs/memory/` to track Spine's own development progress
 
 ### Installation (consumer projects)
+- Run `bash install.sh` to create global symlinks for OpenCode and Claude Code
 - Users run `/spine-bootstrap` which downloads from `templates/docs/*`
 - Memory bank created at `$PROJECT_ROOT/docs/`
-- Users link `commands/` and `skills/` from Spine repo to their project
 - Consumer projects maintain their own memory bank independently

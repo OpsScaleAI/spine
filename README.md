@@ -27,36 +27,42 @@ The goal is to avoid rebuilding process from scratch on every new repository.
 spine/
 ├── templates/
 │   └── docs/
-│       ├── memory/ (templates vazios para bootstrap)
+│       ├── memory/ (empty templates for bootstrap)
 │       ├── governance/
 │       ├── quality/
 │       └── workflow/
-├── docs/ (uso interno do Spine - não versionado)
+├── docs/ (internal Spine use - not versioned)
 ├── commands/
 │   ... (execution command templates)
 ├── skills/
-│   ... (central skill repository)
+│   ... (curated skill repository)
 ├── rules/
-├── oc_rules/
+│   ... (source-of-truth rules in .md)
 ├── scripts/
-│   ... (maintenance scripts, e.g. sync_oc_rules.sh)
+│   ... (maintenance scripts)
 └── tests/
 ```
 
 ## Quick Start (Recommended)
 
-Use SPINE as a source repository and link it into your active project via symlink.
+Run the installer to create global symlinks for OpenCode and Claude Code:
 
-Example:
+```bash
+bash install.sh
+```
+
+This links skills, commands, and rules to their respective global config directories so they are available in any project.
+
+> **Cursor users:** Global rules require manual setup via `Cursor Settings → General → Rules for AI`. Project rules go in `.cursor/rules/` (supports both `.md` and `.mdc`).
+
+### Manual Symlink Setup
+
+If you prefer manual setup, link SPINE into your project:
 
 ```bash
 ln -s /path/to/spine/commands /path/to/your-project/commands-spine
 ln -s /path/to/spine/skills /path/to/your-project/skills-spine
 ```
-
-This keeps one maintained source of truth while allowing multiple projects to consume the same framework.
-
-> **Note:** `templates/` contains setup files for new projects. `docs/` is the internal memory bank of Spine itself (not versioned).
 
 ## Installation and Use (Cursor + Opencode)
 
@@ -84,21 +90,11 @@ Available command templates in `commands/`:
 - `/spine-harvest` to consolidate delivery learnings and close the task.
 - `/spine-commit` to create a high-quality commit with branch safety checks (solo default: push and confirm-before-merge; no default PR nudge).
 
-### Opencode rules sync
+## Compatibility (Claude Code and Other Tools)
 
-From the repository root, run `scripts/sync_oc_rules.sh` to refresh symlinks in `oc_rules/` from `rules/*.mdc`.
+SPINE also works with Claude Code and other AI agents.
 
-## Compatibility (Claude Code and Antigravity)
-
-SPINE also works with Claude Code and Antigravity.
-
-Depending on your host tool conventions, you may need to rename/adapt files and folders (for example, command files, rule paths, or skill activation directory names) to match the expected host format.
-
-Suggested migration approach:
-1. Keep SPINE as your framework source repository.
-2. Create a thin compatibility layer in the target tool project.
-3. Rename only integration-facing files/folders required by the host.
-4. Preserve SPINE's internal structure and governance files as much as possible.
+The `install.sh` script creates global symlinks for both OpenCode and Claude Code automatically. For other tools, you may need to adapt paths or file names to match the expected format.
 
 ## Operational Workflow
 
@@ -148,6 +144,14 @@ flowchart TD
 ## Author
 
 - Fernando Juste - juste@opsscale.ai
+
+## Version
+
+**v1.0.0** — First stable release with global installation support.
+
+- `install.sh` creates symlinks for Cursor, OpenCode, and Claude Code
+- Rules in universal `.md` format (compatible with all agents)
+- 34 curated skills, 6 slash commands, 6 framework rules
 
 ## References and Credits
 
