@@ -10,21 +10,32 @@ It is composed primarily of Markdown rules, Bash scripts, and Python test scaffo
 
 ```
 spine/
-├── commands/          # Slash-command templates (/spine-bootstrap, /spine-plan, etc.)
-├── docs/
-│   ├── governance/    # Skills policy (allowlist, trial criteria)
-│   ├── memory/        # Source-of-truth memory bank (see §6)
-│   │   ├── global/    # Stable project facts — change with explicit justification only
-│   │   ├── ledger/    # Living state — updated on every delivery cycle
-│   │   └── active_tasks/  # Per-task execution contracts
-│   ├── quality/       # Guardrails documentation
-│   └── workflow/      # GitFlow and delivery cycle guides
-├── oc_rules/          # Symlinks to rules/*.mdc (renamed .md) consumed by OpenCode
-├── rules/             # Source-of-truth rules in .mdc (consumed by Cursor)
-├── scripts/           # Maintenance utilities (sync_oc_rules.sh)
-├── skills/            # 30+ curated AI skill definitions (each has a SKILL.md)
-└── tests/             # pytest scaffold (conftest.py + unit/ + integration/)
+├── templates/ # Setup templates for spine-bootstrap
+│   └── docs/
+│       ├── memory/ # Empty memory bank templates
+│       │   ├── global/
+│       │   ├── ledger/
+│       │   └── active_tasks/
+│       ├── governance/ # Skills policy (allowlist, trial criteria)
+│       ├── quality/ # Guardrails documentation
+│       └── workflow/ # GitFlow and delivery cycle guides
+├── docs/ # Local memory bank (NOT versioned - see .gitignore)
+│   ├── memory/ # Source-of-truth for Spine development
+│   ├── governance/ # (symlink to templates/ - optional)
+│   ├── quality/ # (symlink to templates/ - optional)
+│   └── workflow/ # (symlink to templates/ - optional)
+├── commands/ # Slash-command templates (/spine-bootstrap, /spine-plan, etc.)
+├── oc_rules/ # Symlinks to rules/*.mdc (renamed .md) consumed by OpenCode
+├── rules/ # Source-of-truth rules in .mdc (consumed by Cursor)
+├── scripts/ # Maintenance utilities (sync_oc_rules.sh)
+├── skills/ # 30+ curated AI skill definitions (each has a SKILL.md)
+└── tests/ # pytest scaffold (conftest.py + unit/ + integration/)
 ```
+
+**Important:** 
+- `templates/` contains setup files for new projects (versioned)
+- `docs/` is the local memory bank for Spine development (NOT versioned)
+- `.gitignore` excludes: `docs/`, `.cursor/`, `AGENTS.md`, `CLAUDE.md`
 
 ---
 
@@ -177,6 +188,8 @@ except Exception:
 
 ## 6. Memory Bank (mandatory read at session start)
 
+**Note:** For Spine development, use `docs/memory/` (local). For consumer projects, the memory bank is created by `/spine-bootstrap` from `templates/docs/`.
+
 Read in this order at the start of every session or task:
 
 1. `docs/memory/global/project-brief.md`
@@ -196,12 +209,10 @@ Every non-trivial change must follow this cycle:
 
 1. **Sync** — read memory bank (§6).
 2. **Branch** — `git checkout develop && git pull && git checkout -b feature/<name>`.
-3. **Plan** — create `docs/memory/active_tasks/<seq>-<name>.md` with scope and
-   acceptance criteria.
+3. **Plan** — create `docs/memory/active_tasks/<seq>-<name>.md` with scope and acceptance criteria.
 4. **Test** — write the failing test first (TDD: Red → Green → Refactor).
 5. **Execute** — implement atomically; keep commits small and focused.
-6. **Harvest** — update `docs/memory/ledger/progress.md` and
-   `docs/memory/global/decision-log.md` when an architectural decision was made.
+6. **Harvest** — update `docs/memory/ledger/progress.md` and `docs/memory/global/decision-log.md` when an architectural decision was made.
 
 ### Test Rules
 - Every public function needs at least one success test and one failure test.
@@ -228,3 +239,19 @@ Every non-trivial change must follow this cycle:
 - Never commit secrets, tokens, or passwords.
 - All sensitive config via environment variables.
 - Validate **all** external inputs (request bodies, query params, headers) — use Pydantic.
+
+---
+
+## 10. Development vs Installation
+
+### Development (this repository)
+- `docs/` is the local memory bank for Spine development (ignored by git)
+- `.cursor/`, `AGENTS.md`, `CLAUDE.md` are local development configs (ignored by git)
+- Changes to `templates/`, `commands/`, `skills/`, `rules/` should be versioned
+- Use `docs/memory/` to track Spine's own development progress
+
+### Installation (consumer projects)
+- Users run `/spine-bootstrap` which downloads from `templates/docs/*`
+- Memory bank created at `$PROJECT_ROOT/docs/`
+- Users link `commands/` and `skills/` from Spine repo to their project
+- Consumer projects maintain their own memory bank independently

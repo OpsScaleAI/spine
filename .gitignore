@@ -5,6 +5,10 @@
 .cursor/
 AGENTS.md
 CLAUDE.md
+.claude/
+.opencode/
+.agents/
+opencode.json
 
 # Python
 __pycache__/
