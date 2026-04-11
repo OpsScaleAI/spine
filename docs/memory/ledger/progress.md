@@ -5,6 +5,8 @@
 - Estratégia de workflow definida para solo dev sem overengineering.
 - Estrutura de governança documental criada (workflow, policy e qualidade).
 - Direcionamento de curadoria de skills por allowlist mínima.
+- Instalação per-project via URL: regras do Spine carregadas via `instructions` em `opencode.json` do projeto, sem vazar para projetos não-Spine.
+- `/spine-bootstrap` atualizado para criar `opencode.json` com URLs remotas das regras.
 
 ## Em andamento
 - Curadoria inicial do catálogo de skills para reduzir escopo ativo.

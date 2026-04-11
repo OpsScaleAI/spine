@@ -1,7 +1,7 @@
 ---
 description: Initial assessment and memory-bank bootstrap; optional $ARGUMENTS for project briefing
 agent: build
-model: nvidia/z-ai/glm5
+model: opencode-go/glm-5.1
 ---
 
 # Slash Command: /spine-bootstrap
@@ -79,6 +79,122 @@ Paths:
 
 ---
 
+## 0b. OpenCode project configuration
+
+After seeding `docs/`, configure OpenCode so the project receives Spine rules as instructions.
+
+### 0b.1 Spine rules via remote URLs
+
+Spine rules are loaded via remote URLs from GitHub. This makes the project portable (no local path or symlink dependency) and automatically updated (the agent fetches the latest version on each session).
+
+Base URL: `https://raw.githubusercontent.com/OpsScaleAI/spine/refs/heads/master/rules/`
+
+Rule files:
+- `01-core-protocol.md`
+- `02-memory-bank.md`
+- `03-handoff-protocol.md`
+- `04-code-quality.md`
+- `05-testing.md`
+- `06-gitflow.md`
+
+### 0b.2 opencode.json creation
+
+1. Check if `opencode.json` already exists in `PROJECT_ROOT`.
+2. If it exists:
+   - Parse it as JSON.
+   - If `"instructions"` key is present, preserve it but ensure it includes all Spine rule URLs and `"./AGENTS.md"`. Avoid duplicates.
+   - Merge other keys from the existing file; do not remove user-defined settings.
+3. If it does NOT exist:
+   - Create a new `opencode.json` with:
+
+```json
+{
+  "$schema": "https://opencode.ai/config.json",
+  "instructions": [
+    "https://raw.githubusercontent.com/OpsScaleAI/spine/refs/heads/master/rules/01-core-protocol.md",
+    "https://raw.githubusercontent.com/OpsScaleAI/spine/refs/heads/master/rules/02-memory-bank.md",
+    "https://raw.githubusercontent.com/OpsScaleAI/spine/refs/heads/master/rules/03-handoff-protocol.md",
+    "https://raw.githubusercontent.com/OpsScaleAI/spine/refs/heads/master/rules/04-code-quality.md",
+    "https://raw.githubusercontent.com/OpsScaleAI/spine/refs/heads/master/rules/05-testing.md",
+    "https://raw.githubusercontent.com/OpsScaleAI/spine/refs/heads/master/rules/06-gitflow.md",
+    "./AGENTS.md"
+  ]
+}
+```
+
+### 0b.3 Principles
+
+- **Opt-in per project:** The `instructions` array with Spine rules only exists in projects that ran `/spine-bootstrap`. The global OpenCode config (`~/.config/opencode/opencode.json`) should NOT contain Spine instructions — this ensures non-Spine projects remain unaffected.
+- **Portability:** Remote URLs work on any machine without a local Spine clone.
+- **Auto-update:** OpenCode fetches rule content from the URL on each session, so `git push` on Spine propagates changes automatically.
+- **Version pinning:** To lock to a specific version, replace `refs/heads/master` with `refs/tags/v1.0.0` in the URLs.
+
+---
+
+## 0c. Per-project symlinks (install.sh --project)
+
+After creating `opencode.json`, run the Spine install script in project mode to create symlinks for skills, commands, and tool-specific configuration.
+
+### 0c.1 Prerequisite
+
+The `install.sh` script must be accessible from the project. This typically means:
+- A `.spine` symlink exists at `PROJECT_ROOT/.spine` pointing to the Spine repository, OR
+- The script is invoked with an explicit `--spine-dir=/path/to/spine` flag.
+
+### 0c.2 Command
+
+```bash
+bash .spine/install.sh --project [--skills=core|all|list] [--targets=cursor,opencode,claude]
+```
+
+Default behavior (`--project` without `--skills`): installs **core skills** only.
+
+Core skills (always installed by default):
+- `writing-plans`
+- `executing-plans`
+- `test-driven-development`
+- `systematic-debugging`
+- `verification-before-completion`
+
+### 0c.3 What gets created
+
+| Path | Type | Purpose |
+|---|---|---|
+| `.spine` | symlink | Points to Spine repository |
+| `.agents/skills/<name>` | per-skill symlink | Cross-tool skill hub (OpenCode + Claude Code native, Cursor via symlink) |
+| `.claude/skills` | dir symlink → `.agents/skills/` | Claude Code reads skills here natively |
+| `.cursor/rules/<file>.md` | per-file symlink | Cursor picks up rule files |
+| `.cursor/commands` | dir symlink → `.spine/commands/` | Cursor slash commands |
+| `.cursor/skills` | dir symlink → `.agents/skills/` | Cursor picks up skills hub |
+| `.opencode/commands` | dir symlink → `.spine/commands/` | OpenCode slash commands |
+| `.gitignore` | entries added | Machine-specific dirs excluded from version control |
+
+### 0c.4 Skill selection
+
+- **`--skills=core`** (default): Only core skills.
+- **`--skills=all`**: All available skills from the Spine repository.
+- **`--skills=python-patterns,fastapi-pro`**: Specific comma-separated skills.
+- **`--add-skill=NAME`**: Add one skill to an existing install.
+- **`--remove-skill=NAME`**: Remove one skill from the project.
+- **`--list-skills`**: Show available and currently installed skills.
+
+If the project has `docs/governance/skills-policy.md`, use it as a guide for which skills to select.
+
+### 0c.5 Tool targets
+
+- **`--targets=cursor,opencode,claude`** (default): Install for all three tools.
+- **`--targets=opencode`**: Only OpenCode.
+- **`--targets=cursor,claude`**: Only Cursor and Claude Code.
+- Etc.
+
+### 0c.6 Idempotency
+
+- Re-running `--project` skips symlinks that are already correct.
+- Use `--force` to replace mismatched or broken symlinks.
+- Use `--dry-run` to preview changes without making them.
+
+---
+
 ## 1. Initial assessment (Project)
 
 - If `$ARGUMENTS` has content, integrate it here as a priority source along with repo code and configs.
@@ -153,4 +269,9 @@ Always include:
 - [ ] GitHub unavailability produces clear error message with manual download instructions (GitHub repo URL).
 - [ ] Individual file download failures do not block the entire bootstrap; remaining files continue to download.
 - [ ] After bootstrap, required paths for `spine-plan`, `spine-execute`, and `spine-harvest` commands exist (structure under `docs/memory/`).
-- [ ] Final summary clearly distinguishes: downloaded files, failed downloads, preserved content, and gaps filled during assessment.
+- [ ] After bootstrap, `opencode.json` exists in `PROJECT_ROOT` with `instructions` array containing all Spine rule URLs and `"./AGENTS.md"`.
+- [ ] If `opencode.json` already existed, existing user settings are preserved and Spine rule URLs are merged without duplicates.
+- [ ] The global `~/.config/opencode/opencode.json` does NOT contain Spine-specific `instructions` (project-level only).
+- [ ] After bootstrap, per-project symlinks are created via `bash .spine/install.sh --project` (step 0c): `.agents/skills/` with per-skill symlinks, `.claude/skills` and `.cursor/skills` pointing to `.agents/skills/`, `.cursor/rules/` with per-file rule symlinks, `.cursor/commands` and `.opencode/commands` pointing to `.spine/commands/`.
+- [ ] The `.gitignore` in the project includes entries for `.spine`, `.agents/`, `.cursor/`, `.claude/`, `.opencode/`, `AGENTS.md`, and `CLAUDE.md` (machine-specific files excluded from version control).
+- [ ] Final summary clearly distinguishes: downloaded files, failed downloads, preserved content, gaps filled during assessment, and symlinks created in step 0c.

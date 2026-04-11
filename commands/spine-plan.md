@@ -1,7 +1,7 @@
 ---
 description: Plan a task, create memory-bank artifact, and prepare test strategy
 agent: build
-model: opencode/qwen3.6-plus-free
+model: opencode-go/glm-5.1
 ---
 
 # Slash Command: /spine-plan

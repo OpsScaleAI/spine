@@ -1,7 +1,7 @@
 ---
 description: Enforce SPINE task and approval flow for native planning modes and conversational changes
 agent: build
-model: opencode/qwen3.6-plus-free
+model: opencode-go/glm-5.1
 ---
 
 # Slash Command: /spine-plan-bridge

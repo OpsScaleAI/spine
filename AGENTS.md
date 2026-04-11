@@ -254,8 +254,122 @@ Every non-trivial change must follow this cycle:
 - Changes to `templates/`, `commands/`, `skills/`, `rules/` should be versioned
 - Use `docs/memory/` to track Spine's own development progress
 
-### Installation (consumer projects)
-- Run `bash install.sh` to create global symlinks for OpenCode and Claude Code
-- Users run `/spine-bootstrap` which downloads from `templates/docs/*`
-- Memory bank created at `$PROJECT_ROOT/docs/`
+### Installation — Global (one-time)
+
+Run `bash install.sh` to create global symlinks for OpenCode, Cursor, and Claude Code:
+
+```bash
+bash install.sh            # conservative, never overwrites
+bash install.sh --force    # replaces existing dirs (creates .spine-backup)
+bash install.sh --dry-run  # preview without changes
+```
+
+This makes skills and commands available in **all** projects via `/skill` and `/command`, but does **not** inject Spine rules into any project.
+
+**Important:** The global `~/.config/opencode/opencode.json` must NOT contain Spine `instructions`. Rules are opt-in per project (see below).
+
+### Installation — Per Project (opt-in)
+
+Each project that follows the Spine framework must explicitly opt in. This involves two steps: creating `opencode.json` with Spine rule URLs, and running the per-project install script to create symlinks.
+
+#### Step 1: OpenCode configuration (`opencode.json`)
+
+Create an `opencode.json` in the project root with `instructions` pointing to Spine rule URLs:
+
+```json
+{
+  "$schema": "https://opencode.ai/config.json",
+  "instructions": [
+    "https://raw.githubusercontent.com/OpsScaleAI/spine/refs/heads/master/rules/01-core-protocol.md",
+    "https://raw.githubusercontent.com/OpsScaleAI/spine/refs/heads/master/rules/02-memory-bank.md",
+    "https://raw.githubusercontent.com/OpsScaleAI/spine/refs/heads/master/rules/03-handoff-protocol.md",
+    "https://raw.githubusercontent.com/OpsScaleAI/spine/refs/heads/master/rules/04-code-quality.md",
+    "https://raw.githubusercontent.com/OpsScaleAI/spine/refs/heads/master/rules/05-testing.md",
+    "https://raw.githubusercontent.com/OpsScaleAI/spine/refs/heads/master/rules/06-gitflow.md",
+    "./AGENTS.md"
+  ]
+}
+```
+
+The `/spine-bootstrap` command creates this file automatically (step 0b) along with the memory bank structure.
+
+**Why URL-based instead of local paths or symlinks?**
+- **Portable:** works on any machine without a local Spine clone
+- **Auto-updating:** OpenCode fetches rules on each session; `git push` propagates changes
+- **Versionable:** pin to a tag (`refs/tags/v1.0.0`) for stability, or use `refs/heads/master` for latest
+- **Composable:** `opencode.json` is plain JSON, safely committed to the project repo
+
+#### Step 2: Per-project symlinks (`install.sh --project`)
+
+Run the install script from inside the project to create symlinks for skills, commands, and tool-specific configuration:
+
+```bash
+# From the project root (after creating .spine symlink)
+ln -s /path/to/spine .spine
+bash .spine/install.sh --project
+
+# Or specify skill selection
+bash .spine/install.sh --project --skills=python-patterns,fastapi-pro
+
+# Preview without changes
+bash .spine/install.sh --project --dry-run
+```
+
+This creates the following structure:
+
+```
+PROJECT_ROOT/
+├── .spine                  → /path/to/spine         (symlink to repo)
+├── .agents/
+│   └── skills/                                  (per-skill symlinks hub)
+│       ├── python-patterns  → ../../.spine/skills/python-patterns
+│       └── fastapi-pro      → ../../.spine/skills/fastapi-pro
+├── .claude/
+│   └── skills              → ../.agents/skills/    (Claude Code native path)
+├── .cursor/
+│   ├── rules/                                   (per-file rule symlinks)
+│   │   └── 01-core-protocol.md → ../../.spine/rules/01-core-protocol.md
+│   ├── commands             → ../.spine/commands/
+│   └── skills               → ../.agents/skills/
+├── .opencode/
+│   └── commands             → ../.spine/commands/
+├── opencode.json                                 (GitHub URLs for rules)
+├── AGENTS.md                                     (project-level instructions)
+├── docs/memory/...                               (memory bank)
+└── .gitignore                                    (spine entries: .spine, .agents/, etc.)
+```
+
+**Why `.agents/skills/` as the hub?**
+- OpenCode discovers skills from `.agents/skills/<name>/SKILL.md` natively
+- Claude Code discovers skills from `.claude/skills/<name>/SKILL.md` natively
+- Cursor picks up skills via `.cursor/skills → .agents/skills/` symlink
+- One symlink per skill in `.agents/skills/`, then each tool points to this hub
+
+**Why per-skill symlinks instead of directory-level?**
+- Projects only see the skills they need (isolated per project)
+- Adding a new skill to the Spine repo doesn't automatically propagate to all projects
+- Follows the `docs/governance/skills-policy.md` allowlist (core skills + project-specific)
+
+**Skill management commands:**
+```bash
+bash .spine/install.sh --project --list-skills          # Show available/installed
+bash .spine/install.sh --project --add-skill=astro       # Add one skill
+bash .spine/install.sh --project --remove-skill=astro    # Remove one skill
+bash .spine/install.sh --project --skills=all             # Install all skills
+bash .spine/install.sh --project --targets=opencode      # Only OpenCode tooling
+```
+
+**Core skills** (installed by default with `--project`):
+- `writing-plans`
+- `executing-plans`
+- `test-driven-development`
+- `systematic-debugging`
+- `verification-before-completion`
+
+**Non-Spine projects** (e.g., LLM Wiki, experiments, third-party repos) simply don't include Spine URLs in their `opencode.json` and don't run the install script. They remain completely free of Spine rules while still having access to the global skills and commands catalog.
+
+### Consumer projects
+- Memory bank created at `$PROJECT_ROOT/docs/` by `/spine-bootstrap`
 - Consumer projects maintain their own memory bank independently
+- `opencode.json` in the project root is versioned and committed
+- Symlinks (`.spine`, `.agents/`, `.cursor/`, `.claude/`, `.opencode/`) are machine-specific and gitignored

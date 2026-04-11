@@ -1,7 +1,7 @@
 ---
 description: Consolidate final delivery, update memory-bank, and close the active task with learnings
 agent: build
-model: opencode/minimax-m2.5-free
+model: opencode-go/glm-5.1
 ---
 
 # Slash Command: /spine-harvest <plan_file_path>

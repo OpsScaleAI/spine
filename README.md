@@ -18,6 +18,7 @@ The goal is to avoid rebuilding process from scratch on every new repository.
 
 - Simplicity first: no overengineering.
 - Minimal rules, but non-optional.
+- Opt-in per project: Spine rules are only loaded when a project explicitly opts in.
 - Every delivery leaves quality evidence (test + memory + decision).
 - Lessons learned become operational standards.
 
@@ -43,36 +44,118 @@ spine/
 └── tests/
 ```
 
-## Quick Start (Recommended)
+## Setup
 
-Run the installer to create global symlinks for OpenCode and Claude Code:
+### 1. Global Installation (one-time)
+
+Clone Spine and run the installer. This makes skills and commands available in **all** projects via `/skill` and `/command`, but does **not** inject Spine rules into any project.
 
 ```bash
+git clone https://github.com/OpsScaleAI/spine.git
+cd spine
 bash install.sh
 ```
 
-This links skills, commands, and rules to their respective global config directories so they are available in any project.
+This creates:
+- `~/.config/opencode/skills/` → symlink to Spine `skills/`
+- `~/.config/opencode/commands/` → symlink to Spine `commands/`
+- `~/.cursor/rules/` → symlink to Spine `rules/`
+- `~/.claude/rules/` → symlink to Spine `rules/`
+- `~/.claude/skills/` → symlink to Spine `skills/`
+
+> **Important:** The global OpenCode config (`~/.config/opencode/opencode.json`) must **not** contain Spine `instructions`. Rules are opt-in per project (step 2 below). If you have an `instructions` key pointing to Spine rules in the global config, remove it — otherwise all projects (even non-Spine ones) will receive Spine rules.
+
+### 2. Per-Project Setup (opt-in)
+
+Each project that follows the Spine framework must explicitly opt in by creating an `opencode.json` in the project root with `instructions` pointing to Spine rule URLs. This is done automatically by running `/spine-bootstrap` inside a new project, or manually.
+
+#### Option A: Using /spine-bootstrap (recommended)
+
+Open a project in OpenCode and run:
+
+```
+/spine-bootstrap
+```
+
+This command will:
+1. Download memory bank templates from GitHub to `docs/memory/`
+2. Create `opencode.json` with Spine rule URLs and `"./AGENTS.md"` in `instructions`
+3. Create `AGENTS.md` if it doesn't exist
+4. Perform initial project assessment and populate memory bank
+
+#### Option B: Manual setup
+
+Create `opencode.json` in your project root:
+
+```json
+{
+  "$schema": "https://opencode.ai/config.json",
+  "instructions": [
+    "https://raw.githubusercontent.com/OpsScaleAI/spine/refs/heads/master/rules/01-core-protocol.md",
+    "https://raw.githubusercontent.com/OpsScaleAI/spine/refs/heads/master/rules/02-memory-bank.md",
+    "https://raw.githubusercontent.com/OpsScaleAI/spine/refs/heads/master/rules/03-handoff-protocol.md",
+    "https://raw.githubusercontent.com/OpsScaleAI/spine/refs/heads/master/rules/04-code-quality.md",
+    "https://raw.githubusercontent.com/OpsScaleAI/spine/refs/heads/master/rules/05-testing.md",
+    "https://raw.githubusercontent.com/OpsScaleAI/spine/refs/heads/master/rules/06-gitflow.md",
+    "./AGENTS.md"
+  ]
+}
+```
+
+Then commit `opencode.json` to the project repository.
+
+> **Why URLs instead of local paths?**
+> - **Portable:** works on any machine without a local Spine clone
+> - **Auto-updating:** OpenCode fetches rules on each session; `git push` on Spine propagates changes
+> - **Versionable:** pin to a tag (`refs/tags/v1.0.0`) for stability, or use `refs/heads/master` for latest
+> - **Commitable:** `opencode.json` is plain JSON, safe to commit to the project repo
+
+#### Version Pinning
+
+To lock Spine rules to a specific version, replace `refs/heads/master` with `refs/tags/v1.0.0`:
+
+```
+https://raw.githubusercontent.com/OpsScaleAI/spine/refs/tags/v1.0.0/rules/01-core-protocol.md
+```
+
+### 3. Non-Spine Projects
+
+Projects that do **not** follow the Spine framework simply don't include Spine rule URLs in their `opencode.json`. They remain completely free of Spine rules while still having access to the global skills and commands catalog.
+
+Example `opencode.json` for a non-Spine project:
+
+```json
+{
+  "$schema": "https://opencode.ai/config.json",
+  "model": "opencode-go/glm-5.1"
+}
+```
+
+### 4. Updating Spine Rules
+
+- **Rules:** No action needed. Projects using URL-based `instructions` automatically receive updates when OpenCode fetches the rules on each session.
+- **Skills and Commands:** Run `git pull` in the Spine repository. Global symlinks point to the local clone, so updates are immediate.
+
+## Cursor Setup
 
 > **Cursor users:** Global rules require manual setup via `Cursor Settings → General → Rules for AI`. Project rules go in `.cursor/rules/` (supports both `.md` and `.mdc`).
 
-### Manual Symlink Setup
+## Compatibility (Claude Code and Other Tools)
 
-If you prefer manual setup, link SPINE into your project:
+SPINE also works with Claude Code and other AI agents.
 
-```bash
-ln -s /path/to/spine/commands /path/to/your-project/commands-spine
-ln -s /path/to/spine/skills /path/to/your-project/skills-spine
-```
+The `install.sh` script creates global symlinks for both OpenCode and Claude Code automatically. For other tools, you may need to adapt paths or file names to match the expected format.
 
-## Installation and Use (Cursor + Opencode)
+## Slash Commands
 
-SPINE was designed primarily for Cursor + Opencode workflows.
+Available command templates in `commands/`:
+- `/spine-bootstrap` for initial project assessment and memory bootstrap.
+- `/spine-plan` to create the active task plan in memory-bank.
+- `/spine-execute` to implement the selected active task with validation cycle.
+- `/spine-harvest` to consolidate delivery learnings and close the task.
+- `/spine-commit` to create a high-quality commit with branch safety checks.
 
-Recommended setup:
-1. Clone this repository locally.
-2. Keep `docs/`, `skills/`, and `commands/` in SPINE as the canonical source.
-3. Link SPINE into your working project with symlinks.
-4. Follow your project-local policy to activate only the necessary skills.
+## Skill Governance
 
 Practical skill activation strategy:
 - Keep the full `skills/` directory in SPINE.
@@ -80,21 +163,6 @@ Practical skill activation strategy:
 - Start with one base profile from `docs/governance/skills-policy.md`.
 - Add at most two temporary trial skills.
 - Target 5 to 8 active skills per project to reduce context noise.
-
-### Slash Commands
-
-Available command templates in `commands/`:
-- `/spine-bootstrap` for initial project assessment and memory bootstrap.
-- `/spine-plan` to create the active task plan in memory-bank.
-- `/spine-execute` to implement the selected active task with validation cycle.
-- `/spine-harvest` to consolidate delivery learnings and close the task.
-- `/spine-commit` to create a high-quality commit with branch safety checks (solo default: push and confirm-before-merge; no default PR nudge).
-
-## Compatibility (Claude Code and Other Tools)
-
-SPINE also works with Claude Code and other AI agents.
-
-The `install.sh` script creates global symlinks for both OpenCode and Claude Code automatically. For other tools, you may need to adapt paths or file names to match the expected format.
 
 ## Operational Workflow
 
@@ -147,11 +215,23 @@ flowchart TD
 
 ## Version
 
+**v1.1.0** — Per-project installation via URL.
+
+- Rules loaded via remote URLs in project-level `opencode.json` (opt-in)
+- `/spine-bootstrap` creates `opencode.json` with Spine rule URLs automatically
+- Global config no longer contains Spine instructions (non-Spine projects unaffected)
+- Skills and commands remain globally available via symlinks
+
+<details>
+<summary>Version history</summary>
+
 **v1.0.0** — First stable release with global installation support.
 
 - `install.sh` creates symlinks for Cursor, OpenCode, and Claude Code
 - Rules in universal `.md` format (compatible with all agents)
 - 34 curated skills, 6 slash commands, 6 framework rules
+
+</details>
 
 ## References and Credits
 
