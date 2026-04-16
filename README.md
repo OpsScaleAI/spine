@@ -67,21 +67,20 @@ This creates:
 
 ### 2. Per-Project Setup (opt-in)
 
-Each project that follows the Spine framework must explicitly opt in by creating an `opencode.json` in the project root with `instructions` pointing to Spine rule URLs. This is done automatically by running `/spine-bootstrap` inside a new project, or manually.
+Each project that follows the Spine framework must explicitly opt in by creating an `opencode.json` in the project root with `instructions` pointing to Spine rule URLs. This is done automatically by running `/spine-install` inside a new project, or manually.
 
-#### Option A: Using /spine-bootstrap (recommended)
+#### Option A: Using /spine-install + /spine-bootstrap (recommended)
 
 Open a project in OpenCode and run:
 
 ```
+/spine-install
 /spine-bootstrap
 ```
 
-This command will:
-1. Download memory bank templates from GitHub to `docs/memory/`
-2. Create `opencode.json` with Spine rule URLs and `"./AGENTS.md"` in `instructions`
-3. Create `AGENTS.md` if it doesn't exist
-4. Perform initial project assessment and populate memory bank
+These commands will:
+1. `/spine-install`: download templates to `docs/`, configure `opencode.json`, and run `install.sh --project` for symlinks.
+2. `/spine-bootstrap`: perform initial project assessment and populate memory bank.
 
 #### Option B: Manual setup
 
@@ -149,6 +148,7 @@ The `install.sh` script creates global symlinks for both OpenCode and Claude Cod
 ## Slash Commands
 
 Available command templates in `commands/`:
+- `/spine-install` for project setup (templates, config, and symlinks).
 - `/spine-bootstrap` for initial project assessment and memory bootstrap.
 - `/spine-plan` to create the active task plan in memory-bank.
 - `/spine-execute` to implement the selected active task with validation cycle.
@@ -218,7 +218,7 @@ flowchart TD
 **v1.1.0** — Per-project installation via URL.
 
 - Rules loaded via remote URLs in project-level `opencode.json` (opt-in)
-- `/spine-bootstrap` creates `opencode.json` with Spine rule URLs automatically
+- `/spine-install` creates `opencode.json` with Spine rule URLs automatically
 - Global config no longer contains Spine instructions (non-Spine projects unaffected)
 - Skills and commands remain globally available via symlinks
 
