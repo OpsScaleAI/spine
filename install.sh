@@ -16,7 +16,7 @@ set -uo pipefail
 #   bash install.sh                            # Global install (conservative)
 #   bash install.sh --force                    # Global install (replace existing)
 #   bash install.sh --dry-run                  # Preview without changes
-#   bash install.sh --project                  # Project install (core skills)
+#   bash install.sh --project                  # Project install (all skills)
 #   bash install.sh --project --skills=all     # Project install (all skills)
 #   bash install.sh --project --skills=a,b,c   # Project install (specific skills)
 #   bash install.sh --project --add-skill=x   # Add a skill to existing project
@@ -60,7 +60,7 @@ for arg in "$@"; do
             echo "Project mode:"
             echo "  --project            Install per-project symlinks (inside git repo)"
             echo "  --spine-dir=PATH     Path to Spine repository (default: auto-detect)"
-            echo "  --skills=core|all|a,b,c  Skill selection (default: core)"
+            echo "  --skills=core|all|a,b,c  Skill selection (default: all)"
             echo "  --add-skill=NAME     Add a single skill to existing project"
             echo "  --remove-skill=NAME  Remove a single skill from project"
             echo "  --list-skills        List available and installed skills"
@@ -131,7 +131,7 @@ detect_os() {
 OS="$(detect_os)"
 
 # ---------------------------------------------------------------------------
-# Core Skills (always installed in project mode by default)
+# Core Skills (base profile)
 # ---------------------------------------------------------------------------
 
 CORE_SKILLS=(
@@ -143,17 +143,30 @@ CORE_SKILLS=(
 )
 
 # ---------------------------------------------------------------------------
-# Rule Files (for Cursor per-file symlinks)
+# Dynamic Discovery Functions
 # ---------------------------------------------------------------------------
 
-RULE_FILES=(
-    "01-core-protocol.md"
-    "02-memory-bank.md"
-    "03-handoff-protocol.md"
-    "04-code-quality.md"
-    "05-testing.md"
-    "06-gitflow.md"
-)
+get_rule_files() {
+    local rules_dir="$SPINE_DIR/rules"
+    if [[ ! -d "$rules_dir" ]]; then
+        return
+    fi
+    local rule_file
+    for rule_file in "$rules_dir"/*.md; do
+        [[ -f "$rule_file" ]] && basename "$rule_file"
+    done | sort
+}
+
+get_command_files() {
+    local commands_dir="$SPINE_DIR/commands"
+    if [[ ! -d "$commands_dir" ]]; then
+        return
+    fi
+    local command_file
+    for command_file in "$commands_dir"/*.md; do
+        [[ -f "$command_file" ]] && basename "$command_file"
+    done | sort
+}
 
 # ---------------------------------------------------------------------------
 # Gitignore entries for consumer projects (not versioned)
@@ -588,9 +601,9 @@ get_installed_skills() {
 
 resolve_skills() {
     local skills_arg="$1"
-    if [[ "$skills_arg" == "all" ]]; then
+    if [[ "$skills_arg" == "all" || -z "$skills_arg" ]]; then
         get_available_skills
-    elif [[ -z "$skills_arg" || "$skills_arg" == "core" ]]; then
+    elif [[ "$skills_arg" == "core" ]]; then
         printf '%s\n' "${CORE_SKILLS[@]}"
     else
         echo "$skills_arg" | tr ',' '\n'
@@ -642,7 +655,7 @@ install_project_cursor() {
     echo ""
     echo "Rules (per-file symlinks):"
     local rule_file
-    for rule_file in "${RULE_FILES[@]}"; do
+    for rule_file in $(get_rule_files); do
         local source_abs="$SPINE_DIR/rules/$rule_file"
         if [[ ! -f "$source_abs" ]]; then
             log_warn "Rule '$rule_file' not found, skipping"
@@ -653,9 +666,21 @@ install_project_cursor() {
         create_relative_symlink "$rel_target" "$link_path" "rule: $rule_file"; tally $?
     done
 
+    mkdir_p "$cursor_commands"
+
     echo ""
-    echo "Commands (directory symlink):"
-    create_relative_symlink "../.spine/commands" "$cursor_commands" "commands"; tally $?
+    echo "Commands (per-file symlinks):"
+    local command_file
+    for command_file in $(get_command_files); do
+        local source_abs="$SPINE_DIR/commands/$command_file"
+        if [[ ! -f "$source_abs" ]]; then
+            log_warn "Command '$command_file' not found, skipping"
+            continue
+        fi
+        local link_path="$cursor_commands/$command_file"
+        local rel_target="../../.spine/commands/$command_file"
+        create_relative_symlink "$rel_target" "$link_path" "command: $command_file"; tally $?
+    done
 
     echo ""
     echo "Skills (symlink to .agents/skills/):"
@@ -685,9 +710,21 @@ install_project_opencode() {
     echo ""
     echo "=== OpenCode (project-level) ==="
 
+    mkdir_p "$oc_commands"
+
     echo ""
-    echo "Commands (directory symlink):"
-    create_relative_symlink "../.spine/commands" "$oc_commands" "commands"; tally $?
+    echo "Commands (per-file symlinks):"
+    local command_file
+    for command_file in $(get_command_files); do
+        local source_abs="$SPINE_DIR/commands/$command_file"
+        if [[ ! -f "$source_abs" ]]; then
+            log_warn "Command '$command_file' not found, skipping"
+            continue
+        fi
+        local link_path="$oc_commands/$command_file"
+        local rel_target="../../.spine/commands/$command_file"
+        create_relative_symlink "$rel_target" "$link_path" "command: $command_file"; tally $?
+    done
 }
 
 # --- Add gitignore entries for consumer project ---
@@ -871,9 +908,9 @@ print_project_summary() {
     echo "  .agents/skills/        (per-skill symlinks)"
     echo "  .claude/skills      -> .agents/skills/"
     echo "  .cursor/rules/         (per-file rule symlinks)"
-    echo "  .cursor/commands    -> .spine/commands/"
+    echo "  .cursor/commands/      (per-file command symlinks)"
     echo "  .cursor/skills      -> .agents/skills/"
-    echo "  .opencode/commands  -> .spine/commands/"
+    echo "  .opencode/commands/    (per-file command symlinks)"
     echo ""
     echo "  Rules:      opencode.json (GitHub URLs)"
     echo "  Skills:     docs/governance/skills-policy.md"
@@ -918,7 +955,7 @@ if $PROJECT_MODE; then
     chmod_scripts
 
     # Resolve skill list
-    SKILL_LIST="$(resolve_skills "${SKILLS_ARG:-core}")"
+    SKILL_LIST="$(resolve_skills "${SKILLS_ARG:-all}")"
 
     echo ""
     echo "Skills to install:"
