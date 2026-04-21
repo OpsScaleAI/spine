@@ -35,6 +35,8 @@ spine/
 ├── docs/ (internal Spine use - not versioned)
 ├── commands/
 │   ... (execution command templates)
+├── modes/
+│   ... (OpenCode mode definitions)
 ├── skills/
 │   ... (curated skill repository)
 ├── rules/
@@ -59,6 +61,7 @@ bash install.sh
 This creates:
 - `~/.config/opencode/skills/` → symlink to Spine `skills/`
 - `~/.config/opencode/commands/` → symlink to Spine `commands/`
+- `~/.config/opencode/modes/` → per-file symlinks to Spine `modes/`
 - `~/.cursor/rules/` → symlink to Spine `rules/`
 - `~/.claude/rules/` → symlink to Spine `rules/`
 - `~/.claude/skills/` → symlink to Spine `skills/`
@@ -155,6 +158,14 @@ Available command templates in `commands/`:
 - `/spine-harvest` to consolidate delivery learnings and close the task.
 - `/spine-commit` to create a high-quality commit with branch safety checks.
 
+## OpenCode Modes
+
+Available mode definitions in `modes/`:
+
+- **ASK** (`ask.md`) — A thinking partner, not an executor. Explore ideas, validate approaches, and discuss architecture without making any file changes. Bash commands require approval (read-only exploration). Switch to Build mode (Tab key) when ready to implement.
+
+Modes are deployed globally to `~/.config/opencode/modes/` (available in all projects).
+
 ## Skill Governance
 
 Practical skill activation strategy:
@@ -214,6 +225,15 @@ flowchart TD
 - Fernando Juste - juste@opsscale.ai
 
 ## Version
+
+**v1.2.0** — ASK mode and modes deployment.
+
+- Added `modes/ask.md` — ASK mode for OpenCode (explore ideas, read-only)
+- `install.sh` now deploys mode files to `~/.config/opencode/modes/` (global) and `.opencode/modes/` (project)
+- Per-file symlinks for modes (does not overwrite user's existing modes)
+
+<details>
+<summary>Version history</summary>
 
 **v1.1.0** — Per-project installation via URL.
 

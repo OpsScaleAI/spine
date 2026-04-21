@@ -16,13 +16,16 @@ set -uo pipefail
 #   bash install.sh                            # Global install (conservative)
 #   bash install.sh --force                    # Global install (replace existing)
 #   bash install.sh --dry-run                  # Preview without changes
-#   bash install.sh --project                  # Project install (all skills)
+#   bash install.sh --project                  # Project install (core skills)
 #   bash install.sh --project --skills=all     # Project install (all skills)
+#   bash install.sh --project --skills=core    # Project install (core skills)
 #   bash install.sh --project --skills=a,b,c   # Project install (specific skills)
-#   bash install.sh --project --add-skill=x   # Add a skill to existing project
+#   bash install.sh --project --add-skill=x    # Add a skill to existing project
 #   bash install.sh --project --remove-skill=x # Remove a skill from project
 #   bash install.sh --project --list-skills    # List available/installed skills
-#   bash install.sh --project --dry-run        # Preview project install
+#   bash install.sh --project --update         # Update: install + cleanup dangling
+#   bash install.sh --project --uninstall     # Remove all Spine artefacts from project
+#   bash install.sh --project --dry-run       # Preview project install
 # =============================================================================
 
 # ---------------------------------------------------------------------------
@@ -32,6 +35,8 @@ set -uo pipefail
 FORCE=false
 DRY_RUN=false
 PROJECT_MODE=false
+UPDATE_MODE=false
+UNINSTALL_MODE=false
 SPINE_DIR_CUSTOM=""
 SKILLS_ARG=""
 ADD_SKILL=""
@@ -44,6 +49,8 @@ for arg in "$@"; do
         --force)          FORCE=true ;;
         --dry-run)        DRY_RUN=true ;;
         --project)        PROJECT_MODE=true ;;
+        --update)         PROJECT_MODE=true; UPDATE_MODE=true ;;
+        --uninstall)      PROJECT_MODE=true; UNINSTALL_MODE=true ;;
         --spine-dir=*)    SPINE_DIR_CUSTOM="${arg#--spine-dir=}" ;;
         --skills=*)       SKILLS_ARG="${arg#--skills=}" ;;
         --add-skill=*)    ADD_SKILL="${arg#--add-skill=}" ;;
@@ -59,20 +66,24 @@ for arg in "$@"; do
             echo ""
             echo "Project mode:"
             echo "  --project            Install per-project symlinks (inside git repo)"
+            echo "  --update             Update: install missing + cleanup dangling symlinks"
+            echo "  --uninstall          Remove all Spine artefacts from project"
             echo "  --spine-dir=PATH     Path to Spine repository (default: auto-detect)"
-            echo "  --skills=core|all|a,b,c  Skill selection (default: all)"
+            echo "  --skills=core|all|a,b,c  Skill selection (default: core)"
             echo "  --add-skill=NAME     Add a single skill to existing project"
             echo "  --remove-skill=NAME  Remove a single skill from project"
             echo "  --list-skills        List available and installed skills"
-            echo "  --targets=LIST      Comma-separated: cursor,opencode,claude"
+            echo "  --targets=LIST       Comma-separated: cursor,opencode,claude"
             echo "  --dry-run            Preview without making changes"
             echo ""
             echo "Examples:"
             echo "  bash install.sh --project"
             echo "  bash install.sh --project --skills=python-patterns,fastapi-pro"
+            echo "  bash install.sh --project --update"
             echo "  bash install.sh --project --list-skills"
             echo "  bash install.sh --project --add-skill=astro"
             echo "  bash install.sh --project --remove-skill=astro"
+            echo "  bash install.sh --project --uninstall"
             exit 0
             ;;
         *)
@@ -201,6 +212,8 @@ SKIPPED=0
 CONFLICTS=0
 BACKED_UP=0
 WARNINGS=0
+CLEANED=0
+HEALTH_ISSUES=0
 
 # ---------------------------------------------------------------------------
 # Helper Functions (Shared)
@@ -634,7 +647,9 @@ get_installed_skills() {
 
 resolve_skills() {
     local skills_arg="$1"
-    if [[ "$skills_arg" == "all" || -z "$skills_arg" ]]; then
+    if [[ -z "$skills_arg" ]]; then
+        printf '%s\n' "${CORE_SKILLS[@]}"
+    elif [[ "$skills_arg" == "all" ]]; then
         get_available_skills
     elif [[ "$skills_arg" == "core" ]]; then
         printf '%s\n' "${CORE_SKILLS[@]}"
@@ -899,6 +914,320 @@ remove_skill() {
     return 0
 }
 
+# --- Cleanup dangling symlinks in a directory ---
+# Scans a directory for symlinks that point to nonexistent targets.
+# Arguments: directory_path category_name
+# Returns: number of dangling symlinks cleaned.
+
+cleanup_dangling_in_dir() {
+    local dir_path="$1"
+    local category="$2"
+    local count=0
+
+    if [[ ! -d "$dir_path" ]]; then
+        return 0
+    fi
+
+    local link target
+    for link in "$dir_path"/*; do
+        [[ -L "$link" ]] || continue
+        target="$(readlink "$link")"
+        if [[ "$target" = /* ]]; then
+            if [[ ! -e "$target" ]]; then
+                if $DRY_RUN; then
+                    echo "  [DRY-RUN] Would remove dangling: $category/$(basename "$link")"
+                else
+                    rm "$link"
+                    log_linked "removed dangling: $category/$(basename "$link")"
+                fi
+                count=$((count + 1))
+            fi
+        else
+            local parent_dir
+            parent_dir="$(dirname "$link")"
+            if [[ ! -e "$parent_dir/$target" ]]; then
+                if $DRY_RUN; then
+                    echo "  [DRY-RUN] Would remove dangling: $category/$(basename "$link")"
+                else
+                    rm "$link"
+                    log_linked "removed dangling: $category/$(basename "$link")"
+                fi
+                count=$((count + 1))
+            fi
+        fi
+    done
+
+    echo "$count"
+}
+
+# --- Cleanup all dangling symlinks in project ---
+
+cleanup_dangling_symlinks() {
+    local project_root="$1"
+    local total=0
+    local sub
+
+    echo ""
+    echo "Cleanup (dangling symlinks):"
+
+    sub="$(cleanup_dangling_in_dir "$project_root/.agents/skills" "skills")"
+    total=$((total + sub))
+
+    sub="$(cleanup_dangling_in_dir "$project_root/.cursor/rules" "cursor/rules")"
+    total=$((total + sub))
+
+    sub="$(cleanup_dangling_in_dir "$project_root/.cursor/commands" "cursor/commands")"
+    total=$((total + sub))
+
+    sub="$(cleanup_dangling_in_dir "$project_root/.opencode/commands" "opencode/commands")"
+    total=$((total + sub))
+
+    sub="$(cleanup_dangling_in_dir "$project_root/.opencode/modes" "opencode/modes")"
+    total=$((total + sub))
+
+    CLEANED=$total
+
+    if [[ $total -eq 0 ]]; then
+        log_skipped "No dangling symlinks found"
+    else
+        log_info "$total dangling symlink(s) removed"
+    fi
+}
+
+# --- Validate health of project symlinks ---
+
+validate_health() {
+    local project_root="$1"
+    local issues=0
+
+    echo ""
+    echo "Health check:"
+
+    if [[ ! -L "$project_root/.spine" ]]; then
+        log_warn ".spine symlink is missing"
+        issues=$((issues + 1))
+    else
+        local spine_target
+        spine_target="$(readlink "$project_root/.spine")"
+        if [[ ! -d "$project_root/.spine" ]]; then
+            log_warn ".spine points to nonexistent: $spine_target"
+            issues=$((issues + 1))
+        elif [[ ! -d "$project_root/.spine/rules" || ! -d "$project_root/.spine/skills" ]]; then
+            log_warn ".spine target is missing rules/ or skills/"
+            issues=$((issues + 1))
+        else
+            log_skipped ".spine symlink OK"
+        fi
+    fi
+
+    local check_dirs=(
+        "$project_root/.agents/skills"
+        "$project_root/.cursor/rules"
+        "$project_root/.cursor/commands"
+        "$project_root/.opencode/commands"
+    )
+    local dir label
+    for dir in "${check_dirs[@]}"; do
+        label="$(basename "$(dirname "$dir")")/$(basename "$dir")"
+        if [[ ! -d "$dir" ]]; then
+            log_warn "$label directory is missing"
+            issues=$((issues + 1))
+            continue
+        fi
+        local link target broken=0 total_links=0
+        for link in "$dir"/*; do
+            [[ -L "$link" ]] || continue
+            total_links=$((total_links + 1))
+            target="$(readlink "$link")"
+            if [[ "$target" = /* ]]; then
+                [[ -e "$target" ]] || { broken=$((broken + 1)); }
+            else
+                local parent
+                parent="$(dirname "$link")"
+                [[ -e "$parent/$target" ]] || { broken=$((broken + 1)); }
+            fi
+        done
+        if [[ $broken -gt 0 ]]; then
+            log_warn "$label: $broken broken symlink(s) out of $total_links"
+            issues=$((issues + 1))
+        else
+            log_skipped "$label: $total_links symlink(s) OK"
+        fi
+    done
+
+    local dir_symlinks=(
+        "$project_root/.cursor/skills"
+        "$project_root/.claude/skills"
+    )
+    local s s_target
+    for s in "${dir_symlinks[@]}"; do
+        label="$(basename "$(dirname "$s")")/$(basename "$s")"
+        if [[ ! -L "$s" ]]; then
+            log_warn "$label is not a symlink"
+            issues=$((issues + 1))
+        elif [[ ! -d "$s" ]]; then
+            s_target="$(readlink "$s")"
+            log_warn "$label points to nonexistent: $s_target"
+            issues=$((issues + 1))
+        else
+            log_skipped "$label OK"
+        fi
+    done
+
+    HEALTH_ISSUES=$issues
+
+    if [[ $issues -eq 0 ]]; then
+        printf "\n  \033[32m✓\033[0m All symlinks are healthy\n"
+    else
+        printf "\n  \033[33m⚠\033[0m %d issue(s) found\n" "$issues"
+    fi
+}
+
+# --- Copy templates (opencode.json, AGENTS.md) into project ---
+
+copy_templates() {
+    local project_root="$1"
+    local templates_dir="$SPINE_DIR/templates"
+
+    echo ""
+    echo "Templates:"
+
+    if [[ ! -d "$templates_dir" ]]; then
+        log_warn "templates/ directory not found in $SPINE_DIR"
+        return
+    fi
+
+    local template_files=("opencode.json" "AGENTS.md")
+    local tf dest
+
+    for tf in "${template_files[@]}"; do
+        if [[ ! -f "$templates_dir/$tf" ]]; then
+            log_skipped "$tf (not found in templates/)"
+            continue
+        fi
+
+        dest="$project_root/$tf"
+
+        if [[ -f "$dest" ]]; then
+            log_skipped "$tf (already exists in project, not overwriting)"
+            continue
+        fi
+
+        if $DRY_RUN; then
+            echo "  [DRY-RUN] Would copy: $tf"
+        else
+            cp "$templates_dir/$tf" "$dest"
+            log_linked "$tf (copied from templates/)"
+        fi
+    done
+}
+
+# --- Uninstall all Spine artefacts from project ---
+
+uninstall_project() {
+    local project_root="$1"
+
+    echo "Spine Project Uninstaller"
+    echo "Repository: $SPINE_DIR"
+    echo "Project:    $project_root"
+    echo ""
+
+    local removed=0
+
+    remove_symlink_or_dir() {
+        local path="$1"
+        local label="$2"
+        if [[ -L "$path" ]]; then
+            if $DRY_RUN; then
+                echo "  [DRY-RUN] Would remove symlink: $label"
+            else
+                rm "$path"
+                log_linked "removed: $label"
+            fi
+            removed=$((removed + 1))
+        elif [[ -d "$path" ]]; then
+            local is_empty
+            is_empty="$(find "$path" -maxdepth 1 -not -name '.' -not -name '..' | head -1)"
+            if [[ -z "$is_empty" ]]; then
+                if $DRY_RUN; then
+                    echo "  [DRY-RUN] Would remove empty directory: $label"
+                else
+                    rmdir "$path"
+                    log_linked "removed: $label (empty dir)"
+                fi
+                removed=$((removed + 1))
+            else
+                log_warn "$label (directory not empty, skipping)"
+            fi
+        fi
+    }
+
+    echo "Removing per-file symlinks:"
+
+    local dirs_to_clean=(
+        "$project_root/.agents/skills"
+        "$project_root/.cursor/rules"
+        "$project_root/.cursor/commands"
+        "$project_root/.opencode/commands"
+    )
+
+    local d f
+    for d in "${dirs_to_clean[@]}"; do
+        if [[ -d "$d" ]]; then
+            for f in "$d"/*; do
+                [[ -L "$f" ]] || continue
+                if $DRY_RUN; then
+                    echo "  [DRY-RUN] Would remove: $(basename "$d")/$(basename "$f")"
+                else
+                    rm "$f"
+                    log_linked "removed: $(basename "$d")/$(basename "$f")"
+                fi
+                removed=$((removed + 1))
+            done
+        fi
+    done
+
+    echo ""
+    echo "Removing directory symlinks:"
+
+    remove_symlink_or_dir "$project_root/.cursor/skills" ".cursor/skills"
+    remove_symlink_or_dir "$project_root/.claude/skills" ".claude/skills"
+
+    echo ""
+    echo "Removing Spine directories (if empty):"
+
+    for d in "${dirs_to_clean[@]}"; do
+        if [[ -d "$d" ]]; then
+            remove_symlink_or_dir "$d" "$(echo "$d" | sed "s|^$project_root/||")"
+        fi
+    done
+
+    remove_symlink_or_dir "$project_root/.cursor" ".cursor"
+    remove_symlink_or_dir "$project_root/.claude" ".claude"
+    remove_symlink_or_dir "$project_root/.opencode" ".opencode"
+    remove_symlink_or_dir "$project_root/.agents" ".agents"
+
+    echo ""
+    echo "Removing .spine symlink:"
+    remove_symlink_or_dir "$project_root/.spine" ".spine"
+
+    echo ""
+    echo "==========================================="
+    echo "  Spine Project Uninstall Summary"
+    echo "==========================================="
+    echo ""
+    if $DRY_RUN; then
+        echo "  (dry-run preview, no changes made)"
+    else
+        echo "  Removed: $removed artefact(s)"
+    fi
+    echo ""
+    echo "  Note: opencode.json and AGENTS.md were NOT removed."
+    echo "  Remove them manually if no longer needed."
+    echo ""
+    echo "==========================================="
+}
+
 # --- Project install summary ---
 
 print_project_summary() {
@@ -920,6 +1249,7 @@ print_project_summary() {
     echo ""
     echo "  Linked   : $LINKED"
     echo "  Skipped  : $SKIPPED (already correct)"
+    echo "  Cleaned  : $CLEANED (dangling symlinks removed)"
     echo "  Conflicts: $CONFLICTS"
     echo "  Warnings : $WARNINGS"
     echo ""
@@ -977,18 +1307,25 @@ if $PROJECT_MODE; then
         exit $?
     fi
 
+    # Handle --uninstall
+    if $UNINSTALL_MODE; then
+        uninstall_project "$PROJECT_ROOT"
+        exit 0
+    fi
+
     echo "Spine Project Installer"
     echo "Repository: $SPINE_DIR"
     echo "Project:    $PROJECT_ROOT"
     echo "Targets:    $TARGETS"
     echo "OS:         $OS"
     if $FORCE; then echo "Mode: force (will replace existing symlinks)"; fi
+    if $UPDATE_MODE; then echo "Mode: update (install + cleanup dangling)"; fi
     if $DRY_RUN; then echo "Mode: dry-run (preview only)"; fi
 
     chmod_scripts
 
-    # Resolve skill list
-    SKILL_LIST="$(resolve_skills "${SKILLS_ARG:-all}")"
+    # Resolve skill list (default: core)
+    SKILL_LIST="$(resolve_skills "${SKILLS_ARG:-core}")"
 
     echo ""
     echo "Skills to install:"
@@ -1029,8 +1366,19 @@ if $PROJECT_MODE; then
         install_project_claude "$PROJECT_ROOT"
     fi
 
+    # Copy templates (opencode.json, AGENTS.md) if not present
+    copy_templates "$PROJECT_ROOT"
+
     # Add gitignore entries
     add_gitignore_entries "$PROJECT_ROOT"
+
+    # Cleanup dangling symlinks (only in update mode)
+    if $UPDATE_MODE; then
+        cleanup_dangling_symlinks "$PROJECT_ROOT"
+    fi
+
+    # Health check (always, silent in install mode, verbose in update mode)
+    validate_health "$PROJECT_ROOT"
 
     print_project_summary "$PROJECT_ROOT"
 
