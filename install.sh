@@ -168,6 +168,17 @@ get_command_files() {
     done | sort
 }
 
+get_mode_files() {
+    local modes_dir="$SPINE_DIR/modes"
+    if [[ ! -d "$modes_dir" ]]; then
+        return
+    fi
+    local mode_file
+    for mode_file in "$modes_dir"/*.md; do
+        [[ -f "$mode_file" ]] && basename "$mode_file"
+    done | sort
+}
+
 # ---------------------------------------------------------------------------
 # Gitignore entries for consumer projects (not versioned)
 # ---------------------------------------------------------------------------
@@ -178,8 +189,7 @@ PROJECT_GITIGNORE_ENTRIES=(
     ".cursor/"
     ".claude/"
     ".opencode/"
-    "AGENTS.md"
-    "CLAUDE.md"
+    "AGENTS-original.md"
 )
 
 # ---------------------------------------------------------------------------
@@ -392,6 +402,7 @@ CURSOR_COMMANDS="$CURSOR_DIR/commands"
 OC_CONFIG_DIR="${XDG_CONFIG_HOME:-$HOME/.config}/opencode"
 OC_SKILLS="$OC_CONFIG_DIR/skills"
 OC_COMMANDS="$OC_CONFIG_DIR/commands"
+OC_MODES="$OC_CONFIG_DIR/modes"
 
 CLAUDE_DIR="$HOME/.claude"
 CLAUDE_RULES="$CLAUDE_DIR/rules"
@@ -400,6 +411,7 @@ CLAUDE_SKILLS="$CLAUDE_DIR/skills"
 SPINE_RULES="$SPINE_DIR/rules"
 SPINE_SKILLS="$SPINE_DIR/skills"
 SPINE_COMMANDS="$SPINE_DIR/commands"
+SPINE_MODES="$SPINE_DIR/modes"
 
 install_cursor() {
     echo ""
@@ -435,6 +447,26 @@ install_opencode() {
     echo ""
     echo "Commands:"
     create_dir_symlink "$SPINE_COMMANDS" "$OC_COMMANDS" "commands"; tally $?
+
+    echo ""
+    echo "Modes (per-file symlinks):"
+    mkdir_p "$OC_MODES"
+    local mode_file
+    for mode_file in $(get_mode_files); do
+        local source_abs="$SPINE_DIR/modes/$mode_file"
+        if [[ ! -f "$source_abs" ]]; then
+            log_warn "Mode '$mode_file' not found, skipping"
+            continue
+        fi
+        local link_path="$OC_MODES/$mode_file"
+        if $DRY_RUN; then
+            echo "  [DRY-RUN] Would link: mode: $mode_file"
+            echo "             $link_path -> $source_abs"
+        else
+            ln -sf "$source_abs" "$link_path"
+            log_linked "mode: $mode_file"
+        fi
+    done
 }
 
 install_claude() {
@@ -490,6 +522,7 @@ print_summary() {
     echo "             $CURSOR_COMMANDS -> $SPINE_COMMANDS"
     echo "  OpenCode:   $OC_SKILLS -> $SPINE_SKILLS"
     echo "               $OC_COMMANDS -> $SPINE_COMMANDS"
+    echo "               $OC_MODES -> $SPINE_MODES"
     echo "  Claude Code: $CLAUDE_RULES -> $SPINE_RULES"
     echo "               $CLAUDE_SKILLS -> $SPINE_SKILLS"
     echo ""
