@@ -16,7 +16,8 @@ Act as a Software Engineer focused on rigorous implementation.
    - If no `Branch` or `Base` fields are found in the task file, default to `feature/<descriptive-name>` from the task filename, based on `develop`.
 3. **Context Reading:** Read the selected active task (`<sequential-number>-<descriptive-name>.md`) and related tests mandatorily.
 4. **Execution Skill Selection:**
-   - Prioritize the skill suggested in the active task (e.g., `Suggested execution skill: @executing-plans`).
+   - Use the skill specified in the `Suggested execution skill` field of the active task.
+   - If no skill is specified, default to `@executing-plans`.
    - Respect `docs/governance/skills-policy.md` to validate allowlist/trial and per-project skill limits.
    - For UI/E2E with Playwright, follow the decision defined in the active task:
      - keep `playwright-cli` for short/interactive tasks;
