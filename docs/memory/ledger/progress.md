@@ -7,6 +7,7 @@
 - Direcionamento de curadoria de skills por allowlist mínima.
 - Instalação per-project via URL: regras do Spine carregadas via `instructions` em `opencode.json` do projeto, sem vazar para projetos não-Spine.
 - `/spine-bootstrap` atualizado para criar `opencode.json` com URLs remotas das regras.
+- `install.sh --project` hardening: default `--skills=core` (não `all`), cleanup de dangling symlinks via `--update`, health check pós-install, cópia de templates (`opencode.json`, `AGENTS.md`), flag `--uninstall`.
 
 ## Em andamento
 - Curadoria inicial do catálogo de skills para reduzir escopo ativo.
