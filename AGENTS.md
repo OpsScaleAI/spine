@@ -349,6 +349,9 @@ bash .spine/install.sh --project --list-skills          # Show available/install
 bash .spine/install.sh --project --add-skill=astro       # Add one skill
 bash .spine/install.sh --project --remove-skill=astro    # Remove one skill
 bash .spine/install.sh --project --skills=all             # Install all skills
+bash .spine/install.sh --project --skills=core           # Install core skills (default)
+bash .spine/install.sh --project --update                 # Sync: install + cleanup dangling
+bash .spine/install.sh --project --uninstall              # Remove all Spine artefacts
 bash .spine/install.sh --project --targets=opencode      # Only OpenCode tooling
 ```
 
