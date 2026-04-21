@@ -20,6 +20,7 @@ Goal: execute an initial assessment and populate the Memory Bank with a reliable
   - `docs/memory/ledger/roadmap.md`
   - `docs/governance/skills-policy.md`
   - `opencode.json`
+  - `AGENTS.md`
 - If any required setup artifact is missing:
   1. Stop assessment.
   2. Ask for confirmation: "Setup not found. Run `/spine-install` now?"
@@ -39,7 +40,24 @@ Goal: execute an initial assessment and populate the Memory Bank with a reliable
 
 ---
 
-## 2. Memory Bank bootstrap (global)
+## 2. AGENTS.md population
+
+After assessment, fill the project-level `AGENTS.md` with context from the project:
+
+- Read `PROJECT_ROOT/AGENTS.md` (the Spine template placed by `/spine-install`).
+- If `PROJECT_ROOT/AGENTS-original.md` exists, read it to extract relevant project-specific context.
+- Use the assessment results (step 1) and any content from `AGENTS-original.md` to fill the placeholder sections:
+  - **Section 1 (Repository Layout):** project directory structure.
+  - **Section 2 (Build / Lint / Test Commands):** how to build, lint, test, and format the project.
+  - **Section 3 (Code Style Guidelines):** language, naming conventions, formatting, docstring style.
+  - **Section 4 (Architecture Rules):** layer order, allowed patterns, directory structure.
+  - **Section 5 (Error Handling):** exception strategy, logging patterns.
+- Sections 6–9 (Memory Bank, Task Protocol, Git Rules, Security) are already complete in the template — do not modify them unless the project requires specific overrides.
+- Do **not** remove `AGENTS-original.md`. It remains as a reference for the project's original instructions.
+
+---
+
+## 3. Memory Bank bootstrap (global)
 
 - Check existing files before changing them.
 - Fill missing fields without overwriting already-valid documented context.
@@ -53,7 +71,7 @@ Goal: execute an initial assessment and populate the Memory Bank with a reliable
 
 ---
 
-## 3. Memory Bank bootstrap (ledger)
+## 4. Memory Bank bootstrap (ledger)
 
 - Initialize/update without deleting useful history:
   - `docs/memory/ledger/roadmap.md`
@@ -61,7 +79,7 @@ Goal: execute an initial assessment and populate the Memory Bank with a reliable
 
 ---
 
-## 4. Initial task (when there is delivery scope)
+## 5. Initial task (when there is delivery scope)
 
 - Ensure the folder `docs/memory/active_tasks/` exists.
 - Define the same `<descriptive-name>` as branch `feature/<descriptive-name>`.
@@ -83,12 +101,14 @@ Goal: execute an initial assessment and populate the Memory Bank with a reliable
 
 ---
 
-## 5. Mandatory summary
+## 6. Mandatory summary
 
 Always include:
 
 - **Source:** Existing project files after setup.
 - **Created vs. updated:** What was created in this run vs. what was only updated in assessment.
+- **AGENTS.md:** Which placeholder sections were filled, which remain as TODO.
+- **AGENTS-original.md:** Whether it exists and was used as a source.
 - **Preserved:** What remained untouched because it was already valid.
 - **Gaps:** Information still dependent on the human.
 - **Setup status:** Confirm `/spine-install` precondition was satisfied.
@@ -97,10 +117,13 @@ Always include:
 
 ## Acceptance criteria (command behavior)
 
-- [ ] Command validates setup readiness before assessment.
+- [ ] Command validates setup readiness before assessment (including `AGENTS.md`).
 - [ ] If setup is missing, command asks confirmation to run `/spine-install` (bridge mode), then re-validates and continues only if setup is complete.
 - [ ] Command performs only assessment and memory-bank bootstrap (no installation/setup side effects).
+- [ ] `AGENTS.md` placeholder sections are filled using assessment results and content from `AGENTS-original.md` (if it exists).
+- [ ] Sections 6–9 in `AGENTS.md` (Spine universal) are preserved without modification unless project-specific overrides are needed.
+- [ ] `AGENTS-original.md` is read but not modified or deleted.
 - [ ] Global memory files are filled/normalized without overwriting valid existing context.
 - [ ] Ledger files (`roadmap`, `progress`) are initialized/updated without deleting useful history.
 - [ ] If there is delivery scope, an initial active task is created in `docs/memory/active_tasks/`.
-- [ ] Final summary clearly distinguishes: created vs. updated, preserved files, known gaps, and setup precondition status.
+- [ ] Final summary clearly distinguishes: created vs. updated, AGENTS.md status, preserved files, known gaps, and setup precondition status.

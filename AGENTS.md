@@ -250,9 +250,10 @@ Every non-trivial change must follow this cycle:
 
 ### Development (this repository)
 - `docs/` is the local memory bank for Spine development (ignored by git)
-- `.cursor/`, `AGENTS.md`, `CLAUDE.md` are local development configs (ignored by git)
+- `.cursor/`, `AGENTS.md`, `CLAUDE.md`, `opencode.json` are local development configs (ignored by git)
 - Changes to `templates/`, `commands/`, `skills/`, `rules/` should be versioned
 - Use `docs/memory/` to track Spine's own development progress
+- `templates/AGENTS.md` and `templates/opencode.json` are the canonical templates for consumer projects
 
 ### Installation — Global (one-time)
 
@@ -270,38 +271,30 @@ This makes skills and commands available in **all** projects via `/skill` and `/
 
 ### Installation — Per Project (opt-in)
 
-Each project that follows the Spine framework must explicitly opt in. This involves two steps: creating `opencode.json` with Spine rule URLs, and running the per-project install script to create symlinks.
+Each project that follows the Spine framework must explicitly opt in. This involves two commands:
 
-#### Step 1: OpenCode configuration (`opencode.json`)
+1. `/spine-install` — downloads templates, creates `AGENTS.md`, `opencode.json`, and runs `install.sh --project`
+2. `/spine-bootstrap` — assesses the project and fills the memory bank and `AGENTS.md` with project-specific context
 
-Create an `opencode.json` in the project root with `instructions` pointing to Spine rule URLs:
+#### What `/spine-install` creates
 
-```json
-{
-  "$schema": "https://opencode.ai/config.json",
-  "instructions": [
-    "https://raw.githubusercontent.com/OpsScaleAI/spine/refs/heads/master/rules/01-core-protocol.md",
-    "https://raw.githubusercontent.com/OpsScaleAI/spine/refs/heads/master/rules/02-memory-bank.md",
-    "https://raw.githubusercontent.com/OpsScaleAI/spine/refs/heads/master/rules/03-handoff-protocol.md",
-    "https://raw.githubusercontent.com/OpsScaleAI/spine/refs/heads/master/rules/04-code-quality.md",
-    "https://raw.githubusercontent.com/OpsScaleAI/spine/refs/heads/master/rules/05-testing.md",
-    "https://raw.githubusercontent.com/OpsScaleAI/spine/refs/heads/master/rules/06-gitflow.md",
-    "./AGENTS.md"
-  ]
-}
-```
+| File | Source | Versioned in consumer project? |
+|---|---|---|
+| `docs/` (memory bank) | GitHub `templates/docs/` | Yes |
+| `AGENTS.md` | GitHub `templates/AGENTS.md` | Yes |
+| `opencode.json` | GitHub `templates/opencode.json` | Yes |
+| `.spine`, `.agents/`, etc. | Symlinks via `install.sh --project` | No (machine-specific) |
+| `AGENTS-original.md` | Renamed from existing `AGENTS.md` (if any) | No (gitignored) |
 
-The `/spine-bootstrap` command creates this file automatically (step 0b) along with the memory bank structure.
+If the project already has an `AGENTS.md`, it is renamed to `AGENTS-original.md` (preserved as reference) and a new Spine `AGENTS.md` is downloaded.
 
-**Why URL-based instead of local paths or symlinks?**
-- **Portable:** works on any machine without a local Spine clone
-- **Auto-updating:** OpenCode fetches rules on each session; `git push` propagates changes
-- **Versionable:** pin to a tag (`refs/tags/v1.0.0`) for stability, or use `refs/heads/master` for latest
-- **Composable:** `opencode.json` is plain JSON, safely committed to the project repo
+#### What `/spine-bootstrap` fills
 
-#### Step 2: Per-project symlinks (`install.sh --project`)
+- `docs/memory/` files with project context from assessment
+- `AGENTS.md` placeholder sections (Repository Layout, Build Commands, Code Style, Architecture, Error Handling)
+- Content from `AGENTS-original.md` (if it exists) is merged into the new `AGENTS.md`
 
-Run the install script from inside the project to create symlinks for skills, commands, and tool-specific configuration:
+#### Per-project symlinks (`install.sh --project`)
 
 ```bash
 # From the project root (after creating .spine symlink)
@@ -366,10 +359,23 @@ bash .spine/install.sh --project --targets=opencode      # Only OpenCode tooling
 - `systematic-debugging`
 - `verification-before-completion`
 
+### Gitignore in consumer projects
+
+Files versioned in the consumer project (committed to git):
+- `AGENTS.md` — project-level agent instructions
+- `opencode.json` — project-level OpenCode configuration
+- `docs/` — memory bank and governance docs
+
+Files gitignored in the consumer project (machine-specific):
+- `.spine` — symlink to Spine repository
+- `.agents/`, `.cursor/`, `.claude/`, `.opencode/` — symlinks
+- `AGENTS-original.md` — preserved reference, not versioned
+
 **Non-Spine projects** (e.g., LLM Wiki, experiments, third-party repos) simply don't include Spine URLs in their `opencode.json` and don't run the install script. They remain completely free of Spine rules while still having access to the global skills and commands catalog.
 
 ### Consumer projects
-- Memory bank created at `$PROJECT_ROOT/docs/` by `/spine-bootstrap`
+- Memory bank created at `$PROJECT_ROOT/docs/` by `/spine-install`
+- `/spine-bootstrap` assesses the project and fills `AGENTS.md` and memory bank
 - Consumer projects maintain their own memory bank independently
-- `opencode.json` in the project root is versioned and committed
+- `opencode.json` and `AGENTS.md` in the project root are versioned and committed
 - Symlinks (`.spine`, `.agents/`, `.cursor/`, `.claude/`, `.opencode/`) are machine-specific and gitignored
