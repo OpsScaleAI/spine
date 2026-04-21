@@ -55,8 +55,8 @@ Read in this order at the start of every session or task:
 Every non-trivial change must follow this cycle:
 
 1. **Sync** — read memory bank (section 6).
-2. **Branch** — `git checkout develop && git pull && git checkout -b feature/<name>`.
-3. **Plan** — create `docs/memory/active_tasks/<seq>-<name>.md` with scope and acceptance criteria.
+2. **Plan** — create `docs/memory/active_tasks/<seq>-<name>.md` with scope, acceptance criteria, and branch suggestion (`Branch: feature/<name>`, `Base: develop`). Do not create the branch during planning.
+3. **Branch** — at execution time, create or switch to the branch specified in the task file, based on the `Base` field.
 4. **Test** — write the failing test first (TDD: Red -> Green -> Refactor).
 5. **Execute** — implement atomically; keep commits small and focused.
 6. **Harvest** — update `docs/memory/ledger/progress.md` and `docs/memory/global/decision-log.md` when an architectural decision was made.

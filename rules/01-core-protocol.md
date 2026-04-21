@@ -8,8 +8,8 @@ alwaysApply: true
 
 ## 1. Fluxo mínimo obrigatório
 1. **Sync:** ler o contexto em `docs/memory/` (global + ledger + task ativa).
-2. **Branch:** trabalhar em `feature/*` a partir de `develop`.
-3. **Plan:** criar/atualizar `docs/memory/active_tasks/<numero-sequencial>-<nome-descritivo>.md` usando o mesmo `<nome-descritivo>` da branch `feature/<nome-descritivo>`.
+2. **Plan:** criar/atualizar `docs/memory/active_tasks/<numero-sequencial>-<nome-descritivo>.md` com escopo, critérios de aceite e sugestão de branch (`Branch: feature/<nome-descritivo>`, `Base: develop`). Não criar a branch durante o planejamento.
+3. **Branch:** no momento da execução, criar ou trocar para a branch especificada no task file, a partir do `Base`.
 4. **Test:** definir estratégia de teste (preferencialmente TDD).
 5. **Execute:** implementar de forma atômica e validar testes.
 6. **Harvest:** atualizar `progress.md` e `decision-log.md` quando aplicável.
