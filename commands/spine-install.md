@@ -1,7 +1,6 @@
 ---
 description: Project setup command; installs rules, commands, skills, and downloads docs templates
 agent: build
-model: opencode-go/glm-5.1
 ---
 
 # Slash Command: /spine-install

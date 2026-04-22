@@ -1,7 +1,6 @@
 ---
 description: Initial assessment and memory-bank bootstrap after setup; optional $ARGUMENTS for project briefing
 agent: build
-model: opencode-go/glm-5.1
 ---
 
 # Slash Command: /spine-bootstrap
