@@ -1,7 +1,6 @@
 ---
 description: Execute the active task with implementation, validation, and status updates in the memory-bank
 agent: build
-model: opencode-go/glm-5.1
 ---
 
 # Slash Command: /spine-execute <plan_file_path>
