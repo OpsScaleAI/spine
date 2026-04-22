@@ -9,6 +9,7 @@
 - `/spine-bootstrap` atualizado para criar `opencode.json` com URLs remotas das regras.
 - `install.sh --project` hardening: default `--skills=core` (não `all`), cleanup de dangling symlinks via `--update`, health check pós-install, cópia de templates (`opencode.json`, `AGENTS.md`), flag `--uninstall`.
 - Comando `/spine-promote` criado (maintainer-only): commit detalhado em `develop` com promoção em cascata para `staging`, `production` e `main`, retornando a `develop`. Restrito ao repo Spine, não exposto a consumer projects.
+- `/spine-promote` melhorado com auto-geração da descrição do commit via análise de `git diff --staged`, sugerindo subject, type, Why, What changed, Validation e Notes automaticamente antes da confirmação do usuário.
 
 ## Em andamento
 - Curadoria inicial do catálogo de skills para reduzir escopo ativo.
