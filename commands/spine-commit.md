@@ -1,7 +1,6 @@
 ---
 description: Create a high-quality commit for current changes with safe branch checks
 agent: build
-model: opencode/minimax-m2.5-free
 ---
 
 # Slash Command: /spine-commit
