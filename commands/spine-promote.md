@@ -42,17 +42,20 @@ Act as a Spine Maintainer with full merge privileges.
 - If there are already staged changes, proceed without re-staging unless the user requested to include new unstaged files.
 
 ## 4. Commit Message Quality (mandatory)
-- If `$ARGUMENTS` is provided, use it as the **subject line**.
-  - Validate that it follows Conventional Commits (`feat:`, `fix:`, `docs:`, `refactor:`, `test:`, `chore:`).
-  - If missing the prefix, reject and ask for a valid prefix.
-- If `$ARGUMENTS` is empty, ask interactively:
-  - "Commit type? (feat/fix/docs/refactor/test/chore)"
-  - "Short subject line:"
-- Then ask interactively for the commit body fields:
-  - `Why:` problem or intent
-  - `What changed:` key files and behavior impact
-  - `Validation:` tests/checks executed
-  - `Notes:` risks, follow-ups, or migration notes (if any)
+- **Auto-analysis prerequisite:** Before composing the message, run `git diff --staged --stat` and `git diff --staged` to understand exactly what is being committed. Use this analysis to auto-generate the commit content.
+- **Auto-generate the commit body fields** based on the diff analysis:
+  - `Why:` infer the intent from the nature of changes (new files = feature addition, deletions = cleanup/removal, modifications = fix/refactor/update)
+  - `What changed:` list the key files and behavioral impact based on the actual diff; group related changes
+  - `Validation:` suggest tests/checks that should have been run based on the affected areas
+  - `Notes:` flag any risks, follow-ups, breaking changes, or migration notes visible in the diff
+- **Subject line handling:**
+  - If `$ARGUMENTS` is provided, use it as the **subject line**.
+    - Validate that it follows Conventional Commits (`feat:`, `fix:`, `docs:`, `refactor:`, `test:`, `chore:`).
+    - If missing the prefix, reject and ask for a valid prefix.
+  - If `$ARGUMENTS` is empty, auto-suggest a subject line and commit type based on the diff analysis, then ask interactively:
+    - "Suggested commit type: `<type>`. Confirm or change? (feat/fix/docs/refactor/test/chore)"
+    - "Suggested subject line: `<subject>`. Confirm or edit:"
+- **Confirmation gate:** Present the fully composed message (type + subject + auto-generated body) to the user for confirmation or editing. Do not commit until the user explicitly approves.
 - Compose the final message:
   ```
   <type>: <subject>
@@ -62,7 +65,6 @@ Act as a Spine Maintainer with full merge privileges.
   Validation: <...>
   Notes: <...>
   ```
-- Confirm the full message with the user before committing.
 
 ## 5. Commit Execution
 - Create the commit: `git commit -m "<composed_message>"`
