@@ -117,38 +117,16 @@ Never mix groups; use a blank line between each group.
 - Use Pydantic v2 for external input validation (request bodies, env config, etc.).
 
 ### Naming Conventions
-| Element | Convention | Example |
-|---|---|---|
-| Functions / methods | `snake_case`, descriptive | `calculate_total_price()` |
-| Variables | `snake_case` | `order_items` |
-| Classes | `PascalCase` | `OrderService` |
-| Constants | `UPPER_SNAKE_CASE` | `MAX_RETRY_COUNT` |
-| Test functions | behavior sentence | `test_create_task_returns_201_with_valid_data` |
-| Feature branches | `feature/<descriptive-name>` | `feature/social-login` |
-| Hotfix branches | `hotfix/<descriptive-name>` | `hotfix/fix-null-pointer-auth` |
-| Active task files | `<seq>-<descriptive-name>.md` | `007-social-login-adjustment.md` |
-
-Avoid abbreviations: `calculate_total` not `calc_tot`.
+- Functions / methods: `snake_case` (e.g., `calculate_total_price()`)
+- Variables: `snake_case`
+- Classes: `PascalCase`
+- Constants: `UPPER_SNAKE_CASE`
+- Test functions: behavior sentence (e.g., `test_create_task_returns_201_with_valid_data`)
+- Avoid abbreviations: `calculate_total` not `calc_tot`.
 
 ### Docstrings
 - Google style, mandatory on all **public** functions, methods, and classes.
 - Include `Args:`, `Returns:`, and `Raises:` sections where applicable.
-
-```python
-def create_order(user_id: int, items: list[OrderItem]) -> Order:
-    """Create a new order for the given user.
-
-    Args:
-        user_id: The ID of the user placing the order.
-        items: Line items to include in the order.
-
-    Returns:
-        The persisted Order instance.
-
-    Raises:
-        UserNotFoundError: If no user matches `user_id`.
-    """
-```
 
 ### Formatting
 - Prefer **short, cohesive functions**; refactor when readability is impaired.
@@ -178,82 +156,16 @@ def create_order(user_id: int, items: list[OrderItem]) -> Order:
   detail when applicable. Never expose stack traces to clients.
 - Structured logging at critical boundaries: API entry, DB failures, external calls.
 
-```python
-# Good
-except UserNotFoundError as exc:
-    raise HTTPException(status_code=404, detail=str(exc)) from exc
-
-# Bad
-except Exception:
-    pass
-```
-
 ---
 
-## 6. Memory Bank (mandatory read at session start)
-
-**Note:** For Spine development, use `docs/memory/` (local). For consumer projects, the memory bank is created by `/spine-bootstrap` from `templates/docs/`.
-
-Read in this order at the start of every session or task:
-
-1. `docs/memory/global/project-brief.md`
-2. `docs/memory/global/product-context.md`
-3. `docs/memory/global/system-patterns.md`
-4. `docs/memory/global/tech-context.md`
-5. `docs/memory/global/decision-log.md`
-6. `docs/memory/ledger/roadmap.md`
-7. `docs/memory/ledger/progress.md`
-8. `docs/memory/active_tasks/` (any in-progress task files)
-
----
-
-## 7. Task Execution Protocol
-
-Every non-trivial change must follow this cycle:
-
-1. **Sync** — read memory bank (§6).
-2. **Plan** — create `docs/memory/active_tasks/<seq>-<name>.md` with scope, acceptance criteria, and branch suggestion (`Branch: feature/<name>`, `Base: develop`). Do not create the branch during planning.
-3. **Branch** — at execution time, create or switch to the branch specified in the task file, based on the `Base` field.
-4. **Test** — write the failing test first (TDD: Red → Green → Refactor).
-5. **Execute** — implement atomically; keep commits small and focused.
-6. **Harvest** — update `docs/memory/ledger/progress.md` and `docs/memory/global/decision-log.md` when an architectural decision was made.
-
-### Test Rules
-- Every public function needs at least one success test and one failure test.
-- Tests live in `tests/unit/` (no I/O) or `tests/integration/` (DB, external APIs).
-- Use pytest fixtures for setup/teardown; define shared fixtures in `conftest.py`.
-- Prefer one assertion per test.
-- Names must embed expected behavior: `test_<action>_<expected_result>`.
-
----
-
-## 8. Git / Commit Rules
-
-- Conventional Commits: `feat:`, `fix:`, `refactor:`, `test:`, `docs:`, `chore:`.
-- Each commit = one complete, testable logical change.
-- **Never** `git push --force`.
-- **Never** commit directly to `main`, `production`, `staging`, or `develop`.
-- Every merge to `develop` requires a Pull Request.
-- Update memory bank when `develop` is promoted to `staging`.
-
----
-
-## 9. Security
-
-- Never commit secrets, tokens, or passwords.
-- All sensitive config via environment variables.
-- Validate **all** external inputs (request bodies, query params, headers) — use Pydantic.
-
----
-
-## 10. Development vs Installation
+## 6. Development vs Installation
 
 ### Development (this repository)
 - `docs/` is the local memory bank for Spine development (ignored by git)
 - `.cursor/`, `AGENTS.md`, `CLAUDE.md`, `opencode.json` are local development configs (ignored by git)
 - Changes to `templates/`, `commands/`, `skills/`, `rules/` should be versioned
 - Use `docs/memory/` to track Spine's own development progress
-- `templates/AGENTS.md` and `templates/opencode.json` are the canonical templates for consumer projects
+- `templates/opencode.json` is the canonical template for consumer projects
 
 ### Installation — Global (one-time)
 
@@ -273,26 +185,20 @@ This makes skills and commands available in **all** projects via `/skill` and `/
 
 Each project that follows the Spine framework must explicitly opt in. This involves two commands:
 
-1. `/spine-install` — downloads templates, creates `AGENTS.md`, `opencode.json`, and runs `install.sh --project`
-2. `/spine-bootstrap` — assesses the project and fills the memory bank and `AGENTS.md` with project-specific context
+1. `/spine-install` — downloads templates, creates `opencode.json`, and runs `install.sh --project`
+2. `/spine-bootstrap` — assesses the project and fills the memory bank with project-specific context
 
 #### What `/spine-install` creates
 
 | File | Source | Versioned in consumer project? |
 |---|---|---|
 | `docs/` (memory bank) | GitHub `templates/docs/` | Yes |
-| `AGENTS.md` | GitHub `templates/AGENTS.md` | Yes |
 | `opencode.json` | GitHub `templates/opencode.json` | Yes |
 | `.spine`, `.agents/`, etc. | Symlinks via `install.sh --project` | No (machine-specific) |
-| `AGENTS-original.md` | Renamed from existing `AGENTS.md` (if any) | No (gitignored) |
-
-If the project already has an `AGENTS.md`, it is renamed to `AGENTS-original.md` (preserved as reference) and a new Spine `AGENTS.md` is downloaded.
 
 #### What `/spine-bootstrap` fills
 
 - `docs/memory/` files with project context from assessment
-- `AGENTS.md` placeholder sections (Repository Layout, Build Commands, Code Style, Architecture, Error Handling)
-- Content from `AGENTS-original.md` (if it exists) is merged into the new `AGENTS.md`
 
 #### Per-project symlinks (`install.sh --project`)
 
@@ -327,7 +233,6 @@ PROJECT_ROOT/
 ├── .opencode/
 │   └── commands             → ../.spine/commands/
 ├── opencode.json                                 (GitHub URLs for rules)
-├── AGENTS.md                                     (project-level instructions)
 ├── docs/memory/...                               (memory bank)
 └── .gitignore                                    (spine entries: .spine, .agents/, etc.)
 ```
@@ -365,20 +270,18 @@ bash .spine/install.sh --project --targets=opencode      # Only OpenCode tooling
 ### Gitignore in consumer projects
 
 Files versioned in the consumer project (committed to git):
-- `AGENTS.md` — project-level agent instructions
 - `opencode.json` — project-level OpenCode configuration
 - `docs/` — memory bank and governance docs
 
 Files gitignored in the consumer project (machine-specific):
 - `.spine` — symlink to Spine repository
 - `.agents/`, `.cursor/`, `.claude/`, `.opencode/` — symlinks
-- `AGENTS-original.md` — preserved reference, not versioned
 
 **Non-Spine projects** (e.g., LLM Wiki, experiments, third-party repos) simply don't include Spine URLs in their `opencode.json` and don't run the install script. They remain completely free of Spine rules while still having access to the global skills and commands catalog.
 
 ### Consumer projects
 - Memory bank created at `$PROJECT_ROOT/docs/` by `/spine-install`
-- `/spine-bootstrap` assesses the project and fills `AGENTS.md` and memory bank
+- `/spine-bootstrap` assesses the project and fills memory bank
 - Consumer projects maintain their own memory bank independently
-- `opencode.json` and `AGENTS.md` in the project root are versioned and committed
+- `opencode.json` in the project root is versioned and committed
 - Symlinks (`.spine`, `.agents/`, `.cursor/`, `.claude/`, `.opencode/`) are machine-specific and gitignored
