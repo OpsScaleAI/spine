@@ -55,7 +55,6 @@ The task must include:
 
 ## 5) Native Plan mode bridge requirement
 If the user uses host-native planning (not `/spine-plan`), you must still:
-- sync memory-bank context files,
 - materialize the active task artifact,
 - preserve SPINE status lifecycle,
 - enforce approval gate before implementation.
