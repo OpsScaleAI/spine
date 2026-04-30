@@ -1,0 +1,17 @@
+# Spine machine-specific and agent-tooling artifacts
+.spine
+.agents/
+.cursor/
+.claude/
+.opencode/
+
+# Generated Graphify runtime artifacts that should not be indexed
+graphify-out/cache/
+graphify-out/manifest.json
+graphify-out/cost.json
+
+# Common noise
+node_modules/
+dist/
+build/
+coverage/

@@ -1,70 +1,73 @@
 ---
-description: "Define estrutura e uso prático do Memory Bank como fonte de verdade operacional."
+description: "Defines structure and practical use of the Memory Bank as the operational source of truth."
 globs: 
 alwaysApply: true
 ---
 
-# MEMORY BANK V2.0 - API de Estado
+# MEMORY BANK V2.0 - State API
 
-O diretorio `docs/memory/` e a **fonte de verdade operacional**.
+The `docs/memory/` directory is the **operational source of truth**.
+The memory bank remains mandatory even when Graphify is available.
 
 ## Estrutura
 
 ```
 docs/memory/
-  global/                    # Base estável (muda com justificativa explícita)
-    project-brief.md         # Escopo, objetivos, limites do projeto
-    product-context.md       # Por que o projeto existe, problemas que resolve, UX goals
-    system-patterns.md       # Stack, arquitetura, padroes de design, dependencias
-    tech-context.md          # Setup de dev, constraints tecnicos, infra
-    decision-log.md          # Registro de decisoes arquiteturais com PORQUE
-  ledger/                    # Estado corrente (atualizado a cada task)
-    roadmap.md               # Backlog priorizado e milestones
-    progress.md              # Status atual: o que funciona, o que falta, issues conhecidos
-  active_tasks/              # Execucao das tasks
-    <numero-sequencial>-<nome-descritivo>.md
+  global/                    # Stable base (changes with explicit justification)
+    project-brief.md         # Scope, goals, project boundaries
+    product-context.md       # Why the project exists, problems it solves, UX goals
+    system-patterns.md       # Stack, architecture, design patterns, dependencies
+    tech-context.md          # Dev setup, technical constraints, infra
+    decision-log.md          # Record of architectural decisions with WHY
+  ledger/                    # Current state (updated on each task)
+    roadmap.md               # Prioritized backlog and milestones
+    progress.md              # Current status: what works, what is missing, known issues
+  active_tasks/              # Task execution
+    <sequential-number>-<descriptive-name>.md
 ```
 
-## Regras de Acesso (pragmáticas)
+## Access Rules (pragmatic)
 
-| Camada | Quem escreve | Quando muda |
+| Layer | Author | When it changes |
 |---|---|---|
-| `global/` | Humano ou agente com aprovacao explícita | Mudancas de escopo/arquitetura |
-| `ledger/` | Agente executor | A cada ciclo de entrega |
-| `active_tasks/` | Agente executor | Criado no PLAN e atualizado ate DONE |
+| `global/` | Human or agent with explicit approval | Scope/architecture changes |
+| `ledger/` | Executing agent | Every delivery cycle |
+| `active_tasks/` | Executing agent | Created in PLAN and updated until DONE |
 
-## Regras de Leitura (SYNC)
+## Reading Rules (SYNC)
 
-No inicio de CADA sessao ou task, ler na seguinte ordem:
+At the start of EVERY session or task, read in this order:
 
-1. `global/project-brief.md` (escopo)
-2. `global/product-context.md` (contexto de produto)
-3. `global/system-patterns.md` (como construir)
+1. `global/project-brief.md` (scope)
+2. `global/product-context.md` (product context)
+3. `global/system-patterns.md` (how to build)
 4. `global/tech-context.md` (constraints)
-5. `global/decision-log.md` (decisões anteriores)
-6. `ledger/roadmap.md` (direção)
-7. `ledger/progress.md` (onde estamos)
-8. `active_tasks/` (o que esta em andamento)
+5. `global/decision-log.md` (previous decisions)
+6. `ledger/roadmap.md` (direction)
+7. `ledger/progress.md` (where we are)
+8. `active_tasks/` (what is in progress)
 
-Se algum arquivo nao existir, criar apenas se fizer parte do fluxo da task atual.
+If `graphify-out/graph.json` exists, it can be used as an auxiliary discovery layer (graph-first exploration), but it does not replace reading and maintaining the memory bank.
 
-## Template: active_tasks/<numero-sequencial>-<nome-descritivo>.md
+If a file does not exist, create it only if it is part of the current task flow.
+
+## Template: active_tasks/<sequential-number>-<descriptive-name>.md
 
 ```markdown
-# <numero-sequencial>-<nome-descritivo>
+# <sequential-number>-<descriptive-name>
 
-## Objetivo
-[O que deve ser feito]
+## Objective
+[What must be done]
 
 ## Inputs
-- [Arquivos/dados de entrada]
+- [Input files/data]
 
-## Outputs Esperados
-- [Arquivos/artefatos que devem ser gerados]
+## Expected Outputs
+- [Files/artifacts that must be generated]
 
-## Criterio de Aceite
-- [ ] [Criterio 1]
-- [ ] [Criterio 2]
+## Acceptance Criteria
+- [ ] [Criterion 1]
+- [ ] [Criterion 2]
 
 ## Status: [PLANNING | IN_PROGRESS | REVIEW | DONE]
 ```
