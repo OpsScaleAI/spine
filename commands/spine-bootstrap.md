@@ -35,6 +35,7 @@ Goal: execute an initial assessment and populate the Memory Bank with a reliable
 - Identify the primary stack (languages, frameworks, database, infrastructure).
 - Identify project objective, scope, and boundaries.
 - Identify initial technical risks and short-term priorities.
+- Detect whether Graphify is already in use (`graphify-out/`, `graphify-out/graph.json`, `.graphifyignore`) and record this as context, not as a setup blocker.
 
 ---
 
@@ -92,6 +93,7 @@ Always include:
 - **Preserved:** What remained untouched because it was already valid.
 - **Gaps:** Information still dependent on the human.
 - **Setup status:** Confirm `/spine-install` precondition was satisfied.
+- **Graphify status:** Report whether `graphify-out/` and `.graphifyignore` were detected and whether graph-first retrieval is currently available.
 
 ---
 

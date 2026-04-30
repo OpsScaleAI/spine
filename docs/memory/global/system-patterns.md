@@ -25,4 +25,10 @@ docs/
   memory/     # Contexto global, roadmap, progresso e decisões
 skills/
   ...         # Catálogo bruto (uso controlado por allowlist)
+templates/
+  opencode.json  # Template para projetos consumidores (3 rules + compaction)
+  docs/          # Templates do memory bank para bootstrap
+commands/        # Slash commands (/spine-plan, /spine-execute, etc.)
+rules/           # Rules fonte (core-protocol, memory-bank, code-quality)
+scripts/         # Scripts operacionais (ex.: update de projetos consumidores)
 ```

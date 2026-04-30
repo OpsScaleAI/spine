@@ -85,6 +85,10 @@ These commands will:
 1. `/spine-install`: download templates to `docs/`, configure `opencode.json`, and run `install.sh --project` for symlinks.
 2. `/spine-bootstrap`: perform initial project assessment and populate memory bank.
 
+Project installer defaults:
+- `install.sh --project` installs the **core skills profile** by default.
+- Use `--skills=all` only when you explicitly want the full skill catalog linked.
+
 #### Option B: Manual setup
 
 Create `opencode.json` in your project root:
@@ -95,11 +99,7 @@ Create `opencode.json` in your project root:
   "instructions": [
     "https://raw.githubusercontent.com/OpsScaleAI/spine/refs/heads/master/rules/01-core-protocol.md",
     "https://raw.githubusercontent.com/OpsScaleAI/spine/refs/heads/master/rules/02-memory-bank.md",
-    "https://raw.githubusercontent.com/OpsScaleAI/spine/refs/heads/master/rules/03-handoff-protocol.md",
-    "https://raw.githubusercontent.com/OpsScaleAI/spine/refs/heads/master/rules/04-code-quality.md",
-    "https://raw.githubusercontent.com/OpsScaleAI/spine/refs/heads/master/rules/05-testing.md",
-    "https://raw.githubusercontent.com/OpsScaleAI/spine/refs/heads/master/rules/06-gitflow.md",
-    "./AGENTS.md"
+    "https://raw.githubusercontent.com/OpsScaleAI/spine/refs/heads/master/rules/03-code-quality.md"
   ]
 }
 ```
@@ -137,6 +137,26 @@ Example `opencode.json` for a non-Spine project:
 
 - **Rules:** No action needed. Projects using URL-based `instructions` automatically receive updates when OpenCode fetches the rules on each session.
 - **Skills and Commands:** Run `git pull` in the Spine repository. Global symlinks point to the local clone, so updates are immediate.
+- **Consumer project refresh (recommended):** from inside the consumer repository, run:
+
+```bash
+bash .spine/scripts/update.sh
+```
+
+This updates `.spine`, reconciles project symlinks (`--update --force`), syncs `opencode.json`, and preserves `docs/memory/`.
+
+Optional update modes:
+
+```bash
+# Preview only
+bash .spine/scripts/update.sh --dry-run
+
+# Replace opencode.json with template instead of merge
+bash .spine/scripts/update.sh --replace-opencode
+
+# Include Graphify setup during update
+bash .spine/scripts/update.sh --with-graphify
+```
 
 ## Cursor Setup
 
@@ -152,11 +172,14 @@ The `install.sh` script creates global symlinks for both OpenCode and Claude Cod
 
 Available command templates in `commands/`:
 - `/spine-install` for project setup (templates, config, and symlinks).
+- `/spine-update` to refresh an already-installed consumer project safely.
 - `/spine-bootstrap` for initial project assessment and memory bootstrap.
 - `/spine-plan` to create the active task plan in memory-bank.
 - `/spine-execute` to implement the selected active task with validation cycle.
 - `/spine-harvest` to consolidate delivery learnings and close the task.
 - `/spine-commit` to create a high-quality commit with branch safety checks.
+
+`/spine-update` wraps `scripts/update.sh` and is the recommended maintenance path for existing consumer projects.
 
 ## OpenCode Modes
 
@@ -249,7 +272,7 @@ flowchart TD
 
 - `install.sh` creates symlinks for Cursor, OpenCode, and Claude Code
 - Rules in universal `.md` format (compatible with all agents)
-- 34 curated skills, 6 slash commands, 6 framework rules
+- 34 curated skills, 7 slash commands, 3 framework rules
 
 </details>
 

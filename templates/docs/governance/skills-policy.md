@@ -8,6 +8,7 @@ Reduzir complexidade operacional e manter somente skills com valor recorrente no
 - **Trial**: skills novas testadas por 2 ciclos.
 - **Bloqueadas por padrão**: todas as demais skills fora da allowlist.
 - **Limite por projeto**: manter entre 5 e 8 skills ativas para reduzir ruído.
+- **Ferramentas complementares**: utilitários como Graphify podem ser adotados por projeto consumidor sem virar dependência obrigatória do framework.
 
 ## Critérios de Entrada na Allowlist
 - Uso recorrente no trabalho real (mínimo de 2 usos úteis em 30 dias).

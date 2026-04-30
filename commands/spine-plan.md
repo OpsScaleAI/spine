@@ -14,6 +14,7 @@ Act as a Senior Software Architect. Follow the instructions provided in $ARGUMEN
      - "Which domain is the primary focus? (e.g., backend API, frontend UI, infrastructure, database)"
    - Principle: one plan should be completable in a single execution session. If the scope feels too large, suggest splitting into multiple plans upfront.
    - If `$ARGUMENTS` contains non-empty content, treat it as a project briefing and incorporate it into the scope definition without contradicting facts already present in memory bank files.
+   - If `graphify-out/graph.json` exists in the project, query graph first for exploration and architecture discovery, then use direct file reads for implementation details. If graph is missing/stale, fallback to normal repository reading.
 2. **Planning Skill (mandatory):**
    - Use the `@writing-plans` skill to structure the plan into small, testable, executable tasks.
    - If there is a conflict between a skill and this command, **this command takes precedence** to preserve the project workflow.
