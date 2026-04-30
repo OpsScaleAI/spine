@@ -60,31 +60,14 @@ Paths:
 - `templates/docs/workflow/gitflow-operacional.md`
 - `templates/docs/workflow/ciclo-de-entrega.md`
 
-### 0.5 AGENTS.md handling
+### 0.5 opencode.json handling (template download)
 
-After downloading `docs/` templates, handle the project-level `AGENTS.md`:
-
-1. Check if `PROJECT_ROOT/AGENTS.md` already exists.
-2. If it exists and does **not** contain the Spine header (`# AGENTS.md` line followed by the Spine description phrase):
-   - Rename the existing file to `PROJECT_ROOT/AGENTS-original.md`.
-   - Download `templates/AGENTS.md` from GitHub to `PROJECT_ROOT/AGENTS.md`.
-   - Inform the user that the original file was preserved as `AGENTS-original.md`.
-3. If it exists and **already contains** the Spine header (idempotent re-run):
-   - Skip — do not overwrite.
-4. If it does not exist:
-   - Download `templates/AGENTS.md` from GitHub to `PROJECT_ROOT/AGENTS.md`.
-5. Never overwrite an existing `AGENTS-original.md`.
-
-Source URL: `https://raw.githubusercontent.com/OpsScaleAI/spine/refs/heads/master/templates/AGENTS.md`
-
-### 0.6 opencode.json handling (template download)
-
-After handling `AGENTS.md`, handle the project-level `opencode.json`:
+After downloading `docs/` templates, handle the project-level `opencode.json`:
 
 1. Check if `PROJECT_ROOT/opencode.json` already exists.
 2. If it exists:
    - Parse it as JSON.
-   - If `"instructions"` key is present, preserve it but ensure it includes all Spine rule URLs and `"./AGENTS.md"`. Avoid duplicates.
+   - If `"instructions"` key is present, preserve it but ensure it includes all Spine rule URLs. Avoid duplicates.
    - Merge other keys from the existing file; do not remove user-defined settings.
 3. If it does not exist:
    - Download `templates/opencode.json` from GitHub to `PROJECT_ROOT/opencode.json`.
@@ -115,10 +98,7 @@ Base URL: `https://raw.githubusercontent.com/OpsScaleAI/spine/refs/heads/master/
 Rule files:
 - `01-core-protocol.md`
 - `02-memory-bank.md`
-- `03-handoff-protocol.md`
 - `04-code-quality.md`
-- `05-testing.md`
-- `06-gitflow.md`
 
 ### 1.2 Principles
 
@@ -156,9 +136,8 @@ Use this as the single supported installer entrypoint for project setup.
 Always include:
 
 - Source (GitHub raw and existing project files)
-- Downloaded files (docs templates + AGENTS.md + opencode.json)
+- Downloaded files (docs templates + opencode.json)
 - Failed downloads (if any)
-- `AGENTS.md` status (created, preserved original as `AGENTS-original.md`, skipped)
 - `opencode.json` status (created, merged, unchanged)
 - Symlinks created/skipped/replaced
 - Preserved files
@@ -173,11 +152,7 @@ Always include:
 - [ ] With `docs/` already present, only missing files are filled without overwriting existing content.
 - [ ] GitHub unavailability produces clear manual instructions.
 - [ ] Individual file failures do not block full setup.
-- [ ] If `AGENTS.md` already exists and is not a Spine template, it is renamed to `AGENTS-original.md` and a new Spine `AGENTS.md` is downloaded.
-- [ ] If `AGENTS.md` already exists and is a Spine template (re-run), it is not overwritten.
-- [ ] If `AGENTS.md` does not exist, it is downloaded from `templates/AGENTS.md`.
-- [ ] Existing `AGENTS-original.md` is never overwritten.
-- [ ] `opencode.json` exists in `PROJECT_ROOT` with `$schema`, Spine rule URLs, and `"./AGENTS.md"` in `instructions`.
+- [ ] `opencode.json` exists in `PROJECT_ROOT` with `$schema` and Spine rule URLs in `instructions`.
 - [ ] Existing `opencode.json` settings are preserved while Spine URLs are merged without duplicates.
 - [ ] Global OpenCode config does not receive Spine-specific instructions.
 - [ ] Per-project symlinks are created via `bash .spine/install.sh --project`.
