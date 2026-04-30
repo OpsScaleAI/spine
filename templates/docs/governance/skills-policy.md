@@ -73,6 +73,11 @@ Reduzir complexidade operacional e manter somente skills com valor recorrente no
 - `bash-defensive-patterns`
 - `linux-troubleshooting`
 
+### Workflow e Qualidade
+- `gitflow`
+- `testing-guidelines`
+- `handoff-protocol`
+
 ### Frontend Assistido (principal)
 - `frontend-dev-guidelines`
 - `astro` (quando Astro no projeto)
