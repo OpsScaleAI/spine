@@ -75,6 +75,18 @@ After downloading `docs/` templates, handle the project-level `opencode.json`:
 
 Source URL: `https://raw.githubusercontent.com/OpsScaleAI/spine/refs/heads/master/templates/opencode.json`
 
+### 0.6 Optional Graphify onboarding (consumer projects)
+
+Graphify is an optional enhancement for consumer projects that need lower context/token cost during exploration.
+
+- Do not make Graphify mandatory for setup completion.
+- Keep Spine core instruction loading unchanged (3 core rules via `instructions`).
+- If the project wants Graphify, suggest the minimal onboarding:
+  1. Install Graphify globally on the developer machine (`uv tool install graphifyy` recommended).
+  2. Run project setup with Graphify opt-in: `bash .spine/install.sh --project --with-graphify`.
+  3. Optional first graph build: `bash .spine/install.sh --project --with-graphify --graphify-init`.
+- Preserve user-owned `opencode.json` keys when merging setup changes.
+
 ### 0.7 Error handling
 
 - If GitHub is unreachable: output clear message with manual download instructions (full GitHub repo URL).
@@ -98,7 +110,7 @@ Base URL: `https://raw.githubusercontent.com/OpsScaleAI/spine/refs/heads/master/
 Rule files:
 - `01-core-protocol.md`
 - `02-memory-bank.md`
-- `04-code-quality.md`
+- `03-code-quality.md`
 
 ### 1.2 Principles
 

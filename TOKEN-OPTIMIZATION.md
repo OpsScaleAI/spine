@@ -31,7 +31,7 @@ Replace the contents of `opencode.json` in the project root with:
   "instructions": [
     "https://raw.githubusercontent.com/OpsScaleAI/spine/refs/heads/master/rules/01-core-protocol.md",
     "https://raw.githubusercontent.com/OpsScaleAI/spine/refs/heads/master/rules/02-memory-bank.md",
-    "https://raw.githubusercontent.com/OpsScaleAI/spine/refs/heads/master/rules/04-code-quality.md"
+    "https://raw.githubusercontent.com/OpsScaleAI/spine/refs/heads/master/rules/03-code-quality.md"
   ],
   "compaction": {
     "enabled": true,
@@ -74,7 +74,7 @@ Close and reopen OpenCode/Cursor for the new system prompt to take effect.
 |---|---|
 | `01-core-protocol.md` | Execution cycle, definition of done, commits, guard rails |
 | `02-memory-bank.md` | Structure and reading of `docs/memory/` |
-| `04-code-quality.md` | Style, architecture, error handling, security |
+| `03-code-quality.md` | Style, architecture, error handling, security |
 
 ## Skills Available on Demand
 

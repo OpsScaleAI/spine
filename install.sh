@@ -43,6 +43,8 @@ ADD_SKILL=""
 REMOVE_SKILL=""
 LIST_SKILLS=false
 TARGETS="cursor,opencode,claude"
+WITH_GRAPHIFY=false
+GRAPHIFY_INIT=false
 
 for arg in "$@"; do
     case "$arg" in
@@ -57,6 +59,8 @@ for arg in "$@"; do
         --remove-skill=*) REMOVE_SKILL="${arg#--remove-skill=}" ;;
         --list-skills)    LIST_SKILLS=true ;;
         --targets=*)      TARGETS="${arg#--targets=}" ;;
+        --with-graphify)  WITH_GRAPHIFY=true ;;
+        --graphify-init)  WITH_GRAPHIFY=true; GRAPHIFY_INIT=true ;;
         -h|--help)
             echo "Usage: bash install.sh [OPTIONS]"
             echo ""
@@ -74,6 +78,8 @@ for arg in "$@"; do
             echo "  --remove-skill=NAME  Remove a single skill from project"
             echo "  --list-skills        List available and installed skills"
             echo "  --targets=LIST       Comma-separated: cursor,opencode,claude"
+            echo "  --with-graphify      Configure Graphify in project (.graphifyignore + guidance)"
+            echo "  --graphify-init      Also run initial graph build (implies --with-graphify)"
             echo "  --dry-run            Preview without making changes"
             echo ""
             echo "Examples:"
@@ -84,6 +90,8 @@ for arg in "$@"; do
             echo "  bash install.sh --project --add-skill=astro"
             echo "  bash install.sh --project --remove-skill=astro"
             echo "  bash install.sh --project --uninstall"
+            echo "  bash install.sh --project --with-graphify"
+            echo "  bash install.sh --project --with-graphify --graphify-init"
             exit 0
             ;;
         *)
@@ -184,7 +192,7 @@ get_command_files() {
 get_core_rules() {
     echo "01-core-protocol.md
 02-memory-bank.md
-04-code-quality.md"
+03-code-quality.md"
 }
 
 get_mode_files() {
@@ -1167,6 +1175,31 @@ copy_templates() {
     done
 }
 
+# --- Optional Graphify setup for consumer projects ---
+
+setup_project_graphify() {
+    local project_root="$1"
+
+    echo ""
+    echo "Graphify (optional):"
+
+    local helper="$SPINE_DIR/scripts/install-graphify.sh"
+    if [[ ! -f "$helper" ]]; then
+        log_warn "Graphify helper script not found: $helper"
+        return 1
+    fi
+
+    local cmd=(bash "$helper" "--project-root=$project_root")
+    if $GRAPHIFY_INIT; then
+        cmd+=("--init-graph")
+    fi
+    if $DRY_RUN; then
+        cmd+=("--dry-run")
+    fi
+
+    "${cmd[@]}"
+}
+
 # --- Uninstall all Spine artefacts from project ---
 
 uninstall_project() {
@@ -1366,6 +1399,12 @@ if $PROJECT_MODE; then
     if $FORCE; then echo "Mode: force (will replace existing symlinks)"; fi
     if $UPDATE_MODE; then echo "Mode: update (install + cleanup dangling)"; fi
     if $DRY_RUN; then echo "Mode: dry-run (preview only)"; fi
+    if $WITH_GRAPHIFY; then
+        echo "Graphify:   enabled (optional consumer setup)"
+        if $GRAPHIFY_INIT; then
+            echo "Graphify:   initial graph build enabled"
+        fi
+    fi
 
     chmod_scripts
 
@@ -1416,6 +1455,11 @@ if $PROJECT_MODE; then
 
     # Add gitignore entries
     add_gitignore_entries "$PROJECT_ROOT"
+
+    # Optional Graphify setup
+    if $WITH_GRAPHIFY; then
+        setup_project_graphify "$PROJECT_ROOT"
+    fi
 
     # Cleanup dangling symlinks (only in update mode)
     if $UPDATE_MODE; then
