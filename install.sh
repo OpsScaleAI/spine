@@ -179,6 +179,14 @@ get_command_files() {
     done | sort
 }
 
+# Core rules loaded by both OpenCode (via opencode.json) and Cursor (via symlinks).
+# Non-core rules are loaded on-demand as skills.
+get_core_rules() {
+    echo "01-core-protocol.md
+02-memory-bank.md
+04-code-quality.md"
+}
+
 get_mode_files() {
     local modes_dir="$SPINE_DIR/modes"
     if [[ ! -d "$modes_dir" ]]; then
@@ -703,7 +711,7 @@ install_project_cursor() {
     echo ""
     echo "Rules (per-file symlinks):"
     local rule_file
-    for rule_file in $(get_rule_files); do
+    for rule_file in $(get_core_rules); do
         local source_abs="$SPINE_DIR/rules/$rule_file"
         if [[ ! -f "$source_abs" ]]; then
             log_warn "Rule '$rule_file' not found, skipping"
@@ -960,6 +968,40 @@ cleanup_dangling_in_dir() {
     echo "$count"
 }
 
+# --- Cleanup rule symlinks that are not in the core allowlist ---
+# Removes symlinks in a rules directory for rules that are no longer core.
+# Arguments: directory_path
+# Returns: number of obsolete rule symlinks removed.
+
+cleanup_obsolete_rules() {
+    local dir_path="$1"
+    local count=0
+
+    if [[ ! -d "$dir_path" ]]; then
+        return 0
+    fi
+
+    local core_rules
+    core_rules="$(get_core_rules)"
+
+    local link rule_name
+    for link in "$dir_path"/*; do
+        [[ -L "$link" ]] || continue
+        rule_name="$(basename "$link")"
+        if ! echo "$core_rules" | grep -qxF "$rule_name"; then
+            if $DRY_RUN; then
+                echo "  [DRY-RUN] Would remove obsolete rule: $rule_name"
+            else
+                rm "$link"
+                log_linked "removed obsolete rule: $rule_name"
+            fi
+            count=$((count + 1))
+        fi
+    done
+
+    echo "$count"
+}
+
 # --- Cleanup all dangling symlinks in project ---
 
 cleanup_dangling_symlinks() {
@@ -974,6 +1016,9 @@ cleanup_dangling_symlinks() {
     total=$((total + sub))
 
     sub="$(cleanup_dangling_in_dir "$project_root/.cursor/rules" "cursor/rules")"
+    total=$((total + sub))
+
+    sub="$(cleanup_obsolete_rules "$project_root/.cursor/rules")"
     total=$((total + sub))
 
     sub="$(cleanup_dangling_in_dir "$project_root/.cursor/commands" "cursor/commands")"
@@ -1083,7 +1128,7 @@ validate_health() {
     fi
 }
 
-# --- Copy templates (opencode.json, AGENTS.md) into project ---
+# --- Copy templates (opencode.json) into project ---
 
 copy_templates() {
     local project_root="$1"
@@ -1097,7 +1142,7 @@ copy_templates() {
         return
     fi
 
-    local template_files=("opencode.json" "AGENTS.md")
+    local template_files=("opencode.json")
     local tf dest
 
     for tf in "${template_files[@]}"; do
@@ -1222,8 +1267,8 @@ uninstall_project() {
         echo "  Removed: $removed artefact(s)"
     fi
     echo ""
-    echo "  Note: opencode.json and AGENTS.md were NOT removed."
-    echo "  Remove them manually if no longer needed."
+    echo "  Note: opencode.json was NOT removed."
+    echo "  Remove it manually if no longer needed."
     echo ""
     echo "==========================================="
 }
@@ -1366,7 +1411,7 @@ if $PROJECT_MODE; then
         install_project_claude "$PROJECT_ROOT"
     fi
 
-    # Copy templates (opencode.json, AGENTS.md) if not present
+    # Copy templates (opencode.json) if not present
     copy_templates "$PROJECT_ROOT"
 
     # Add gitignore entries
