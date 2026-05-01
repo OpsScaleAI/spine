@@ -70,10 +70,10 @@ if $INIT_GRAPH; then
         echo "    skipped: graphify CLI not available"
     else
         if $DRY_RUN; then
-            echo "    [DRY-RUN] Would run: graphify . (in $PROJECT_ROOT)"
+            echo "    [DRY-RUN] Would run: graphify update . (in $PROJECT_ROOT)"
         else
-            (cd "$PROJECT_ROOT" && graphify .) || {
-                echo "    WARNING: initial graph build failed. You can rerun manually: graphify ." >&2
+            (cd "$PROJECT_ROOT" && graphify update .) || {
+                echo "    WARNING: initial graph build failed. You can rerun manually: graphify update ." >&2
             }
         fi
     fi
