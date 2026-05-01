@@ -29,6 +29,9 @@ Act as a Senior Software Architect. Follow the instructions provided in $ARGUMEN
      - Anti-overengineering rule: when in doubt, start simple and escalate only if real complexity emerges
    - Record the selected skill in the task file as: `Suggested execution skill: @<skill-name>`
 4. **Task Plan in the Memory Bank:**
+   - **GitFlow is mandatory (not optional):** every plan must follow GitFlow branch conventions.
+   - **Mandatory branch policy for plans:** use `feature/<descriptive-name>` as the execution branch and `develop` as the base branch.
+   - Never treat GitFlow usage as a suggestion.
    - Ensure the folder `docs/memory/active_tasks/` exists.
    - Determine the next sequential number by inspecting existing task files in `docs/memory/active_tasks/`.
    - Create:
@@ -37,8 +40,8 @@ Act as a Senior Software Architect. Follow the instructions provided in $ARGUMEN
      - task: `docs/memory/active_tasks/007-social-login-adjustment.md`
    - Create the task file with:
      - `Suggested execution skill: @<skill-name>` — the skill selected in step 4
-     - `## Branch: feature/<descriptive-name>` — specifies which branch will be created at execution time. Never create the branch during planning.
-     - `## Base: develop` — the branch will be created from this base.
+     - `## Branch: feature/<descriptive-name>` — **required by GitFlow**; specifies which branch will be created at execution time. Never create the branch during planning.
+     - `## Base: develop` — **required by GitFlow**; the branch must be created from this base.
      - Initial status: `PLANNING`
      - Objective
      - Inputs
