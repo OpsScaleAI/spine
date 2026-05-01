@@ -9,10 +9,13 @@ Act as a Software Engineer focused on rigorous implementation.
 1. **Active Task Selection:** Use the provided `<plan_file_path>` argument.
    - Validate if the file exists and has a `.md` extension.
 2. **Branch Setup:** Read the `Branch` and `Base` fields from the active task file.
-   - Ensure you are on the `Base` branch (default: `develop`). Run `git checkout <base> && git pull`.
+   - **GitFlow is mandatory (not optional) during execution.**
+   - `Base` must be `develop` and `Branch` must follow `feature/<descriptive-name>`.
+   - Ensure you are on the `Base` branch. Run `git checkout <base> && git pull`.
    - If the specified `Branch` does not exist yet, create it: `git checkout -b <branch>`.
    - If the `Branch` already exists, switch to it: `git checkout <branch>`.
-   - If no `Branch` or `Base` fields are found in the task file, default to `feature/<descriptive-name>` from the task filename, based on `develop`.
+   - If `Branch` or `Base` fields are missing, stop and request a plan correction before implementation.
+   - If `Base` is not `develop` or `Branch` does not match `feature/<descriptive-name>`, stop and request correction to comply with GitFlow.
 3. **Context Reading:** Read the selected active task (`<sequential-number>-<descriptive-name>.md`) and related tests mandatorily.
 4. **Execution Skill Selection:**
    - Use the skill specified in the `Suggested execution skill` field of the active task.
