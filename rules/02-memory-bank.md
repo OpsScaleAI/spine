@@ -51,6 +51,11 @@ If `graphify-out/graph.json` exists, it can be used as an auxiliary discovery la
 
 If a file does not exist, create it only if it is part of the current task flow.
 
+After SYNC, before any code change, state:
+- Key assumptions about the task derived from the memory bank.
+- Any ambiguities, gaps, or conflicts found in the context.
+- The simplest approach that satisfies the requirements.
+
 ## Template: active_tasks/<sequential-number>-<descriptive-name>.md
 
 ```markdown
@@ -65,9 +70,11 @@ If a file does not exist, create it only if it is part of the current task flow.
 ## Expected Outputs
 - [Files/artifacts that must be generated]
 
-## Acceptance Criteria
+## Acceptance Criteria (verifiable, TDD-ready)
 - [ ] [Criterion 1]
+  - Test: [specific test that proves this criterion]
 - [ ] [Criterion 2]
+  - Test: [specific test that proves this criterion]
 
 ## Status: [PLANNING | IN_PROGRESS | REVIEW | DONE]
 ```

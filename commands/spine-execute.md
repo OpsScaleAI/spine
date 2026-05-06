@@ -35,3 +35,10 @@ Act as a Software Engineer focused on rigorous implementation.
      - tests executed
      - test results
 8. **Restriction:** Do not perform refactors outside the active task scope. If you find a necessary improvement, record it in "Notes" in the task itself.
+9. **Completion Gate (mandatory):**
+   - Before sending the final execution response, verify that the active task file status is `REVIEW`.
+   - If status is not `REVIEW`, stop and update it before completion.
+   - `REVIEW` is valid only if evidence is present:
+     - `Tests executed` list
+     - `Test results` summary
+   - If test evidence is missing, stop and update the active task file before completion.
