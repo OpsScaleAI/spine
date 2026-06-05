@@ -16,7 +16,7 @@ date_added: "2026-04-29"
 ## Solo Mode (Default)
 The active task file (`<seq>-<name>.md`) is the execution contract.
 Same agent plans, executes, and harvests.
-Mandatory updates at end: `progress.md` and `decision-log.md` (when applicable).
+Mandatory updates at harvest: `progress.md` (delivery log append), `learnings.md` (when applicable), `decision-log.md` (when applicable); task moved to `completed_tasks/`.
 
 ## Multi-Agent Mode (Optional)
 - Separate Planner/Executor only when it provides real value
@@ -32,7 +32,7 @@ Scope → <seq>-<name>.md → Execution → Tests → Harvest
 1. Every execution needs `docs/memory/active_tasks/<seq>-<name>.md`
 2. Structural changes to `global/` must be explicit and justified
 3. Decision conflicts are escalated to the human
-4. Mark task as `DONE` when finished
+4. Set frontmatter `status: DONE` and `git mv` task to `completed_tasks/` when finished
 5. Skill selection must respect `docs/governance/skills-policy.md`
 
 ## Reference

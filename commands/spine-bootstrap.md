@@ -59,6 +59,9 @@ Goal: execute an initial assessment and populate the Memory Bank with a reliable
 - Initialize/update without deleting useful history:
   - `docs/memory/ledger/roadmap.md`
   - `docs/memory/ledger/progress.md`
+  - `docs/memory/ledger/learnings.md` (if missing)
+- Ensure v2.1 directories exist: `docs/memory/completed_tasks/`
+- Validate `docs/governance/memory-tags-policy.md` is present (seed via `/spine-install` if missing)
 
 ---
 
@@ -71,13 +74,7 @@ Goal: execute an initial assessment and populate the Memory Bank with a reliable
 - Example:
   - branch: `feature/setup-memory-bank`
   - task: `docs/memory/active_tasks/001-setup-memory-bank.md`
-- Structure the task with:
-  - objective
-  - inputs
-  - expected outputs
-  - acceptance criteria
-  - test strategy
-  - status `PLANNING`
+- Structure the task with Obsidian-style YAML frontmatter per `02-memory-bank.md` (`task_id`, `title`, `goal`, `status: PLANNING`, `tags`, `branch`, `base`, …) and body sections: objective, inputs, expected outputs, acceptance criteria, test strategy
 - If the initial task includes UI/E2E, already record a Playwright guideline based on simplicity:
   - default to `playwright-cli` for quick exploration/validation;
   - escalate to `playwright-skill` only with real complexity (multi-step flow, multiple validations, frequent re-execution).
@@ -104,6 +101,7 @@ Always include:
 - [ ] If setup is missing, command asks confirmation to run `/spine-install` (bridge mode), then re-validates and continues only if setup is complete.
 - [ ] Command performs only assessment and memory-bank bootstrap (no installation/setup side effects).
 - [ ] Global memory files are filled/normalized without overwriting valid existing context.
-- [ ] Ledger files (`roadmap`, `progress`) are initialized/updated without deleting useful history.
+- [ ] Ledger files (`roadmap`, `progress`, `learnings`) are initialized/updated without deleting useful history.
+- [ ] `completed_tasks/` directory exists; `memory-tags-policy.md` is present or flagged in gaps.
 - [ ] If there is delivery scope, an initial active task is created in `docs/memory/active_tasks/`.
 - [ ] Final summary clearly lists memory bank files filled, preserved files, known gaps, and setup precondition status.

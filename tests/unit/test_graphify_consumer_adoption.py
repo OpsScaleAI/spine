@@ -38,8 +38,8 @@ def test_spine_plan_has_conditional_graph_first_guidance() -> None:
 def test_core_rules_keep_memory_bank_mandatory_and_graph_conditional() -> None:
     core = _read("rules/01-core-protocol.md").lower()
     memory = _read("rules/02-memory-bank.md").lower()
-    assert "if graphify-out/graph.json exists" in core
-    assert "query graph first for exploration" in core
+    assert "follow `02-memory-bank.md`" in core
+    assert "graphify" in core
     assert "docs/memory/" in memory
     assert "graphify-out/graph.json" in memory
     assert "memory bank remains mandatory" in memory

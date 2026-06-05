@@ -113,13 +113,24 @@ Each Spine project opts in via `opencode.json` with `instructions` pointing to S
 ```json
 {
   "$schema": "https://opencode.ai/config.json",
+  "model": "opencode-go/deepseek-v4-pro",
+  "small_model": "nvidia/deepseek-ai/deepseek-v4-pro",
+  "default_agent": "ask",
   "instructions": [
     "https://raw.githubusercontent.com/OpsScaleAI/spine/refs/heads/master/rules/01-core-protocol.md",
     "https://raw.githubusercontent.com/OpsScaleAI/spine/refs/heads/master/rules/02-memory-bank.md",
     "https://raw.githubusercontent.com/OpsScaleAI/spine/refs/heads/master/rules/03-code-quality.md"
-  ]
+  ],
+  "compaction": { "enabled": true, "strategy": "summarize", "threshold": 16000 },
+  "agent": {
+    "plan": { "mode": "primary", "model": "opencode-go/deepseek-v4-pro", "variant": "medium" },
+    "build": { "mode": "primary", "model": "opencode-go/deepseek-v4-pro", "variant": "medium" },
+    "ask": { "mode": "primary", "model": "opencode-go/deepseek-v4-pro", "prompt": "{file:.spine/agents/ask.md}" }
+  }
 }
 ```
+
+Canonical full template: [`templates/opencode.json`](templates/opencode.json). Ask loads its prompt from `.spine/agents/ask.md` via `{file:...}` (requires `.spine` symlink). `bash .spine/install.sh` also symlinks the file to `.opencode/agents/` for OpenCode-native discovery.
 
 > **Why URLs instead of local paths?**
 > - **Portable:** works on any machine without a local Spine clone
@@ -281,6 +292,35 @@ Removed rules (`handoff-protocol`, `testing`, `gitflow`) remain available as on-
 
 SPINE works with Claude Code and other AI agents via per-project symlinks (`.claude/skills/`, `.cursor/`, `.opencode/`). For other tools, adapt paths or file names to match the expected format.
 
+## Memory Bank v2.1
+
+Operational source of truth: `docs/memory/` (Markdown in git). Tag policy: `docs/governance/memory-tags-policy.md`.
+
+```text
+docs/memory/
+  global/              # Stable context (brief, glossary, patterns, decisions)
+  ledger/
+    roadmap.md
+    progress.md        # Current state + append-only delivery log
+    learnings.md       # Recurrence registry (LEARN-NNN)
+  active_tasks/        # Open work (PLANNING | IN_PROGRESS | REVIEW)
+  completed_tasks/     # DONE tasks (moved at harvest via git mv)
+```
+
+**Task files** use Obsidian-style YAML frontmatter (`tags`, `status`, `goal`, `branch`, `base`, …). Reference template: `templates/docs/memory/active_tasks/_task-template.md`.
+
+**Tiered SYNC** (see `rules/02-memory-bank.md`):
+
+| Tier | When | Read |
+|------|------|------|
+| Core | Every session | global 1–6, progress Current state, open `active_tasks/` |
+| Extended | Plan, harvest, ambiguous scope | `roadmap.md`, full delivery log |
+| On demand | Debugging, recurrence | `learnings.md`, `completed_tasks/` |
+
+**Harvest** (`/spine-harvest`): append delivery log entry (with **Tags**), update `learnings.md` when applicable, set frontmatter `status: DONE`, `git mv` task to `completed_tasks/`.
+
+**Migration from v2.0:** Run `/spine-update`, seed missing templates via `/spine-install`, manually move DONE files from `active_tasks/` to `completed_tasks/`, optionally restructure `progress.md` (preserve legacy content under a heading).
+
 ## Slash Commands
 
 Available command templates in `commands/`:
@@ -300,7 +340,7 @@ Spine ships agent definitions in `agents/`. `install.sh` deploys them **per proj
 
 Available agents:
 
-- **ask** (`ask.md`) — Read-only thinking partner. Loads memory bank context (SYNC order) and optional Graphify graph-first exploration. Explore ideas, validate approaches, and discuss architecture without modifying the codebase. Read-only bash diagnostics are allowed; state-changing operations are blocked. Switch to the **Build** agent and run `/spine-plan` when ready to implement.
+- **ask** (`ask.md`) — Read-only thinking partner. Loads memory bank context (tiered SYNC) and optional Graphify graph-first exploration. Explore ideas, validate approaches, and discuss architecture without modifying the codebase. Read-only bash diagnostics are allowed; state-changing operations are blocked. Switch to the **Build** agent and run `/spine-plan` when ready to implement (paste native Plan draft into arguments if needed).
 
 ## Skill Governance
 
@@ -342,10 +382,11 @@ flowchart TD
 - During implementation:
   - avoid new abstractions without at least two real use cases;
   - record relevant technical decisions.
-- Before closing the task:
-  - update `docs/memory/ledger/progress.md`;
+- Before closing the task (`/spine-harvest`):
+  - append delivery log in `docs/memory/ledger/progress.md` (with **Tags**);
+  - register recurrences in `docs/memory/ledger/learnings.md` when applicable;
   - record decisions in `docs/memory/global/decision-log.md`;
-  - record avoidable mistakes and prevention notes.
+  - move task to `docs/memory/completed_tasks/`.
 
 ## Monthly Maintenance
 
@@ -359,15 +400,21 @@ flowchart TD
 
 ## Version
 
+**v2.1.0** — Memory Bank v2.1.
+
+- `completed_tasks/`, `ledger/learnings.md`, structured delivery log in `progress.md`
+- Obsidian-style task frontmatter and `memory-tags-policy.md`
+- Tiered SYNC; OpenCode `ask` agent in template; native Plan input via `/spine-plan`
+
+<details>
+<summary>Version history</summary>
+
 **v1.3.0** — Project-only installation.
 
 - Removed global installation mode from `install.sh`
 - Added `scripts/link-spine.sh` to create the `.spine` symlink in consumer projects
 - `install.sh` is project-only; default skills = all; `--core` for minimal profile
 - `--global` and `--project` flags removed
-
-<details>
-<summary>Version history</summary>
 
 **v1.2.0** — ASK agent and OpenCode agents deployment.
 

@@ -32,6 +32,8 @@ This performs:
 3. sync `opencode.json` with current Spine template (merge mode);
 4. preserve `docs/memory/` (non-destructive).
 
+**Memory Bank v2.1 migration (manual, after update):** If DONE tasks remain in `active_tasks/`, run `git mv docs/memory/active_tasks/<file>.md docs/memory/completed_tasks/`. Seed missing `learnings.md` and `memory-tags-policy.md` via `/spine-install` (idempotent). See Spine README § Memory Bank v2.1.
+
 ---
 
 ## 3. Optional modes
