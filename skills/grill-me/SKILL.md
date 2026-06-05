@@ -101,4 +101,6 @@ Discovery is complete when all of the following are resolved:
 
 Record resolved decisions in the active task file under `## Discovery notes` before proceeding to `@writing-plans`.
 
+Suggest operational `tags` for `/spine-plan` frontmatter based on domain, stack, and incident type (per `docs/governance/memory-tags-policy.md`).
+
 Do **not** write the full implementation plan until discovery is complete.
