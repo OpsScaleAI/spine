@@ -86,6 +86,7 @@ Skills for working with documents and office files:
 ### Planning & Workflow
 Skills for task planning and workflow optimization:
 - `@brainstorming` - Brainstorm and design before coding
+- `@grill-me` - Iterative discovery before planning; sharpens domain language and promotes terms to `domain-glossary.md`
 - `@writing-plans` - Write detailed implementation plans
 - `@planning-with-files` - File-based planning system (Manus-style)
 - `@executing-plans` - Execute plans with checkpoints and reviews

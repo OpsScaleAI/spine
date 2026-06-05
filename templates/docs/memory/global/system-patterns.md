@@ -6,6 +6,7 @@
 - Graphify is **optional** and **not a dependency** of Spine itself.
 - Use Graphify to compress exploration context (graph queries first), while `docs/memory/` and Spine rules remain the operational source of truth.
 - Recommended for medium/large consumer repositories where broad file scanning increases input-token cost.
+- Setup and `graphify-out` generation: [Spine README — Optional: Graphify](https://github.com/OpsScaleAI/spine#optional-graphify).
 
 ## Arquitetura
 [Preencher]
