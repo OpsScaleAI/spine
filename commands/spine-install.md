@@ -32,15 +32,16 @@ Before any Memory Bank assessment, download the template from the canonical Spin
    - `mkdir -p "$PROJECT_ROOT/docs/memory/global"`
    - `mkdir -p "$PROJECT_ROOT/docs/memory/ledger"`
    - `mkdir -p "$PROJECT_ROOT/docs/memory/active_tasks"`
+   - `mkdir -p "$PROJECT_ROOT/docs/memory/completed_tasks"`
    - `mkdir -p "$PROJECT_ROOT/docs/governance"`
    - `mkdir -p "$PROJECT_ROOT/docs/quality"`
    - `mkdir -p "$PROJECT_ROOT/docs/workflow"`
    - `mkdir -p "$PROJECT_ROOT/docs/documentation"` (for project documentation, supporting documents, and discoveries)
 3. Download files sequentially:
    - Memory Bank global files (project-brief, product-context, domain-glossary, system-patterns, tech-context, decision-log)
-   - Memory Bank ledger files (roadmap, progress)
-   - Governance and workflow docs (skills-policy, guardrails, gitflow-operacional, ciclo-de-entrega)
-4. Create empty `.gitkeep` in `docs/memory/active_tasks/`.
+   - Memory Bank ledger files (roadmap, progress, learnings)
+   - Governance and workflow docs (skills-policy, memory-tags-policy, guardrails, gitflow-operacional, ciclo-de-entrega)
+4. Create empty `.gitkeep` in `docs/memory/active_tasks/` and `docs/memory/completed_tasks/`.
 5. Download command: prefer `curl -fsSL <URL> -o <path>`, fallback to `wget -q <URL> -O <path>`.
 
 ### 0.4 Files to download
@@ -56,7 +57,9 @@ Paths:
 - `templates/docs/memory/global/decision-log.md`
 - `templates/docs/memory/ledger/roadmap.md`
 - `templates/docs/memory/ledger/progress.md`
+- `templates/docs/memory/ledger/learnings.md`
 - `templates/docs/governance/skills-policy.md`
+- `templates/docs/governance/memory-tags-policy.md`
 - `templates/docs/quality/guardrails.md`
 - `templates/docs/workflow/gitflow-operacional.md`
 - `templates/docs/workflow/ciclo-de-entrega.md`
@@ -87,7 +90,7 @@ Graphify is an optional enhancement for consumer projects that need lower contex
 **New project onboarding:**
 
 1. Install Graphify globally on the developer machine (`uv tool install graphifyy` recommended; alternatives: `pipx install graphifyy`, `pip install graphifyy`).
-2. Run project setup with Graphify opt-in: `bash .spine/install.sh --with-graphify --graphify-init`.
+2. Run project setup with Graphify opt-in: `bash .spine/install.sh --with-graphify --graphify-init` (copies `.graphifyignore` from `templates/dot.graphifyignore` when missing).
 3. Verify: `test -f graphify-out/graph.json && echo "Graphify active"`.
 
 **Existing project already using Spine** (`.spine` and `docs/memory/` already present):
@@ -131,7 +134,8 @@ Rule files:
 - Do not symlink Spine agents into global `~/.config/opencode/agents/`; `install.sh` deploys them to project `.opencode/agents/` only.
 - Remote URLs provide portability and auto-update behavior.
 - Version pinning is supported by replacing `refs/heads/master` with a tag.
-- `$schema`, `model`, `permission`, `command`, and `compaction` settings are project-specific and should be configured by the user in `opencode.json` after setup.
+- Project `opencode.json` sets `default_agent: ask`, `model` / `small_model`, and `agent.ask` with `prompt: "{file:.spine/agents/ask.md}"` (requires `.spine` symlink via `scripts/link-spine.sh`).
+- `bash .spine/install.sh` also symlinks `agents/ask.md` → `.opencode/agents/ask.md` for OpenCode-native agent discovery.
 
 ---
 

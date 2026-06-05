@@ -21,7 +21,8 @@ spine/
 │       ├── memory/
 │       │   ├── global/     # project-brief, product-context, domain-glossary, etc.
 │       │   ├── ledger/
-│       │   └── active_tasks/
+│       │   ├── active_tasks/
+│       │   └── completed_tasks/
 │       ├── governance/     # Skills policy (allowlist, trial criteria)
 │       ├── quality/        # Guardrails documentation
 │       └── workflow/       # GitFlow and delivery cycle guides
@@ -217,30 +218,32 @@ bash .spine/install.sh --with-graphify --graphify-init
 
 **Trial skill (opt-in):** `grill-me` — conditional discovery before `/spine-plan`; sharpens domain language and promotes terms to `domain-glossary.md`. Install with `--add-skill=grill-me`.
 
-### Memory Bank (consumer)
+### Memory Bank v2.1 (consumer)
 
-Operational source of truth: `docs/memory/`. See `rules/02-memory-bank.md`.
+Operational source of truth: `docs/memory/`. Canonical spec: `rules/02-memory-bank.md`. Tags: `docs/governance/memory-tags-policy.md`.
 
-**Global files:**
+```
+docs/memory/
+  global/           # Stable base
+  ledger/
+    roadmap.md
+    progress.md     # Current state + delivery log (append-only)
+    learnings.md    # LEARN-NNN recurrence registry
+  active_tasks/     # Open work only
+  completed_tasks/  # DONE (git mv at harvest)
+```
 
-- `project-brief.md` — scope, goals, boundaries
-- `product-context.md` — why the project exists, UX goals
-- `domain-glossary.md` — canonical domain terms (language only)
-- `system-patterns.md` — stack, architecture, design patterns
-- `tech-context.md` — dev setup, constraints, infra
-- `decision-log.md` — architectural decisions with WHY
+**Task files:** Obsidian-style YAML frontmatter (`task_id`, `title`, `goal`, `status`, `tags`, `branch`, `base`, `created_at`, `updated_at`, …). Template: `templates/docs/memory/active_tasks/_task-template.md`.
 
-**SYNC read order** (every session):
+**Tiered SYNC:**
 
-1. `global/project-brief.md`
-2. `global/product-context.md`
-3. `global/domain-glossary.md`
-4. `global/system-patterns.md`
-5. `global/tech-context.md`
-6. `global/decision-log.md`
-7. `ledger/roadmap.md`
-8. `ledger/progress.md`
-9. `active_tasks/`
+| Tier | When | Read |
+|------|------|------|
+| Core | Every session | global 1–6, progress Current state, open `active_tasks/` |
+| Extended | Plan, harvest, ambiguous scope | `roadmap.md`, full delivery log |
+| On demand | Debugging, recurrence | `learnings.md`, `completed_tasks/` |
+
+**Harvest outcomes:** delivery log append, `learnings.md` when applicable, frontmatter `status: DONE`, `git mv` to `completed_tasks/`.
 
 ### OpenCode configuration (consumer)
 
@@ -250,9 +253,14 @@ Canonical template: `templates/opencode.json`
   - `01-core-protocol.md`
   - `02-memory-bank.md`
   - `03-code-quality.md`
+- **model** / **small_model** — default LLM (`provider/model-id` format)
+- **default_agent:** `ask` (read-only exploration first; switch to `build` for implementation)
+- **agent.ask** — read-only primary; default model variant (no override); `prompt: "{file:.spine/agents/ask.md}"`; deny `edit`
+- **agent.plan** / **agent.build** — `variant: medium` for balanced reasoning cost
 - **compaction:** `enabled: true`, `strategy: summarize`, `threshold: 16000`
 - **Never** add Spine `instructions` to global `~/.config/opencode/opencode.json`
 - Pin to `refs/heads/master` for latest, or `refs/tags/vX.Y.Z` for stability
+- Customize `model` / `variant` per [OpenCode models](https://opencode.ai/docs/models/) (`opencode models` CLI)
 
 ### Optional tooling
 
@@ -273,8 +281,7 @@ Available in `commands/`:
 - `/spine-install` — templates, `opencode.json`, symlinks
 - `/spine-update` — safe refresh via `scripts/update.sh`
 - `/spine-bootstrap` — initial assessment and memory bank fill
-- `/spine-plan` — task plan in memory bank (conditional `@grill-me` discovery)
-- `/spine-plan-bridge` — governance for native Plan mode and conversational changes
+- `/spine-plan` — task plan in memory bank (native Plan draft as input; conditional `@grill-me` discovery)
 - `/spine-execute` — implement active task with validation
 - `/spine-harvest` — consolidate learnings and close task
 - `/spine-commit` — commit with branch safety checks

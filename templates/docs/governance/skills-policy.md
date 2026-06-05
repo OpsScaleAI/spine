@@ -1,5 +1,7 @@
 # Skills Policy (Allowlist Mínima)
 
+Tag policy for tasks, progress, and learnings: `docs/governance/memory-tags-policy.md`.
+
 ## Objetivo
 Reduzir complexidade operacional e manter somente skills com valor recorrente no seu workflow.
 

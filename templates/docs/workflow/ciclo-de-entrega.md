@@ -14,10 +14,11 @@ Executar tarefas com previsibilidade e qualidade, mantendo documentação mínim
 4. **Validação**
    - Executar testes definidos.
    - Validar impacto em áreas relacionadas.
-5. **Registro**
-   - Atualizar `docs/memory/ledger/progress.md`.
+5. **Registro (harvest v2.1)**
+   - Atualizar `docs/memory/ledger/progress.md` (Current state + entrada no delivery log com **Tags**).
+   - Registrar recorrências em `docs/memory/ledger/learnings.md` quando houver incidente ou retrabalho.
    - Registrar decisões em `docs/memory/global/decision-log.md`.
-   - Registrar lição aprendida (erro evitável + prevenção).
+   - Mover task concluída: `git mv active_tasks/ → completed_tasks/` (frontmatter `status: DONE`).
 6. **Promoção**
    - `feature/*` -> `develop` -> `staging` -> `production` -> `main`.
 
