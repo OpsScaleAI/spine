@@ -3,7 +3,6 @@
 
 # Agent local config (root-level only, templates/ are versioned)
 .cursor/
-/AGENTS.md
 CLAUDE.md
 .claude/
 .opencode/

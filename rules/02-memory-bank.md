@@ -16,6 +16,7 @@ docs/memory/
   global/                    # Stable base (changes with explicit justification)
     project-brief.md         # Scope, goals, project boundaries
     product-context.md       # Why the project exists, problems it solves, UX goals
+    domain-glossary.md       # Ubiquitous language: canonical domain terms (language only)
     system-patterns.md       # Stack, architecture, design patterns, dependencies
     tech-context.md          # Dev setup, technical constraints, infra
     decision-log.md          # Record of architectural decisions with WHY
@@ -40,12 +41,13 @@ At the start of EVERY session or task, read in this order:
 
 1. `global/project-brief.md` (scope)
 2. `global/product-context.md` (product context)
-3. `global/system-patterns.md` (how to build)
-4. `global/tech-context.md` (constraints)
-5. `global/decision-log.md` (previous decisions)
-6. `ledger/roadmap.md` (direction)
-7. `ledger/progress.md` (where we are)
-8. `active_tasks/` (what is in progress)
+3. `global/domain-glossary.md` (domain language — create lazily during `@grill-me` or `@spine-bootstrap` if missing)
+4. `global/system-patterns.md` (how to build)
+5. `global/tech-context.md` (constraints)
+6. `global/decision-log.md` (previous decisions)
+7. `ledger/roadmap.md` (direction)
+8. `ledger/progress.md` (where we are)
+9. `active_tasks/` (what is in progress)
 
 If `graphify-out/graph.json` exists, it can be used as an auxiliary discovery layer (graph-first exploration), but it does not replace reading and maintaining the memory bank.
 

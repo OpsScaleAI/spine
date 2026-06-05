@@ -2,30 +2,23 @@
 set -uo pipefail
 
 # =============================================================================
-# Spine — Installation Script
+# Spine — Project Installation Script
 #
-# Supports two modes:
+# Installs per-project symlinks using .agents/ as the cross-tool hub.
+# Skills are installed per-name for granular control.
 #
-#   GLOBAL (default): Creates directory-level symlinks from the Spine repository
-#   into the global configuration directories of Cursor, OpenCode, and Claude Code.
-#
-#   PROJECT (--project): Creates per-project symlinks using .agents/ as the
-#   cross-tool hub. Skills are installed per-name for granular control.
+# Prerequisite: .spine symlink in the project root (use scripts/link-spine.sh).
 #
 # Usage:
-#   bash install.sh                            # Global install (conservative)
-#   bash install.sh --force                    # Global install (replace existing)
-#   bash install.sh --dry-run                  # Preview without changes
-#   bash install.sh --project                  # Project install (core skills)
-#   bash install.sh --project --skills=all     # Project install (all skills)
-#   bash install.sh --project --skills=core    # Project install (core skills)
-#   bash install.sh --project --skills=a,b,c   # Project install (specific skills)
-#   bash install.sh --project --add-skill=x    # Add a skill to existing project
-#   bash install.sh --project --remove-skill=x # Remove a skill from project
-#   bash install.sh --project --list-skills    # List available/installed skills
-#   bash install.sh --project --update         # Update: install + cleanup dangling
-#   bash install.sh --project --uninstall     # Remove all Spine artefacts from project
-#   bash install.sh --project --dry-run       # Preview project install
+#   bash .spine/install.sh                       # Install all skills (default)
+#   bash .spine/install.sh --core                # Install core skills only (5)
+#   bash .spine/install.sh --skills=core|a,b,c   # Explicit skill selection
+#   bash .spine/install.sh --add-skill=x         # Add a skill to existing project
+#   bash .spine/install.sh --remove-skill=x      # Remove a skill from project
+#   bash .spine/install.sh --list-skills         # List available/installed skills
+#   bash .spine/install.sh --update              # Update: install + cleanup dangling
+#   bash .spine/install.sh --uninstall           # Remove all Spine artefacts from project
+#   bash .spine/install.sh --dry-run             # Preview without changes
 # =============================================================================
 
 # ---------------------------------------------------------------------------
@@ -34,7 +27,6 @@ set -uo pipefail
 
 FORCE=false
 DRY_RUN=false
-PROJECT_MODE=false
 UPDATE_MODE=false
 UNINSTALL_MODE=false
 SPINE_DIR_CUSTOM=""
@@ -50,9 +42,14 @@ for arg in "$@"; do
     case "$arg" in
         --force)          FORCE=true ;;
         --dry-run)        DRY_RUN=true ;;
-        --project)        PROJECT_MODE=true ;;
-        --update)         PROJECT_MODE=true; UPDATE_MODE=true ;;
-        --uninstall)      PROJECT_MODE=true; UNINSTALL_MODE=true ;;
+        --core)           SKILLS_ARG=core ;;
+        --update)         UPDATE_MODE=true ;;
+        --uninstall)      UNINSTALL_MODE=true ;;
+        --global|--project)
+            echo "ERROR: --global and --project were removed in v1.3.0." >&2
+            echo "       Install is project-only. Run scripts/link-spine.sh first." >&2
+            exit 1
+            ;;
         --spine-dir=*)    SPINE_DIR_CUSTOM="${arg#--spine-dir=}" ;;
         --skills=*)       SKILLS_ARG="${arg#--skills=}" ;;
         --add-skill=*)    ADD_SKILL="${arg#--add-skill=}" ;;
@@ -64,34 +61,32 @@ for arg in "$@"; do
         -h|--help)
             echo "Usage: bash install.sh [OPTIONS]"
             echo ""
-            echo "Global mode (default):"
-            echo "  --force              Replace existing directories with symlinks"
-            echo "  --dry-run            Preview without making changes"
+            echo "Prerequisite: .spine symlink in project root (scripts/link-spine.sh)."
             echo ""
-            echo "Project mode:"
-            echo "  --project            Install per-project symlinks (inside git repo)"
-            echo "  --update             Update: install missing + cleanup dangling symlinks"
+            echo "Options:"
+            echo "  --update             Install missing + cleanup dangling symlinks"
             echo "  --uninstall          Remove all Spine artefacts from project"
             echo "  --spine-dir=PATH     Path to Spine repository (default: auto-detect)"
-            echo "  --skills=core|all|a,b,c  Skill selection (default: core)"
+            echo "  --skills=core|all|a,b,c  Skill selection (default: all)"
+            echo "  --core               Install core skills only (alias for --skills=core)"
             echo "  --add-skill=NAME     Add a single skill to existing project"
             echo "  --remove-skill=NAME  Remove a single skill from project"
             echo "  --list-skills        List available and installed skills"
             echo "  --targets=LIST       Comma-separated: cursor,opencode,claude"
             echo "  --with-graphify      Configure Graphify in project (.graphifyignore + guidance)"
             echo "  --graphify-init      Also run initial graph build (implies --with-graphify)"
+            echo "  --force              Replace mismatched symlinks"
             echo "  --dry-run            Preview without making changes"
             echo ""
             echo "Examples:"
-            echo "  bash install.sh --project"
-            echo "  bash install.sh --project --skills=python-patterns,fastapi-pro"
-            echo "  bash install.sh --project --update"
-            echo "  bash install.sh --project --list-skills"
-            echo "  bash install.sh --project --add-skill=astro"
-            echo "  bash install.sh --project --remove-skill=astro"
-            echo "  bash install.sh --project --uninstall"
-            echo "  bash install.sh --project --with-graphify"
-            echo "  bash install.sh --project --with-graphify --graphify-init"
+            echo "  bash .spine/install.sh"
+            echo "  bash .spine/install.sh --core"
+            echo "  bash .spine/install.sh --skills=python-patterns,fastapi-pro"
+            echo "  bash .spine/install.sh --update"
+            echo "  bash .spine/install.sh --list-skills"
+            echo "  bash .spine/install.sh --add-skill=astro"
+            echo "  bash .spine/install.sh --uninstall"
+            echo "  bash .spine/install.sh --with-graphify --graphify-init"
             exit 0
             ;;
         *)
@@ -195,14 +190,14 @@ get_core_rules() {
 03-code-quality.md"
 }
 
-get_mode_files() {
-    local modes_dir="$SPINE_DIR/modes"
-    if [[ ! -d "$modes_dir" ]]; then
+get_agent_files() {
+    local agents_dir="$SPINE_DIR/agents"
+    if [[ ! -d "$agents_dir" ]]; then
         return
     fi
-    local mode_file
-    for mode_file in "$modes_dir"/*.md; do
-        [[ -f "$mode_file" ]] && basename "$mode_file"
+    local agent_file
+    for agent_file in "$agents_dir"/*.md; do
+        [[ -f "$agent_file" ]] && basename "$agent_file"
     done | sort
 }
 
@@ -226,7 +221,6 @@ PROJECT_GITIGNORE_ENTRIES=(
 LINKED=0
 SKIPPED=0
 CONFLICTS=0
-BACKED_UP=0
 WARNINGS=0
 CLEANED=0
 HEALTH_ISSUES=0
@@ -248,86 +242,6 @@ mkdir_p() {
     else
         mkdir -p "$dir"
     fi
-}
-
-# create_dir_symlink source_dir target_dir label
-# For global mode (absolute paths). Returns: 0=created, 1=skipped, 2=warning, 3=conflict
-create_dir_symlink() {
-    local source="$1"
-    local target="$2"
-    local label="$3"
-
-    if [[ ! -e "$target" && ! -L "$target" ]]; then
-        if $DRY_RUN; then
-            echo "  [DRY-RUN] Would link: $label"
-            echo "             $target -> $source"
-        else
-            ln -s "$source" "$target"
-            log_linked "$label"
-        fi
-        return 0
-    fi
-
-    if [[ -L "$target" ]]; then
-        local current
-        current="$(readlink "$target")"
-        local resolved
-        if [[ "$current" = /* ]]; then
-            resolved="${current%/}"
-        else
-            resolved="$(cd "$(dirname "$target")" && pwd)/${current%/}"
-        fi
-        local source_clean="${source%/}"
-        if [[ "$resolved" == "$source_clean" ]]; then
-            log_skipped "$label (already linked)"
-            return 1
-        else
-            if $FORCE; then
-                if $DRY_RUN; then
-                    echo "  [DRY-RUN] Would remove old symlink: $target"
-                    echo "  [DRY-RUN] Would link: $label"
-                    echo "             $target -> $source"
-                else
-                    rm "$target"
-                    ln -s "$source" "$target"
-                    log_warn "$label (old symlink replaced)"
-                fi
-                return 0
-            else
-                log_warn "$label"
-                echo "             Symlink exists but points to: $current" >&2
-                echo "             Expected: $source" >&2
-                echo "             Use --force to replace, or remove manually." >&2
-                return 2
-            fi
-        fi
-    fi
-
-    if [[ -d "$target" ]]; then
-        if $FORCE; then
-            local backup="${target}.spine-backup"
-            if $DRY_RUN; then
-                echo "  [DRY-RUN] Would back up: $target -> $backup"
-                echo "  [DRY-RUN] Would link: $label"
-                echo "             $target -> $source"
-            else
-                mv "$target" "$backup"
-                ln -s "$source" "$target"
-                log_backup "$label" "$backup"
-            fi
-            return 0
-        else
-            log_conflict "$label"
-            echo "             Conflict: $target is a real directory, not a symlink." >&2
-            echo "             Use --force to back it up and replace with a symlink." >&2
-            return 3
-        fi
-    fi
-
-    log_conflict "$label"
-    echo "             Conflict: $target exists and is a regular file." >&2
-    echo "             Remove or rename it, then re-run install.sh." >&2
-    return 3
 }
 
 # create_relative_symlink rel_target link_path label
@@ -420,146 +334,7 @@ chmod_scripts() {
 }
 
 # ===========================================================================
-# GLOBAL MODE: Install to user-level config directories
-# ===========================================================================
-
-CURSOR_DIR="$HOME/.cursor"
-CURSOR_RULES="$CURSOR_DIR/rules"
-CURSOR_SKILLS="$CURSOR_DIR/skills"
-CURSOR_COMMANDS="$CURSOR_DIR/commands"
-
-OC_CONFIG_DIR="${XDG_CONFIG_HOME:-$HOME/.config}/opencode"
-OC_SKILLS="$OC_CONFIG_DIR/skills"
-OC_COMMANDS="$OC_CONFIG_DIR/commands"
-OC_MODES="$OC_CONFIG_DIR/modes"
-
-CLAUDE_DIR="$HOME/.claude"
-CLAUDE_RULES="$CLAUDE_DIR/rules"
-CLAUDE_SKILLS="$CLAUDE_DIR/skills"
-
-SPINE_RULES="$SPINE_DIR/rules"
-SPINE_SKILLS="$SPINE_DIR/skills"
-SPINE_COMMANDS="$SPINE_DIR/commands"
-SPINE_MODES="$SPINE_DIR/modes"
-
-install_cursor() {
-    echo ""
-    echo "=== Cursor ==="
-    echo "Config dir: $CURSOR_DIR"
-
-    mkdir_p "$(dirname "$CURSOR_RULES")"
-
-    echo ""
-    echo "Rules:"
-    create_dir_symlink "$SPINE_RULES" "$CURSOR_RULES" "rules"; tally $?
-
-    echo ""
-    echo "Skills:"
-    create_dir_symlink "$SPINE_SKILLS" "$CURSOR_SKILLS" "skills"; tally $?
-
-    echo ""
-    echo "Commands:"
-    create_dir_symlink "$SPINE_COMMANDS" "$CURSOR_COMMANDS" "commands"; tally $?
-}
-
-install_opencode() {
-    echo ""
-    echo "=== OpenCode ==="
-    echo "Config dir: $OC_CONFIG_DIR"
-
-    mkdir_p "$OC_CONFIG_DIR"
-
-    echo ""
-    echo "Skills:"
-    create_dir_symlink "$SPINE_SKILLS" "$OC_SKILLS" "skills"; tally $?
-
-    echo ""
-    echo "Commands:"
-    create_dir_symlink "$SPINE_COMMANDS" "$OC_COMMANDS" "commands"; tally $?
-
-    echo ""
-    echo "Modes (per-file symlinks):"
-    mkdir_p "$OC_MODES"
-    local mode_file
-    for mode_file in $(get_mode_files); do
-        local source_abs="$SPINE_DIR/modes/$mode_file"
-        if [[ ! -f "$source_abs" ]]; then
-            log_warn "Mode '$mode_file' not found, skipping"
-            continue
-        fi
-        local link_path="$OC_MODES/$mode_file"
-        if $DRY_RUN; then
-            echo "  [DRY-RUN] Would link: mode: $mode_file"
-            echo "             $link_path -> $source_abs"
-        else
-            ln -sf "$source_abs" "$link_path"
-            log_linked "mode: $mode_file"
-        fi
-    done
-}
-
-install_claude() {
-    echo ""
-    echo "=== Claude Code ==="
-    echo "Config dir: $CLAUDE_DIR"
-
-    mkdir_p "$CLAUDE_DIR"
-
-    echo ""
-    echo "Rules:"
-    create_dir_symlink "$SPINE_RULES" "$CLAUDE_RULES" "rules"; tally $?
-
-    echo ""
-    echo "Skills:"
-    create_dir_symlink "$SPINE_SKILLS" "$CLAUDE_SKILLS" "skills"; tally $?
-}
-
-print_summary() {
-    echo ""
-    echo "==========================================="
-    echo "  Spine Global Install Summary"
-    echo "==========================================="
-    echo ""
-    echo "Detected OS: $OS"
-    echo "Spine repo : $SPINE_DIR"
-    echo "Mode       : $([ "$FORCE" = true ] && echo "force" || echo "conservative")"
-    echo ""
-    echo "  Linked   : $LINKED"
-    echo "  Skipped  : $SKIPPED (already correct)"
-    echo "  Backed up: $BACKED_UP"
-    echo "  Conflicts: $CONFLICTS"
-    echo "  Warnings : $WARNINGS"
-    echo ""
-
-    if [[ $CONFLICTS -gt 0 ]]; then
-        printf "\033[33m⚠ %d conflict(s) detected.\033[0m\n" "$CONFLICTS"
-        echo "  Real directories blocked symlink creation."
-        echo "  Re-run with --force to back them up and replace with symlinks."
-        echo ""
-    fi
-
-    if [[ $WARNINGS -gt 0 ]]; then
-        printf "\033[33m⚠ %d warning(s) detected.\033[0m\n" "$WARNINGS"
-        echo "  Some symlinks point to unexpected targets."
-        echo "  Re-run with --force to replace them."
-        echo ""
-    fi
-
-    echo "Symlink map:"
-    echo "  Cursor:    $CURSOR_RULES -> $SPINE_RULES"
-    echo "             $CURSOR_SKILLS -> $SPINE_SKILLS"
-    echo "             $CURSOR_COMMANDS -> $SPINE_COMMANDS"
-    echo "  OpenCode:   $OC_SKILLS -> $SPINE_SKILLS"
-    echo "               $OC_COMMANDS -> $SPINE_COMMANDS"
-    echo "               $OC_MODES -> $SPINE_MODES"
-    echo "  Claude Code: $CLAUDE_RULES -> $SPINE_RULES"
-    echo "               $CLAUDE_SKILLS -> $SPINE_SKILLS"
-    echo ""
-    echo "==========================================="
-}
-
-# ===========================================================================
-# PROJECT MODE: Install per-project symlinks with granular skill selection
+# PROJECT INSTALL: Per-project symlinks with granular skill selection
 # ===========================================================================
 
 # --- Find project root (git worktree) ---
@@ -569,63 +344,34 @@ find_project_root() {
     root="$(git rev-parse --show-toplevel 2>/dev/null)"
     if [[ -z "$root" ]]; then
         echo "ERROR: Not inside a git repository." >&2
-        echo "       Project mode requires a git repo." >&2
-        exit 1
+        echo "       Run from your consumer project root (git repo)." >&2
+        return 1
     fi
     echo "$root"
 }
 
-# --- Ensure .spine symlink exists in project root ---
+# --- Require .spine symlink (created by scripts/link-spine.sh) ---
 
-ensure_spine_symlink() {
+require_spine_symlink() {
     local project_root="$1"
     local spine_link="$project_root/.spine"
+    local link_script="$SPINE_DIR/scripts/link-spine.sh"
 
-    if [[ -L "$spine_link" ]]; then
-        local current resolved spine_resolved
-        current="$(readlink "$spine_link")"
-        if [[ "$current" = /* ]]; then
-            resolved="${current%/}"
+    if [[ ! -L "$spine_link" ]] || [[ ! -d "$spine_link" ]]; then
+        echo "ERROR: .spine symlink not found in $project_root" >&2
+        if [[ -f "$link_script" ]]; then
+            echo "Run: bash $link_script" >&2
         else
-            resolved="$(cd "$project_root" && cd "$(dirname "$current")" 2>/dev/null && pwd)/$(basename "$current")"
+            echo "Run: bash <path-to-spine>/scripts/link-spine.sh" >&2
         fi
-        spine_resolved="$(cd "$SPINE_DIR" && pwd)"
-
-        if [[ "$resolved" == "$spine_resolved" ]]; then
-            log_skipped ".spine symlink (already linked)"
-            return 0
-        else
-            if $FORCE; then
-                if $DRY_RUN; then
-                    echo "  [DRY-RUN] Would replace .spine symlink: $current -> $SPINE_DIR"
-                else
-                    rm "$spine_link"
-                    ln -s "$SPINE_DIR" "$spine_link"
-                    log_warn ".spine (replaced: $current -> $SPINE_DIR)"
-                fi
-                return 0
-            else
-                log_warn ".spine (points to $current, expected $SPINE_DIR)"
-                echo "             Use --force to replace." >&2
-                return 2
-            fi
-        fi
+        exit 1
     fi
 
-    if [[ -d "$spine_link" && ! -L "$spine_link" ]]; then
-        log_conflict ".spine"
-        echo "             $spine_link is a real directory, not a symlink." >&2
-        echo "             Remove it and re-run install.sh." >&2
-        return 3
+    if [[ ! -d "$spine_link/rules" || ! -d "$spine_link/skills" || ! -d "$spine_link/commands" ]]; then
+        echo "ERROR: .spine target is missing rules/, skills/, or commands/" >&2
+        echo "       Check the symlink target: $(readlink "$spine_link")" >&2
+        exit 1
     fi
-
-    if $DRY_RUN; then
-        echo "  [DRY-RUN] Would link: .spine -> $SPINE_DIR"
-    else
-        ln -s "$SPINE_DIR" "$spine_link"
-        log_linked ".spine -> $SPINE_DIR"
-    fi
-    return 0
 }
 
 # --- Get available skills from Spine repo ---
@@ -663,9 +409,7 @@ get_installed_skills() {
 
 resolve_skills() {
     local skills_arg="$1"
-    if [[ -z "$skills_arg" ]]; then
-        printf '%s\n' "${CORE_SKILLS[@]}"
-    elif [[ "$skills_arg" == "all" ]]; then
+    if [[ -z "$skills_arg" || "$skills_arg" == "all" ]]; then
         get_available_skills
     elif [[ "$skills_arg" == "core" ]]; then
         printf '%s\n' "${CORE_SKILLS[@]}"
@@ -765,16 +509,47 @@ install_project_claude() {
     create_relative_symlink "../.agents/skills" "$claude_skills" "skills"; tally $?
 }
 
-# --- Install OpenCode commands ---
+# --- Warn if legacy global OpenCode agent symlinks exist ---
+
+warn_if_global_opencode_agents() {
+    local global_agents="${HOME}/.config/opencode/agents"
+    if [[ ! -d "$global_agents" ]]; then
+        return 0
+    fi
+
+    local link name target warned=0
+    for link in "$global_agents"/*.md; do
+        [[ -e "$link" ]] || continue
+        [[ -L "$link" ]] || continue
+        name="$(basename "$link")"
+        target="$(readlink "$link")"
+        if [[ "$target" == *"/spine/agents/"* ]] || [[ "$target" == *".spine/agents/"* ]]; then
+            log_warn "Global OpenCode agent symlink: ~/.config/opencode/agents/$name"
+            log_warn "Spine agents are project-only. Remove: rm ~/.config/opencode/agents/$name"
+            log_warn "Use per-project .opencode/agents/ (installed by this script) instead."
+            warned=$((warned + 1))
+        fi
+    done
+
+    if [[ $warned -gt 0 ]]; then
+        WARNINGS=$((WARNINGS + warned))
+    fi
+}
+
+# --- Install OpenCode commands and agents (project-level only) ---
 
 install_project_opencode() {
     local project_root="$1"
     local oc_commands="$project_root/.opencode/commands"
+    local oc_agents="$project_root/.opencode/agents"
 
     echo ""
     echo "=== OpenCode (project-level) ==="
 
+    warn_if_global_opencode_agents
+
     mkdir_p "$oc_commands"
+    mkdir_p "$oc_agents"
 
     echo ""
     echo "Commands (per-file symlinks):"
@@ -788,6 +563,20 @@ install_project_opencode() {
         local link_path="$oc_commands/$command_file"
         local rel_target="../../.spine/commands/$command_file"
         create_relative_symlink "$rel_target" "$link_path" "command: $command_file"; tally $?
+    done
+
+    echo ""
+    echo "Agents (per-file symlinks):"
+    local agent_file
+    for agent_file in $(get_agent_files); do
+        local source_abs="$SPINE_DIR/agents/$agent_file"
+        if [[ ! -f "$source_abs" ]]; then
+            log_warn "Agent '$agent_file' not found, skipping"
+            continue
+        fi
+        local link_path="$oc_agents/$agent_file"
+        local rel_target="../../.spine/agents/$agent_file"
+        create_relative_symlink "$rel_target" "$link_path" "agent: $agent_file"; tally $?
     done
 }
 
@@ -838,7 +627,7 @@ add_gitignore_entries() {
 
 list_skills() {
     local project_root
-    project_root="$(find_project_root)"
+    project_root="$(find_project_root)" || exit 1
 
     echo ""
     echo "==========================================="
@@ -849,7 +638,7 @@ list_skills() {
     echo "Project:    $project_root"
     echo ""
 
-    echo "Core skills (installed by default with --project):"
+    echo "Core skills (minimal profile with --core):"
     local core
     for core in "${CORE_SKILLS[@]}"; do
         local marker=" "
@@ -1035,7 +824,7 @@ cleanup_dangling_symlinks() {
     sub="$(cleanup_dangling_in_dir "$project_root/.opencode/commands" "opencode/commands")"
     total=$((total + sub))
 
-    sub="$(cleanup_dangling_in_dir "$project_root/.opencode/modes" "opencode/modes")"
+    sub="$(cleanup_dangling_in_dir "$project_root/.opencode/agents" "opencode/agents")"
     total=$((total + sub))
 
     CLEANED=$total
@@ -1078,6 +867,7 @@ validate_health() {
         "$project_root/.cursor/rules"
         "$project_root/.cursor/commands"
         "$project_root/.opencode/commands"
+        "$project_root/.opencode/agents"
     )
     local dir label
     for dir in "${check_dirs[@]}"; do
@@ -1352,6 +1142,7 @@ print_project_summary() {
     echo "  .cursor/commands/      (per-file command symlinks)"
     echo "  .cursor/skills      -> .agents/skills/"
     echo "  .opencode/commands/    (per-file command symlinks)"
+    echo "  .opencode/agents/      (per-file agent symlinks)"
     echo ""
     echo "  Rules:      opencode.json (GitHub URLs)"
     echo "  Skills:     docs/governance/skills-policy.md"
@@ -1363,136 +1154,115 @@ print_project_summary() {
 # Main
 # ===========================================================================
 
-if $PROJECT_MODE; then
-    # --- Project mode ---
-    PROJECT_ROOT="$(find_project_root)"
+PROJECT_ROOT="$(find_project_root)" || exit 1
 
-    # Handle --list-skills
-    if $LIST_SKILLS; then
-        list_skills
-        exit 0
+# Handle --list-skills
+if $LIST_SKILLS; then
+    list_skills
+    exit 0
+fi
+
+# Handle --add-skill
+if [[ -n "$ADD_SKILL" ]]; then
+    require_spine_symlink "$PROJECT_ROOT"
+    add_skill "$PROJECT_ROOT" "$ADD_SKILL"
+    exit $?
+fi
+
+# Handle --remove-skill
+if [[ -n "$REMOVE_SKILL" ]]; then
+    require_spine_symlink "$PROJECT_ROOT"
+    remove_skill "$PROJECT_ROOT" "$REMOVE_SKILL"
+    exit $?
+fi
+
+# Handle --uninstall
+if $UNINSTALL_MODE; then
+    uninstall_project "$PROJECT_ROOT"
+    exit 0
+fi
+
+echo "Spine Project Installer"
+echo "Repository: $SPINE_DIR"
+echo "Project:    $PROJECT_ROOT"
+echo "Targets:    $TARGETS"
+echo "OS:         $OS"
+if $FORCE; then echo "Mode: force (will replace existing symlinks)"; fi
+if $UPDATE_MODE; then echo "Mode: update (install + cleanup dangling)"; fi
+if $DRY_RUN; then echo "Mode: dry-run (preview only)"; fi
+if $WITH_GRAPHIFY; then
+    echo "Graphify:   enabled (optional consumer setup)"
+    if $GRAPHIFY_INIT; then
+        echo "Graphify:   initial graph build enabled"
     fi
+fi
 
-    # Handle --add-skill
-    if [[ -n "$ADD_SKILL" ]]; then
-        add_skill "$PROJECT_ROOT" "$ADD_SKILL"
-        exit $?
-    fi
+chmod_scripts
 
-    # Handle --remove-skill
-    if [[ -n "$REMOVE_SKILL" ]]; then
-        remove_skill "$PROJECT_ROOT" "$REMOVE_SKILL"
-        exit $?
-    fi
+require_spine_symlink "$PROJECT_ROOT"
 
-    # Handle --uninstall
-    if $UNINSTALL_MODE; then
-        uninstall_project "$PROJECT_ROOT"
-        exit 0
-    fi
+# Resolve skill list (default: all)
+SKILL_LIST="$(resolve_skills "${SKILLS_ARG:-all}")"
 
-    echo "Spine Project Installer"
-    echo "Repository: $SPINE_DIR"
-    echo "Project:    $PROJECT_ROOT"
-    echo "Targets:    $TARGETS"
-    echo "OS:         $OS"
-    if $FORCE; then echo "Mode: force (will replace existing symlinks)"; fi
-    if $UPDATE_MODE; then echo "Mode: update (install + cleanup dangling)"; fi
-    if $DRY_RUN; then echo "Mode: dry-run (preview only)"; fi
-    if $WITH_GRAPHIFY; then
-        echo "Graphify:   enabled (optional consumer setup)"
-        if $GRAPHIFY_INIT; then
-            echo "Graphify:   initial graph build enabled"
-        fi
-    fi
+echo ""
+echo "Skills to install:"
+echo "$SKILL_LIST" | while read -r skill; do
+    [[ -n "$skill" ]] && echo "  - $skill"
+done
 
-    chmod_scripts
+# Parse targets
+INSTALL_CURSOR=false
+INSTALL_OPENCODE=false
+INSTALL_CLAUDE=false
+IFS=',' read -ra TARGET_ARRAY <<< "$TARGETS"
+for target in "${TARGET_ARRAY[@]}"; do
+    case "$target" in
+        cursor)   INSTALL_CURSOR=true ;;
+        opencode) INSTALL_OPENCODE=true ;;
+        claude)   INSTALL_CLAUDE=true ;;
+        *)        echo "WARNING: Unknown target '$target', skipping" >&2 ;;
+    esac
+done
 
-    # Resolve skill list (default: core)
-    SKILL_LIST="$(resolve_skills "${SKILLS_ARG:-core}")"
+# Install skills (shared .agents/ hub)
+install_project_skills "$PROJECT_ROOT" "$SKILL_LIST"
 
+# Install per-tool symlinks
+if $INSTALL_CURSOR; then
+    install_project_cursor "$PROJECT_ROOT"
+fi
+
+if $INSTALL_OPENCODE; then
+    install_project_opencode "$PROJECT_ROOT"
+fi
+
+if $INSTALL_CLAUDE; then
+    install_project_claude "$PROJECT_ROOT"
+fi
+
+# Copy templates (opencode.json) if not present
+copy_templates "$PROJECT_ROOT"
+
+# Add gitignore entries
+add_gitignore_entries "$PROJECT_ROOT"
+
+# Optional Graphify setup
+if $WITH_GRAPHIFY; then
+    setup_project_graphify "$PROJECT_ROOT"
+fi
+
+# Cleanup dangling symlinks (only in update mode)
+if $UPDATE_MODE; then
+    cleanup_dangling_symlinks "$PROJECT_ROOT"
+fi
+
+# Health check (always, silent in install mode, verbose in update mode)
+validate_health "$PROJECT_ROOT"
+
+print_project_summary "$PROJECT_ROOT"
+
+if $DRY_RUN; then
     echo ""
-    echo "Skills to install:"
-    echo "$SKILL_LIST" | while read -r skill; do
-        [[ -n "$skill" ]] && echo "  - $skill"
-    done
-
-    # Ensure .spine symlink
-    ensure_spine_symlink "$PROJECT_ROOT"
-
-    # Parse targets
-    INSTALL_CURSOR=false
-    INSTALL_OPENCODE=false
-    INSTALL_CLAUDE=false
-    IFS=',' read -ra TARGET_ARRAY <<< "$TARGETS"
-    for target in "${TARGET_ARRAY[@]}"; do
-        case "$target" in
-            cursor)   INSTALL_CURSOR=true ;;
-            opencode) INSTALL_OPENCODE=true ;;
-            claude)   INSTALL_CLAUDE=true ;;
-            *)        echo "WARNING: Unknown target '$target', skipping" >&2 ;;
-        esac
-    done
-
-    # Install skills (shared .agents/ hub)
-    install_project_skills "$PROJECT_ROOT" "$SKILL_LIST"
-
-    # Install per-tool symlinks
-    if $INSTALL_CURSOR; then
-        install_project_cursor "$PROJECT_ROOT"
-    fi
-
-    if $INSTALL_OPENCODE; then
-        install_project_opencode "$PROJECT_ROOT"
-    fi
-
-    if $INSTALL_CLAUDE; then
-        install_project_claude "$PROJECT_ROOT"
-    fi
-
-    # Copy templates (opencode.json) if not present
-    copy_templates "$PROJECT_ROOT"
-
-    # Add gitignore entries
-    add_gitignore_entries "$PROJECT_ROOT"
-
-    # Optional Graphify setup
-    if $WITH_GRAPHIFY; then
-        setup_project_graphify "$PROJECT_ROOT"
-    fi
-
-    # Cleanup dangling symlinks (only in update mode)
-    if $UPDATE_MODE; then
-        cleanup_dangling_symlinks "$PROJECT_ROOT"
-    fi
-
-    # Health check (always, silent in install mode, verbose in update mode)
-    validate_health "$PROJECT_ROOT"
-
-    print_project_summary "$PROJECT_ROOT"
-
-    if $DRY_RUN; then
-        echo ""
-        echo "This was a dry run. No changes were made."
-        echo "Run without --dry-run to apply."
-    fi
-
-else
-    # --- Global mode (default) ---
-    echo "Spine Global Installer"
-    echo "Repository: $SPINE_DIR"
-    echo "OS: $OS"
-    if $FORCE; then echo "Mode: force (will back up real directories)"; fi
-
-    chmod_scripts
-    install_cursor
-    install_opencode
-    install_claude
-    print_summary
-
-    if $DRY_RUN; then
-        echo ""
-        echo "This was a dry run. No changes were made."
-        echo "Run without --dry-run to apply."
-    fi
+    echo "This was a dry run. No changes were made."
+    echo "Run without --dry-run to apply."
 fi
