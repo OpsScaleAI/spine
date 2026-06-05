@@ -53,3 +53,26 @@ def test_graphifyignore_template_exists() -> None:
     assert ".agents/" in text
     assert ".cursor/" in text
     assert ".opencode/" in text
+
+
+def test_readme_documents_graphify_setup_for_existing_projects() -> None:
+    text = _read("README.md").lower()
+    assert "## optional: graphify" in text
+    assert "uv tool install graphifyy" in text or "graphifyy" in text
+    assert "existing project" in text
+    assert "--graphify-init" in text
+    assert "install.sh --with-graphify" in text
+    assert "graphify update ." in text
+    assert "graphify-out/graph.json" in text
+
+
+def test_system_patterns_links_to_readme_graphify_section() -> None:
+    text = _read("templates/docs/memory/global/system-patterns.md")
+    assert "github.com/opsscaleai/spine#optional-graphify" in text.lower()
+
+
+def test_spine_update_documents_existing_project_graphify_adoption() -> None:
+    text = _read("commands/spine-update.md").lower()
+    assert "adopt graphify on an existing project" in text
+    assert "--graphify-init" in text
+    assert "graphify-out/graph.json" in text

@@ -6,7 +6,7 @@ agent: build
 # Slash Command: /spine-promote [$ARGUMENTS]
 Act as a Spine Maintainer with full merge privileges.
 
-**WARNING:** This command is **internal to the Spine repository only**. It must never be exposed to consumer projects via `install.sh --project` or any template. It assumes direct push/merge rights to protected branches.
+**WARNING:** This command is **internal to the Spine repository only**. It must never be exposed to consumer projects via `install.sh` or any template. It assumes direct push/merge rights to protected branches.
 
 **Goal:** Create a high-quality commit on `develop`, push it, and cascade-promote the changes through `staging`, `production`, and `main`, finally returning to `develop`.
 

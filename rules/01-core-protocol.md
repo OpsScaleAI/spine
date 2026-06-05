@@ -21,7 +21,7 @@ alwaysApply: true
    c. Refactor if needed while keeping tests green.
    d. Repeat for each acceptance criterion.
 6. **Execute:** implement atomically and validate all tests pass.
-7. **Harvest:** update `progress.md` and `decision-log.md` when applicable.
+7. **Harvest:** update `progress.md`, `decision-log.md`, and `domain-glossary.md` when applicable (glossary updates often originate from `@grill-me` discovery).
 
 ## 2. Definition of Done
 - [ ] Isolated branch created from `develop`
@@ -29,6 +29,7 @@ alwaysApply: true
 - [ ] Tests executed and passing
 - [ ] `docs/memory/ledger/progress.md` updated
 - [ ] `docs/memory/global/decision-log.md` updated (if there was an architectural decision)
+- [ ] `docs/memory/global/domain-glossary.md` updated (if canonical domain terms were promoted during discovery)
 
 ## 3. Guard rails
 - Never use `git push --force`.

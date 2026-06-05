@@ -20,7 +20,7 @@ Usage: bash .spine/scripts/update.sh [OPTIONS]
 
 Updates a consumer project that already uses Spine:
 1) Pull latest Spine repo via .spine symlink (optional)
-2) Reconcile project symlinks via install.sh --project --update --force
+2) Reconcile project symlinks via install.sh --update --force
 3) Sync opencode.json with current template (merge by default)
 4) Preserve docs/ memory bank
 
@@ -50,7 +50,8 @@ fi
 SPINE_LINK="$PROJECT_ROOT/.spine"
 if [[ ! -L "$SPINE_LINK" ]]; then
     echo "ERROR: .spine symlink not found in project root: $PROJECT_ROOT" >&2
-    echo "Run /spine-install first." >&2
+    echo "Run: bash <path-to-spine>/scripts/link-spine.sh" >&2
+    echo "Then: /spine-install or bash .spine/install.sh" >&2
     exit 1
 fi
 
@@ -88,7 +89,7 @@ fi
 
 echo ""
 echo "Step 2/4: Reconcile project symlinks"
-INSTALL_CMD=(bash "$INSTALL_SCRIPT" --project --update --force)
+INSTALL_CMD=(bash "$INSTALL_SCRIPT" --update --force)
 if $WITH_GRAPHIFY; then
     INSTALL_CMD+=(--with-graphify)
 fi
