@@ -1,13 +1,52 @@
 {
   "$schema": "https://opencode.ai/config.json",
+  "model": "opencode-go/deepseek-v4-pro",
+  "small_model": "nvidia/deepseek-ai/deepseek-v4-pro",
+  "default_agent": "ask",
   "instructions": [
     "https://raw.githubusercontent.com/OpsScaleAI/spine/refs/heads/master/rules/01-core-protocol.md",
     "https://raw.githubusercontent.com/OpsScaleAI/spine/refs/heads/master/rules/02-memory-bank.md",
     "https://raw.githubusercontent.com/OpsScaleAI/spine/refs/heads/master/rules/03-code-quality.md"
   ],
+  "permission": {
+    "websearch": "allow",
+    "webfetch": "allow",
+    "bash": "allow",
+    "questions": "allow",
+    "todowrite": "allow",
+    "skill": "allow"
+  },
   "compaction": {
     "enabled": true,
     "strategy": "summarize",
     "threshold": 16000
+  },
+  "agent": {
+    "plan": {
+      "mode": "primary",
+      "model": "opencode-go/deepseek-v4-pro",
+      "variant": "medium"
+    },
+    "build": {
+      "mode": "primary",
+      "model": "opencode-go/deepseek-v4-pro",
+      "variant": "medium"
+    },
+    "ask": {
+      "description": "Read-only thinking partner — explore, critique, and plan without modifying the codebase",
+      "mode": "primary",
+      "model": "opencode-go/deepseek-v4-pro",
+      "temperature": 0.3,
+      "prompt": "{file:.spine/agents/ask.md}",
+      "permission": {
+        "edit": "deny",
+        "todowrite": "deny",
+        "task": "deny",
+        "bash": "allow",
+        "read": "allow",
+        "grep": "allow",
+        "glob": "allow"
+      }
+    }
   }
 }

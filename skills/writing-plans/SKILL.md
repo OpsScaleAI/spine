@@ -19,8 +19,8 @@ Assume they are a skilled developer, but know almost nothing about our toolset o
 **Context:** This should be run in a dedicated worktree (created by brainstorming skill).
 
 **Save plans to:** `docs/memory/active_tasks/<numero-sequencial>-<feature-name>.md`
-  
-**Project convention:** For this repo, always prioritize `docs/memory/active_tasks/` over `docs/plans/`.
+
+**Project convention:** For this repo, always prioritize `docs/memory/active_tasks/` over `docs/plans/`. Use Obsidian-style YAML frontmatter per `02-memory-bank.md`: `task_id`, `title`, `goal`, `status`, `tags`, `branch`, `base`, `created_at`, `updated_at`.
 
 ## Bite-Sized Task Granularity
 

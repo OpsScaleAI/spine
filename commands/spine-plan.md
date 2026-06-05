@@ -4,7 +4,10 @@ agent: build
 ---
 
 # Slash Command: /spine-plan
+
 Act as a Senior Software Architect. Follow the instructions provided in $ARGUMENTS.
+
+**Native Plan input:** If `$ARGUMENTS` contains a native Plan draft (from Cursor Plan mode or similar), treat it as input to normalize into the active task artifact. Native Plan = draft; `/spine-plan` = versioned contract in `docs/memory/active_tasks/`. Discovery and GitFlow rules below still apply.
 
 1. **Discovery (conditional — `@grill-me`):**
    Run `@grill-me` **before** `@writing-plans` when **any** of the following applies. Otherwise skip discovery and proceed to step 2.
@@ -20,7 +23,7 @@ Act as a Senior Software Architect. Follow the instructions provided in $ARGUMEN
    - Use the `@grill-me` skill: one question at a time; provide a recommended answer; explore the codebase when the answer is discoverable there.
    - Read memory bank global files (`domain-glossary.md`, `product-context.md`, `system-patterns.md`, `decision-log.md`); promote canonical terms and architectural decisions per the skill's knowledge-promotion rules.
    - Do **not** write the full plan until discovery is complete.
-   - Record outcomes in `## Discovery notes` on the task file (create the file early with status `PLANNING` if needed to capture notes incrementally). Note any updates made to `domain-glossary.md` or `decision-log.md`.
+   - Record outcomes in `## Discovery notes` on the task file (create the file early with frontmatter `status: PLANNING` if needed to capture notes incrementally). Note any updates made to `domain-glossary.md` or `decision-log.md`.
 
    **Retroactive opt-in:** if the user asks to be grilled mid-session before the plan is written, switch to `@grill-me` and resume planning after discovery completes.
 
@@ -43,29 +46,24 @@ Act as a Senior Software Architect. Follow the instructions provided in $ARGUMEN
      - Default to `playwright-cli` for quick exploration, targeted debugging, and short actions
      - Escalate to `playwright-skill` only for multi-step flows, multiple validations, or re-runnable scripts
      - Anti-overengineering rule: when in doubt, start simple and escalate only if real complexity emerges
-   - Record the selected skill in the task file as: `Suggested execution skill: @<skill-name>`
+   - Record in frontmatter as `execution_skill: <skill-name>` (without `@` prefix).
 
 4. **Task Plan in the Memory Bank:**
    - **GitFlow is mandatory (not optional):** every plan must follow GitFlow branch conventions.
-   - **Mandatory branch policy for plans:** use `feature/<descriptive-name>` as the execution branch and `develop` as the base branch.
-   - Never treat GitFlow usage as a suggestion.
-   - Ensure the folder `docs/memory/active_tasks/` exists.
-   - Determine the next sequential number by inspecting existing task files in `docs/memory/active_tasks/`.
-   - Create:
-     - `docs/memory/active_tasks/<sequential-number>-<descriptive-name>.md`
-   - Example:
-     - task: `docs/memory/active_tasks/007-social-login-adjustment.md`
-   - Create the task file with:
-     - `Suggested execution skill: @<skill-name>` — the skill selected in step 3
-     - `## Branch: feature/<descriptive-name>` — **required by GitFlow**; specifies which branch will be created at execution time. Never create the branch during planning.
-     - `## Base: develop` — **required by GitFlow**; the branch must be created from this base.
-     - Initial status: `PLANNING`
-     - `## Discovery notes` — when `@grill-me` ran, record resolved decisions (MVP, out-of-scope, domain, trade-offs); link glossary/decision-log promotions when they occurred
-     - Objective
-     - Inputs
-     - Expected outputs (artifacts and target directories)
-     - Acceptance criteria (checklist)
-     - Test strategy (positive, negative, regression)
+   - **Mandatory branch policy:** `feature/<descriptive-name>` as execution branch, `develop` as base. Never create the branch during planning.
+   - Ensure `docs/memory/active_tasks/` exists.
+   - **Sequential numbering:** scan `docs/memory/active_tasks/` **and** `docs/memory/completed_tasks/` for max `NNN`. Ignore `_task-template.md` and files not matching `^\d{3}-`.
+   - Create: `docs/memory/active_tasks/<sequential-number>-<descriptive-name>.md`
+   - Example: `docs/memory/active_tasks/007-social-login-adjustment.md`
+   - Create the task file with **Obsidian-style YAML frontmatter** per `02-memory-bank.md` and `docs/governance/memory-tags-policy.md`:
+     - `task_id`, `title`, `goal`, `status: PLANNING`
+     - `tags:` YAML list (1–5 tags; grep `learnings.md` and recent progress for related tags before inventing new ones)
+     - `branch`, `base: develop`, `execution_skill`
+     - `created_at`, `updated_at` (today, `YYYY-MM-DD`)
+     - `completed_at:` (empty), `related_learnings: []`
+   - Body sections (no inline `## Branch`, `## Base`, or `## Status`):
+     - `## Discovery notes` (when `@grill-me` ran)
+     - Objective, Inputs, Expected outputs, Acceptance criteria, Test strategy
 
 5. **Scope Validation:** After writing the plan, evaluate whether it is well-scoped before presenting it for approval:
    - **More than 2 execution skills needed?** → Suggest splitting into separate plans, each with a single primary skill.

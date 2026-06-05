@@ -7,27 +7,24 @@ alwaysApply: true
 # CORE PROTOCOL (Solo Lean)
 
 ## 1. Mandatory minimum flow
-1. **Sync:** read the context in `docs/memory/` (global + ledger + active task).
-   - If `graphify-out/graph.json` exists, query graph first for exploration and architecture mapping before broad file scanning.
-2. **Clarify:** before any code change, state:
-   - Key assumptions about the task.
-   - Any ambiguities or conflicting interpretations — present them, don't pick silently.
-   - The simplest approach identified. If a simpler alternative exists, name it and push back.
-3. **Plan:** create/update `docs/memory/active_tasks/<sequential-number>-<descriptive-name>.md` with scope, verifiable acceptance criteria (each paired with a test), and a branch suggestion (`Branch: feature/<descriptive-name>`, `Base: develop`). Do not create the branch during planning.
-4. **Branch:** at execution time, create or switch to the branch specified in the task file, based on `Base`.
-5. **Test (TDD):**
+1. **Sync & clarify:** Follow `02-memory-bank.md` — tiered SYNC; when `graphify-out/graph.json` exists, use Graphify graph-first exploration, then post-SYNC assumptions, ambiguities, and simplest approach.
+2. **Plan:** create/update `docs/memory/active_tasks/<sequential-number>-<descriptive-name>.md` with Obsidian-style frontmatter (`branch`, `base`, `tags`, `goal`, `status`, …), scope, verifiable acceptance criteria (each paired with a test). Do not create the branch during planning.
+3. **Branch:** at execution time, create or switch to `branch` from task frontmatter, based on `base`.
+4. **Test (TDD):**
    a. Write a failing test for the first acceptance criterion.
    b. Implement the minimum code to make it pass.
    c. Refactor if needed while keeping tests green.
    d. Repeat for each acceptance criterion.
-6. **Execute:** implement atomically and validate all tests pass.
-7. **Harvest:** update `progress.md`, `decision-log.md`, and `domain-glossary.md` when applicable (glossary updates often originate from `@grill-me` discovery).
+5. **Execute:** implement atomically and validate all tests pass.
+6. **Harvest:** append delivery log in `progress.md`; update `learnings.md` when applicable; update `decision-log.md` and `domain-glossary.md` when applicable; move task to `completed_tasks/` via `git mv`.
 
 ## 2. Definition of Done
 - [ ] Isolated branch created from `develop`
-- [ ] `docs/memory/active_tasks/<sequential-number>-<descriptive-name>.md` with scope and acceptance criteria
+- [ ] `docs/memory/active_tasks/<sequential-number>-<descriptive-name>.md` with frontmatter, scope, and acceptance criteria
 - [ ] Tests executed and passing
-- [ ] `docs/memory/ledger/progress.md` updated
+- [ ] `docs/memory/ledger/progress.md` updated (Current state + delivery log entry)
+- [ ] `docs/memory/ledger/learnings.md` updated (if incident, root cause, or rework recorded)
+- [ ] Task file in `docs/memory/completed_tasks/` with `status: DONE`
 - [ ] `docs/memory/global/decision-log.md` updated (if there was an architectural decision)
 - [ ] `docs/memory/global/domain-glossary.md` updated (if canonical domain terms were promoted during discovery)
 
