@@ -37,7 +37,7 @@ Before any Memory Bank assessment, download the template from the canonical Spin
    - `mkdir -p "$PROJECT_ROOT/docs/workflow"`
    - `mkdir -p "$PROJECT_ROOT/docs/documentation"` (for project documentation, supporting documents, and discoveries)
 3. Download files sequentially:
-   - Memory Bank global files (project-brief, product-context, system-patterns, tech-context, decision-log)
+   - Memory Bank global files (project-brief, product-context, domain-glossary, system-patterns, tech-context, decision-log)
    - Memory Bank ledger files (roadmap, progress)
    - Governance and workflow docs (skills-policy, guardrails, gitflow-operacional, ciclo-de-entrega)
 4. Create empty `.gitkeep` in `docs/memory/active_tasks/`.
@@ -50,6 +50,7 @@ Base URL: `https://raw.githubusercontent.com/OpsScaleAI/spine/refs/heads/master/
 Paths:
 - `templates/docs/memory/global/project-brief.md`
 - `templates/docs/memory/global/product-context.md`
+- `templates/docs/memory/global/domain-glossary.md`
 - `templates/docs/memory/global/system-patterns.md`
 - `templates/docs/memory/global/tech-context.md`
 - `templates/docs/memory/global/decision-log.md`
@@ -81,10 +82,22 @@ Graphify is an optional enhancement for consumer projects that need lower contex
 
 - Do not make Graphify mandatory for setup completion.
 - Keep Spine core instruction loading unchanged (3 core rules via `instructions`).
-- If the project wants Graphify, suggest the minimal onboarding:
-  1. Install Graphify globally on the developer machine (`uv tool install graphifyy` recommended).
-  2. Run project setup with Graphify opt-in: `bash .spine/install.sh --project --with-graphify`.
-  3. Optional first graph build: `bash .spine/install.sh --project --with-graphify --graphify-init`.
+- Full guide: Spine repository README, section **Optional: Graphify**.
+
+**New project onboarding:**
+
+1. Install Graphify globally on the developer machine (`uv tool install graphifyy` recommended; alternatives: `pipx install graphifyy`, `pip install graphifyy`).
+2. Run project setup with Graphify opt-in: `bash .spine/install.sh --with-graphify --graphify-init`.
+3. Verify: `test -f graphify-out/graph.json && echo "Graphify active"`.
+
+**Existing project already using Spine** (`.spine` and `docs/memory/` already present):
+
+- Do not re-run full template download for Graphify alone.
+- Suggest: `bash .spine/install.sh --with-graphify --graphify-init` from the project root.
+- Alternative: `bash .spine/scripts/update.sh --graphify-init` (pulls Spine and enables Graphify in one step).
+- Manual fallback on old Spine clones: `bash .spine/scripts/install-graphify.sh --project-root=. --init-graph`.
+- After setup, verify `graphify-out/graph.json` exists. Refresh when stale: `graphify update .`.
+
 - Preserve user-owned `opencode.json` keys when merging setup changes.
 
 ### 0.7 Error handling
@@ -115,29 +128,41 @@ Rule files:
 ### 1.2 Principles
 
 - Opt-in per project only; do not add Spine instructions to global `~/.config/opencode/opencode.json`.
+- Do not symlink Spine agents into global `~/.config/opencode/agents/`; `install.sh` deploys them to project `.opencode/agents/` only.
 - Remote URLs provide portability and auto-update behavior.
 - Version pinning is supported by replacing `refs/heads/master` with a tag.
 - `$schema`, `model`, `permission`, `command`, and `compaction` settings are project-specific and should be configured by the user in `opencode.json` after setup.
 
 ---
 
-## 2. Per-project symlink installation
+## 2. Link Spine repository and install symlinks
 
-Run the Spine installer in project mode to create symlinks for skills, commands, and tool-specific configuration.
+### 2.0 Link `.spine` (prerequisite)
 
-### 2.1 Command
+Before running the installer, create the `.spine` symlink in the project root:
 
 ```bash
-bash .spine/install.sh --project [--skills=all|core|list] [--targets=cursor,opencode,claude]
+bash <PATH_TO_SPINE_REPO>/scripts/link-spine.sh
+```
+
+Run from `PROJECT_ROOT`, or pass `--project-root=PATH` and optionally `--spine-dir=PATH`.
+
+If `.spine` already exists but points elsewhere, use `--force` to replace.
+
+### 2.1 Install command
+
+```bash
+bash .spine/install.sh [--core] [--skills=all|core|a,b,c] [--targets=cursor,opencode,claude]
 ```
 
 Use this as the single supported installer entrypoint for project setup.
 
 ### 2.2 Defaults and behavior
 
-- Default skill selection is `--skills=all`.
-- `--skills=core` uses the base profile.
+- Default skill selection is **all** skills in the Spine catalog.
+- `--core` or `--skills=core` installs the minimal 5-skill base profile only.
 - Supports `--add-skill`, `--remove-skill`, and `--list-skills`.
+- Deploys OpenCode agents from `agents/` to project `.opencode/agents/` only (per-file symlinks; e.g. `ask.md` for read-only exploration). Warns if legacy global `~/.config/opencode/agents/` Spine symlinks exist.
 - Re-running is idempotent; use `--force` for mismatched/broken symlinks.
 - Use `--dry-run` to preview changes.
 
@@ -167,5 +192,6 @@ Always include:
 - [ ] `opencode.json` exists in `PROJECT_ROOT` with `$schema` and Spine rule URLs in `instructions`.
 - [ ] Existing `opencode.json` settings are preserved while Spine URLs are merged without duplicates.
 - [ ] Global OpenCode config does not receive Spine-specific instructions.
-- [ ] Per-project symlinks are created via `bash .spine/install.sh --project`.
+- [ ] `.spine` symlink is created via `scripts/link-spine.sh` (or already present).
+- [ ] Per-project symlinks are created via `bash .spine/install.sh`.
 - [ ] Final summary clearly reports setup artifacts and remaining gaps.

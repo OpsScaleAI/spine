@@ -35,8 +35,8 @@ spine/
 ├── docs/ (internal Spine use - not versioned)
 ├── commands/
 │   ... (execution command templates)
-├── modes/
-│   ... (OpenCode mode definitions)
+├── agents/
+│   ... (OpenCode agent definitions, e.g. ask.md)
 ├── skills/
 │   ... (curated skill repository)
 ├── rules/
@@ -48,33 +48,52 @@ spine/
 
 ## Setup
 
-### 1. Global Installation (one-time)
+Spine installs **per project only**. Each consumer repository links to a local Spine clone via `.spine` and receives its own symlinks for rules, commands, and skills.
 
-Clone Spine and run the installer. This makes skills and commands available in **all** projects via `/skill` and `/command`, but does **not** inject Spine rules into any project.
+### 1. Clone Spine (machine-local)
+
+Clone the Spine repository once on your machine (outside consumer project trees):
 
 ```bash
-git clone https://github.com/OpsScaleAI/spine.git
-cd spine
-bash install.sh
+git clone https://github.com/OpsScaleAI/spine.git ~/Workspace/ide/spine
 ```
 
-This creates:
-- `~/.config/opencode/skills/` → symlink to Spine `skills/`
-- `~/.config/opencode/commands/` → symlink to Spine `commands/`
-- `~/.config/opencode/modes/` → per-file symlinks to Spine `modes/`
-- `~/.cursor/rules/` → symlink to Spine `rules/`
-- `~/.claude/rules/` → symlink to Spine `rules/`
-- `~/.claude/skills/` → symlink to Spine `skills/`
+### 2. Link Spine to your project
 
-> **Important:** The global OpenCode config (`~/.config/opencode/opencode.json`) must **not** contain Spine `instructions`. Rules are opt-in per project (step 2 below). If you have an `instructions` key pointing to Spine rules in the global config, remove it — otherwise all projects (even non-Spine ones) will receive Spine rules.
+From the consumer project root:
 
-### 2. Per-Project Setup (opt-in)
+```bash
+cd /path/to/my-project
+bash ~/Workspace/ide/spine/scripts/link-spine.sh
+```
 
-Each project that follows the Spine framework must explicitly opt in by creating an `opencode.json` in the project root with `instructions` pointing to Spine rule URLs. This is done automatically by running `/spine-install` inside a new project, or manually.
+This creates `.spine` → absolute path to the Spine repository. Use `--spine-dir=PATH` if the repo lives elsewhere, `--force` to replace a mismatched symlink, or `--dry-run` to preview.
 
-#### Option A: Using /spine-install + /spine-bootstrap (recommended)
+### 3. Install project artefacts
 
-Open a project in OpenCode and run:
+```bash
+bash .spine/install.sh          # all skills (default)
+bash .spine/install.sh --core   # minimal 5-skill profile only
+```
+
+This creates (gitignored, machine-specific):
+
+```text
+PROJECT_ROOT/
+├── .spine              → Spine repository
+├── .agents/skills/     per-skill symlinks
+├── .cursor/rules/      core rule symlinks
+├── .cursor/commands/   command symlinks
+├── .cursor/skills/     → .agents/skills/
+├── .opencode/commands/ command symlinks
+├── .opencode/agents/   agent symlinks (e.g. ask.md)
+├── .claude/skills/     → .agents/skills/
+└── opencode.json       created if missing (template)
+```
+
+### 4. Bootstrap (recommended)
+
+Open the project in your agent IDE and run:
 
 ```
 /spine-install
@@ -82,16 +101,14 @@ Open a project in OpenCode and run:
 ```
 
 These commands will:
-1. `/spine-install`: download templates to `docs/`, configure `opencode.json`, and run `install.sh --project` for symlinks.
-2. `/spine-bootstrap`: perform initial project assessment and populate memory bank.
+1. `/spine-install`: download `docs/` templates, configure `opencode.json`, and run `bash .spine/install.sh`.
+2. `/spine-bootstrap`: perform initial project assessment and populate the memory bank.
 
-Project installer defaults:
-- `install.sh --project` installs the **core skills profile** by default.
-- Use `--skills=all` only when you explicitly want the full skill catalog linked.
+If `.spine` is missing, run `scripts/link-spine.sh` before `/spine-install`.
 
-#### Option B: Manual setup
+#### Manual `opencode.json` (alternative)
 
-Create `opencode.json` in your project root:
+Each Spine project opts in via `opencode.json` with `instructions` pointing to Spine rule URLs:
 
 ```json
 {
@@ -104,69 +121,165 @@ Create `opencode.json` in your project root:
 }
 ```
 
-Then commit `opencode.json` to the project repository.
-
 > **Why URLs instead of local paths?**
 > - **Portable:** works on any machine without a local Spine clone
 > - **Auto-updating:** OpenCode fetches rules on each session; `git push` on Spine propagates changes
 > - **Versionable:** pin to a tag (`refs/tags/v1.0.0`) for stability, or use `refs/heads/master` for latest
 > - **Commitable:** `opencode.json` is plain JSON, safe to commit to the project repo
 
-#### Version Pinning
+**Version pinning:** replace `refs/heads/master` with `refs/tags/v1.0.0` in each URL.
 
-To lock Spine rules to a specific version, replace `refs/heads/master` with `refs/tags/v1.0.0`:
+> **Important:** Never add Spine `instructions` to global `~/.config/opencode/opencode.json`. Rules and agents are opt-in per project only (`opencode.json` + `.opencode/agents/`).
 
-```
-https://raw.githubusercontent.com/OpsScaleAI/spine/refs/tags/v1.0.0/rules/01-core-protocol.md
-```
+### 5. Non-Spine projects
 
-### 3. Non-Spine Projects
+Projects that do not follow Spine simply omit Spine rule URLs from their `opencode.json`. They do not need `.spine` or `install.sh`.
 
-Projects that do **not** follow the Spine framework simply don't include Spine rule URLs in their `opencode.json`. They remain completely free of Spine rules while still having access to the global skills and commands catalog.
+### 6. Updating
 
-Example `opencode.json` for a non-Spine project:
-
-```json
-{
-  "$schema": "https://opencode.ai/config.json",
-  "model": "opencode-go/glm-5.1"
-}
-```
-
-### 4. Updating Spine Rules
-
-- **Rules:** No action needed. Projects using URL-based `instructions` automatically receive updates when OpenCode fetches the rules on each session.
-- **Skills and Commands:** Run `git pull` in the Spine repository. Global symlinks point to the local clone, so updates are immediate.
-- **Consumer project refresh (recommended):** from inside the consumer repository, run:
+From inside a consumer repository:
 
 ```bash
 bash .spine/scripts/update.sh
 ```
 
-This updates `.spine`, reconciles project symlinks (`--update --force`), syncs `opencode.json`, and preserves `docs/memory/`.
+This pulls the Spine repo via `.spine`, reconciles project symlinks (`install.sh --update --force`), syncs `opencode.json`, and preserves `docs/memory/`.
+
+- **Rules:** Projects using URL-based `instructions` receive updates when OpenCode fetches rules each session.
+- **Skills and commands:** `update.sh` reconciles symlinks after `git pull` on the Spine clone.
 
 Optional update modes:
 
 ```bash
-# Preview only
 bash .spine/scripts/update.sh --dry-run
-
-# Replace opencode.json with template instead of merge
 bash .spine/scripts/update.sh --replace-opencode
-
-# Include Graphify setup during update
-bash .spine/scripts/update.sh --with-graphify
+bash .spine/scripts/update.sh --with-graphify      # see "Optional: Graphify"
+bash .spine/scripts/update.sh --graphify-init      # setup + first graph build
 ```
+
+## Optional: Graphify
+
+Graphify is an optional retrieval optimization layer for consumer projects. When `graphify-out/graph.json` exists in the project, Spine rules instruct agents to query the graph first during exploration, then fall back to direct file reads. The memory bank (`docs/memory/`) remains the operational source of truth. Graphify is recommended for medium/large repositories where broad file scanning increases input-token cost.
+
+### Install CLI (once per machine)
+
+```bash
+uv tool install graphifyy    # recommended
+# alternatives: pipx install graphifyy | pip install graphifyy
+```
+
+### New project (during initial setup)
+
+From the consumer project root, after linking `.spine`:
+
+```bash
+bash .spine/install.sh --with-graphify --graphify-init
+```
+
+This copies `.graphifyignore` from the Spine template and runs `graphify update .`, producing `graphify-out/graph.json`.
+
+### Existing project already using Spine
+
+If the project already has `.spine`, `docs/memory/`, and symlinks, use one of these paths to generate `graphify-out` for the first time:
+
+**Path A — install flags (minimal)**
+
+```bash
+cd /path/to/existing-project
+bash .spine/install.sh --with-graphify --graphify-init
+```
+
+**Path B — via update (pull Spine + enable Graphify)**
+
+```bash
+cd /path/to/existing-project
+bash .spine/scripts/update.sh --graphify-init
+```
+
+(`--graphify-init` implies `--with-graphify`.)
+
+**Manual fallback** (if flags are unavailable on an old Spine clone):
+
+```bash
+bash .spine/scripts/install-graphify.sh --project-root=. --init-graph
+```
+
+### Verify activation
+
+```bash
+test -f graphify-out/graph.json && echo "Graphify active"
+ls -la .graphifyignore
+```
+
+Agents use graph-first exploration once `graphify-out/graph.json` exists (see `rules/01-core-protocol.md` and `rules/02-memory-bank.md`).
+
+### Refresh / regenerate `graphify-out`
+
+After large refactors or when exploration feels stale:
+
+```bash
+graphify update .
+```
+
+### Git policy
+
+- `graphify-out/` is machine-generated; most teams add `graphify-out/` to the project `.gitignore`.
+- `.graphifyignore` is safe to commit (excludes Spine symlinks and Graphify cache artifacts).
+- `graphify-out/graph.json` is the file agents check — it must exist locally even if gitignored.
+
+### Troubleshooting
+
+| Symptom | Fix |
+|---|---|
+| `graphify: command not found` | Install CLI: `uv tool install graphifyy` |
+| No `graphify-out/graph.json` after setup | Run `graphify update .` manually from the project root |
+| Graph build fails | Check `.graphifyignore`; ensure you are in the project root; rerun `graphify update .` |
+| Agents still scan files broadly | Confirm `graphify-out/graph.json` exists; restart the agent session |
+
+## Migration from v1.2 and earlier
+
+| Old setup | Action |
+|-----------|--------|
+| Ran `bash install.sh` (global mode, removed in v1.3) | Remove Spine symlinks under `~/.cursor/`, `~/.config/opencode/`, `~/.claude/` if no longer wanted |
+| Ask agent in `~/.config/opencode/agents/` | Remove global symlink: `rm ~/.config/opencode/agents/ask.md`; use per-project `.opencode/agents/` via `bash .spine/install.sh` |
+| Consumer without `.spine` | Run `scripts/link-spine.sh`, then `bash .spine/install.sh` |
+| Core-only skill symlinks | `bash .spine/scripts/update.sh` adds remaining skills (default is now `all`) |
+
+### Migrating opencode.json (6 rules → 3)
+
+If your consumer project still loads 6 Spine rules or an `AGENTS.md` in the system prompt, migrate to the token-optimized layout:
+
+**What changed:**
+- 6 rules in `opencode.json` → **3 core rules** (~79% smaller system prompt)
+- `compaction` added (`threshold: 16000`)
+- Consumer projects no longer use `AGENTS.md` in the system prompt — context lives in `docs/memory/`
+
+**Steps:**
+
+1. Update the Spine clone: `git -C .spine pull origin master`
+2. Update `opencode.json` — use [`templates/opencode.json`](templates/opencode.json) as the canonical source (3 `instructions` URLs + `compaction` block)
+3. Or run `/spine-update` / `bash .spine/scripts/update.sh` (merge mode syncs `opencode.json` non-destructively)
+4. Refresh Cursor rules: `bash .spine/install.sh --update --targets=cursor`
+5. Remove consumer-root `AGENTS.md` if present (optional)
+6. Restart the agent session
+
+**3 core rules:**
+
+| Rule | Responsibility |
+|---|---|
+| `01-core-protocol.md` | Execution cycle, definition of done, commits, guard rails |
+| `02-memory-bank.md` | Structure and reading of `docs/memory/` |
+| `03-code-quality.md` | Style, architecture, error handling, security |
+
+Removed rules (`handoff-protocol`, `testing`, `gitflow`) remain available as on-demand skills or `docs/` workflow files.
 
 ## Cursor Setup
 
-> **Cursor users:** Global rules require manual setup via `Cursor Settings → General → Rules for AI`. Project rules go in `.cursor/rules/` (supports both `.md` and `.mdc`).
+> **Cursor users:** Spine rules are installed per project in `.cursor/rules/` (supports `.md` and `.mdc`). No global Spine installer is provided.
 
 ## Compatibility (Claude Code and Other Tools)
 
-SPINE also works with Claude Code and other AI agents.
-
-The `install.sh` script creates global symlinks for both OpenCode and Claude Code automatically. For other tools, you may need to adapt paths or file names to match the expected format.
+SPINE works with Claude Code and other AI agents via per-project symlinks (`.claude/skills/`, `.cursor/`, `.opencode/`). For other tools, adapt paths or file names to match the expected format.
 
 ## Slash Commands
 
@@ -181,22 +294,19 @@ Available command templates in `commands/`:
 
 `/spine-update` wraps `scripts/update.sh` and is the recommended maintenance path for existing consumer projects.
 
-## OpenCode Modes
+## OpenCode Agents
 
-Available mode definitions in `modes/`:
+Spine ships agent definitions in `agents/`. `install.sh` deploys them **per project only** to `.opencode/agents/` (per-file symlinks to `.spine/agents/`). Do not symlink Spine agents into global `~/.config/opencode/agents/` — OpenCode loads project agents from `.opencode/agents/` when working in that repository.
 
-- **ASK** (`ask.md`) — A thinking partner, not an executor. Explore ideas, validate approaches, and discuss architecture without making any file changes. Bash commands require approval (read-only exploration). Switch to Build mode (Tab key) when ready to implement.
+Available agents:
 
-Modes are deployed globally to `~/.config/opencode/modes/` (available in all projects).
+- **ask** (`ask.md`) — Read-only thinking partner. Loads memory bank context (SYNC order) and optional Graphify graph-first exploration. Explore ideas, validate approaches, and discuss architecture without modifying the codebase. Read-only bash diagnostics are allowed; state-changing operations are blocked. Switch to the **Build** agent and run `/spine-plan` when ready to implement.
 
 ## Skill Governance
 
-Practical skill activation strategy:
-- Keep the full `skills/` directory in SPINE.
-- Activate only the skills needed by the current project scope.
-- Start with one base profile from `docs/governance/skills-policy.md`.
-- Add at most two temporary trial skills.
-- Target 5 to 8 active skills per project to reduce context noise.
+- `install.sh` links the **full skill catalog** by default; use `--core` for the minimal 5-skill profile.
+- **Active allowlist** (5–8 skills in workflow) is governed by `docs/governance/skills-policy.md` — not by omitting symlinks unless you choose `--core` or `--remove-skill`.
+- Add trial skills with `bash .spine/install.sh --add-skill=NAME`.
 
 ## Operational Workflow
 
@@ -249,26 +359,26 @@ flowchart TD
 
 ## Version
 
-**v1.2.0** — ASK mode and modes deployment.
+**v1.3.0** — Project-only installation.
 
-- Added `modes/ask.md` — ASK mode for OpenCode (explore ideas, read-only)
-- `install.sh` now deploys mode files to `~/.config/opencode/modes/` (global) and `.opencode/modes/` (project)
-- Per-file symlinks for modes (does not overwrite user's existing modes)
+- Removed global installation mode from `install.sh`
+- Added `scripts/link-spine.sh` to create the `.spine` symlink in consumer projects
+- `install.sh` is project-only; default skills = all; `--core` for minimal profile
+- `--global` and `--project` flags removed
 
 <details>
 <summary>Version history</summary>
+
+**v1.2.0** — ASK agent and OpenCode agents deployment.
+
+- Added `agents/ask.md` — read-only Ask agent for OpenCode (explore ideas, memory bank context)
 
 **v1.1.0** — Per-project installation via URL.
 
 - Rules loaded via remote URLs in project-level `opencode.json` (opt-in)
 - `/spine-install` creates `opencode.json` with Spine rule URLs automatically
-- Global config no longer contains Spine instructions (non-Spine projects unaffected)
-- Skills and commands remain globally available via symlinks
 
-<details>
-<summary>Version history</summary>
-
-**v1.0.0** — First stable release with global installation support.
+**v1.0.0** — First stable release.
 
 - `install.sh` creates symlinks for Cursor, OpenCode, and Claude Code
 - Rules in universal `.md` format (compatible with all agents)

@@ -47,7 +47,10 @@ The task must include:
 
 ## 4) Behavior for STRUCTURED_TASK
 - Build a full plan equivalent to `/spine-plan` (regardless of planning source).
-- If the plan came from native Plan mode (Cursor/Opencode), normalize it into the active task file.
+- Apply the same discovery rules as `/spine-plan`: run `@grill-me` when scope is ambiguous, multi-domain, explicitly requested (`grill me`, `grill:`, `grill with docs`, `grill:docs`, `stress-test`, `challenge this`), or when unresolved architectural/security/schema/infra decisions remain. Skip when scope is clear and single-domain, or when the user opts out (`skip discovery`, `no grill`, `direct plan`).
+- If the plan came from native Plan mode (Cursor/Opencode), normalize it into the active task file. If open decision branches remain after normalization, run `@grill-me` before finalizing the task artifact.
+- When `@grill-me` is active: read memory bank global files (`domain-glossary.md`, `product-context.md`, `system-patterns.md`, `decision-log.md`); promote terms and decisions per the skill. When `grill with docs` or `grill:docs` was requested, expect inline glossary and decision-log updates.
+- Record `@grill-me` outcomes under `## Discovery notes` when discovery ran; note any `domain-glossary.md` or `decision-log.md` promotions.
 - Include explicit test strategy (positive, negative, regression).
 - Stop at approval gate:
   - "Plan created at docs/memory/active_tasks/<id>-<name>.md. Can I execute?"

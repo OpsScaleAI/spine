@@ -3,11 +3,16 @@
 ## Objetivo
 Reduzir complexidade operacional e manter somente skills com valor recorrente no seu workflow.
 
+## Instalação vs allowlist (Spine v1.3+)
+
+- **Installed** (`bash .spine/install.sh`): symlinks the full skill catalog by default. Use `--core` for the minimal 5-skill profile, or `--remove-skill` to trim disk symlinks.
+- **Active allowlist** (below): which skills agents should invoke in workflow (target 5–8). Installation breadth and operational allowlist are separate concerns.
+
 ## Modelo de Curadoria
 - **Allowlist ativa**: skills liberadas para uso padrão.
 - **Trial**: skills novas testadas por 2 ciclos.
 - **Bloqueadas por padrão**: todas as demais skills fora da allowlist.
-- **Limite por projeto**: manter entre 5 e 8 skills ativas para reduzir ruído.
+- **Limite por projeto**: manter entre 5 e 8 skills ativas para reduzir ruído (core obrigatório + skills de domínio/workflow opt-in). Skills Trial instaladas, como `grill-me`, **contam** nesse limite.
 - **Ferramentas complementares**: utilitários como Graphify podem ser adotados por projeto consumidor sem virar dependência obrigatória do framework.
 
 ## Critérios de Entrada na Allowlist
@@ -35,6 +40,11 @@ Reduzir complexidade operacional e manter somente skills com valor recorrente no
   - 2 ou mais usos úteis em 30 dias
   - ganho claro em tempo/qualidade
   - ausência de conflito com skills já ativas
+
+### Trial (Workflow — planejamento)
+- `grill-me` — descoberta iterativa antes de `@writing-plans` em `/spine-plan` (escopo ambíguo, multi-domínio ou opt-in explícito). Inclui domain awareness: desafia termos contra `docs/memory/global/domain-glossary.md`, afia linguagem vaga, stress-testa cenários, cruza código com afirmações do usuário, e promove termos/decisões para o memory bank. Instalar com `bash .spine/install.sh --add-skill=grill-me`.
+- **Promoção prevista:** após 2 ciclos de Trial com critérios atendidos, mover para **Workflow e Qualidade** (permanece opt-in por projeto; não entra no core).
+- **Não substitui** `writing-plans` nem `handoff-protocol`: `grill-me` resolve decisões antes do plano; `writing-plans` estrutura tarefas; `handoff-protocol` governa repasse entre agentes na execução.
 
 ## Perfis por Stack
 
@@ -78,6 +88,7 @@ Reduzir complexidade operacional e manter somente skills com valor recorrente no
 - `gitflow`
 - `testing-guidelines`
 - `handoff-protocol`
+- `grill-me` (após promoção de Trial; opcional — ver Diretriz Operacional: Planejamento)
 
 ### Frontend Assistido (principal)
 - `frontend-dev-guidelines`
@@ -90,6 +101,36 @@ Reduzir complexidade operacional e manter somente skills com valor recorrente no
 
 ### Cloudflare
 - `cloudflare-workers-expert`
+
+## Diretriz Operacional: Planejamento
+
+Use esta regra para evitar ambiguidade entre descoberta e estruturação de planos:
+
+- **Pipeline fixo:** `@grill-me` (descoberta, condicional) → `@writing-plans` (estruturação, obrigatório).
+- **Default simples:** escopo claro e single-domain → pular `@grill-me`, ir direto para `@writing-plans`.
+- **Escalar descoberta:** usar `@grill-me` quando escopo for ambíguo, multi-domínio, ou houver decisões arquiteturais/segurança/schema/infra em aberto.
+
+### Quando usar `@grill-me`
+- Escopo ambíguo ou amplo (ex.: "melhorar performance").
+- Múltiplos domínios na mesma entrega (ex.: backend + infra + UI).
+- Decisões arquiteturais ou de segurança ainda não resolvidas.
+- Opt-in explícito em `/spine-plan`: `grill me`, `grill:`, `grill -`, `grill with docs`, `grill:docs`, `stress-test`, `challenge this`.
+- Opt-in com documentação de domínio: `grill with docs` ou `grill:docs` — mesma skill, com expectativa de atualização inline de `domain-glossary.md` e `decision-log.md`.
+- Opt-in conversacional: usuário pede para ser "grilled" antes do plano ser escrito.
+
+### Quando pular `@grill-me`
+- Escopo claro, entregável único, single-domain.
+- Opt-out explícito: `skip discovery`, `no grill`, `direct plan`.
+
+### Regra de desempate (anti-overengineering)
+- Se o escopo já define MVP, out-of-scope e domínio principal, não use `@grill-me`.
+- `@grill-me` faz uma pergunta por vez; não escreva o plano completo até a descoberta terminar.
+- Registre decisões em `## Discovery notes` no arquivo de tarefa ativa antes de `@writing-plans`.
+- **Promoção de conhecimento:** decisões de escopo da tarefa → `## Discovery notes`; termos canônicos de domínio → `domain-glossary.md`; decisões arquiteturais (critério triplo: difícil reverter, surpreendente sem contexto, trade-off real) → `decision-log.md`.
+
+### Relação com outras skills de workflow
+- **`writing-plans`:** sempre após descoberta (ou após skip). Estrutura tarefas, arquivos, testes e GitFlow.
+- **`handoff-protocol`:** aplica-se na execução multi-agente, não substitui descoberta de escopo.
 
 ## Diretriz Operacional: Playwright
 
@@ -115,7 +156,13 @@ Use esta regra curta para evitar ambiguidade e overengineering:
 ## Processo Mensal de Revisão
 1. Listar skills efetivamente usadas no mês (frequência e contexto).
    - Para Playwright, usar os registros do `/spine-harvest` (skill escolhida, motivo e evidência de ganho).
+   - Para planejamento (`grill-me`), contar sessões em que `## Discovery notes` foi preenchido em `docs/memory/active_tasks/` ou o usuário registrou opt-in/opt-out explícito em `/spine-plan`. Incluir atualizações a `domain-glossary.md` e `decision-log.md` originadas de sessões de grill.
 2. Confirmar quais skills reduziram tempo/retrabalho.
 3. Remover as não recorrentes ou redundantes.
 4. Promover/demover Trial conforme critérios objetivos.
+   - `grill-me`: promover para Workflow e Qualidade se ≥2 usos úteis em 30 dias **e** planos resultantes tiverem menos retrabalho de escopo (menos splits tardios, menos critérios de aceite reescritos pós-execução).
 5. Atualizar este documento.
+
+## Sincronização em Projetos Consumidor
+
+Este arquivo é copiado para `docs/governance/skills-policy.md` no `/spine-install`. Atualizações posteriores no template Spine **não** sobrescrevem automaticamente o arquivo local. Após pull do Spine, revisar manualmente diferenças entre `templates/docs/governance/skills-policy.md` (Spine) e `docs/governance/skills-policy.md` (projeto) e incorporar mudanças relevantes.

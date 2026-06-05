@@ -17,6 +17,7 @@ Act as a Tech Lead and Knowledge Manager.
 3. **Final Verification:** Run the full test suite to ensure there are no regressions.
 4. **Memory Bank Update:**
    - Add technical decisions to `docs/memory/global/decision-log.md` only when there is an architectural decision.
+   - Update `docs/memory/global/domain-glossary.md` when canonical domain terms were promoted during discovery or delivery.
    - Update `docs/memory/ledger/progress.md` with what was delivered and pending items, including reference to the completed task ID.
    - If new patterns were established, update `docs/memory/global/system-patterns.md`.
 5. **Active Task Closure:**
