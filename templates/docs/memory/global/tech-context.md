@@ -13,3 +13,9 @@
 | Variable | Description | Example |
 |---|---|---|
 | [name] | [description] | [example] |
+
+## Known Risks
+
+Technical fragility agents must respect when changing related code. Cross-reference `system-patterns.md` § Project-Specific Alterations when a risk ties to a customization.
+
+- [Risk]: [impact] — related paths: `path/to/code`

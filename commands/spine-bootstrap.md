@@ -1,108 +1,180 @@
 ---
-description: Initial assessment and memory-bank bootstrap after setup; optional $ARGUMENTS for project briefing
+description: Deep project assessment and agent-optimized memory bank fill after install.sh; optional $ARGUMENTS for briefing
 agent: build
 ---
 
 # Slash Command: /spine-bootstrap
+
 Act as the project's Initial Assessment Architect.
 
-Goal: execute an initial assessment and populate the Memory Bank with a reliable baseline.
+**Goal:** Build a complete, **agent-ready** project context layer. Deep assessment of source code and Graphify (when present), then fill memory bank documents with maximal detail for **agent consumption** (tiered SYNC), not human storytelling.
 
-**Optional context (`$ARGUMENTS`):** The user may provide free text after the command (Cursor injects it into `$ARGUMENTS`). If there is **non-empty** content, treat it as a project briefing: domain, stack, constraints, stakeholders, links, open questions. Incorporate it into the assessment (step 1) and when filling `project-brief.md`, `product-context.md`, `domain-glossary.md`, `system-patterns.md`, and `tech-context.md`, without contradicting facts already present in files.
+**Bootstrap is not planning.** Do not create active tasks, plans, or modify `roadmap.md`. Delivery starts with `/spine-plan`.
 
-**Precondition:** `bash .spine/install.sh` must have completed in this project (symlinks, `docs/` templates, `opencode.json`).
+**Optional context (`$ARGUMENTS`):** Non-empty free text = project briefing (domain, stack, constraints, stakeholders, links). Highest priority when filling files; do not contradict existing valid content.
 
-**Bridge mode (transition-safe):**
-
-- Before step 1, validate setup readiness:
-  - `docs/memory/global/project-brief.md`
-  - `docs/memory/ledger/roadmap.md`
-  - `docs/governance/skills-policy.md`
-  - `opencode.json`
-  - `.cursor/commands/` or `.opencode/commands/` (slash commands available)
-- If any required setup artifact is missing:
-  1. Stop assessment.
-  2. Ask for confirmation: "Setup not found. Run `bash .spine/install.sh` from the project root now?"
-  3. If user confirms, instruct them to run `bash .spine/install.sh` in the terminal (deterministic setup — not a slash command), then reload the IDE.
-  4. Re-validate setup artifacts.
-  5. Continue with assessment only after setup is valid.
-- If user declines, end with a clear summary of missing setup artifacts.
+**Precondition:** `bash .spine/install.sh` completed (symlinks, seeded `docs/`, `opencode.json`).
 
 ---
 
-## 1. Initial assessment (Project)
+## Step 0 — Setup boundary and readiness
 
-- If `$ARGUMENTS` has content, integrate it here as a priority source along with repo code and configs.
-- Identify the primary stack (languages, frameworks, database, infrastructure).
-- Identify project objective, scope, and boundaries.
-- Identify initial technical risks and short-term priorities.
-- Detect whether Graphify is already in use (`graphify-out/`, `graphify-out/graph.json`, `.graphifyignore`) and record this as context, not as a setup blocker.
+Run from project root:
 
----
+```bash
+bash .spine/scripts/validate-bootstrap-ready.sh
+```
 
-## 2. Memory Bank bootstrap (global)
+**On success:** proceed to Step 1.
 
-- Check existing files before changing them.
-- Fill missing fields without overwriting already-valid documented context.
-- Fill/normalize when needed:
-  - `docs/memory/global/project-brief.md`
-  - `docs/memory/global/product-context.md`
-  - `docs/memory/global/domain-glossary.md` (extract domain nouns from code and `$ARGUMENTS`; do not overwrite existing terms)
-  - `docs/memory/global/system-patterns.md`
-  - `docs/memory/global/tech-context.md`
-- Record initial decisions in:
-  - `docs/memory/global/decision-log.md`
+**On failure (bridge mode):**
 
----
+1. Stop assessment.
+2. Ask: "Setup incomplete. Run `bash .spine/install.sh` from the project root now?"
+3. If yes: user runs install in terminal (not a slash command), reload IDE, re-run the script.
+4. If no: list missing artifacts from script output and stop.
 
-## 3. Memory Bank bootstrap (ledger)
+**Forbidden (agent must never):**
 
-- Initialize/update without deleting useful history:
-  - `docs/memory/ledger/roadmap.md`
-  - `docs/memory/ledger/progress.md`
-  - `docs/memory/ledger/learnings.md` (if missing)
-- Ensure v2.1 directories exist: `docs/memory/completed_tasks/`
-- Validate `docs/governance/memory-tags-policy.md` is present (seed via `bash .spine/install.sh --update` if missing)
+- Copy/seed `docs/` (`cp -R`, downloads, creating missing template files)
+- Run `install.sh` from the agent
+- Modify [`docs/memory/ledger/roadmap.md`](../../templates/docs/memory/ledger/roadmap.md)
+- Create or modify `docs/memory/active_tasks/NNN-*.md` (numbered tasks)
+
+**Re-bootstrap:** Safe to re-run. Idempotent enrichment — replace placeholders, append non-conflicting detail, preserve valid existing content.
 
 ---
 
-## 4. Initial task (when there is delivery scope)
+## Step 1 — Deep assessment (mandatory, before any writes)
 
-- Ensure the folder `docs/memory/active_tasks/` exists.
-- Define the same `<descriptive-name>` as branch `feature/<descriptive-name>`.
-- Create the initial task in this format:
-  - `docs/memory/active_tasks/<sequential-number>-<descriptive-name>.md`
-- Example:
-  - branch: `feature/setup-memory-bank`
-  - task: `docs/memory/active_tasks/001-setup-memory-bank.md`
-- Follow [`templates/docs/memory/active_tasks/_task-template.md`](../../templates/docs/memory/active_tasks/_task-template.md): YAML frontmatter + body sections (`## Objective`, `## Inputs`, `## Expected Outputs`, `## Acceptance Criteria`, `## Test Strategy`; optional `## Implementation Plan` for multi-step work)
-- If the initial task includes UI/E2E, already record a Playwright guideline based on simplicity:
-  - default to `playwright-cli` for quick exploration/validation;
-  - escalate to `playwright-skill` only with real complexity (multi-step flow, multiple validations, frequent re-execution).
+Goal: **complete project understanding**. Do not write memory bank files until assessment is sufficient.
+
+**Discovery order:**
+
+1. `$ARGUMENTS` (if non-empty)
+2. **Graphify** when `graphify-out/graph.json` exists: query graph first for architecture, modules, entry points, integrations; confirm with targeted file reads
+3. **Source and configs:** README, manifests, CI, infra, entry points, layer structure, tests, env patterns
+4. Existing memory bank (re-bootstrap) — conflicts → **Gaps**, do not silently overwrite
+
+**Assessment must cover:**
+
+| Area | Feeds |
+|------|--------|
+| Stack (languages, frameworks, DB, queue, infra, deploy) | `system-patterns.md`, `tech-context.md` |
+| Architecture (layers, data flow, external APIs) | `system-patterns.md` |
+| Domain terms and bounded contexts | `domain-glossary.md` |
+| Dev workflow (install, run, test commands) | `tech-context.md` |
+| **Alterations** (custom payment, auth, webhooks vs platform default) | `system-patterns.md` § Project-Specific Alterations + `decision-log.md` |
+| **Risks** (fragile integrations, missing tests, deprecated deps) | `tech-context.md` § Known Risks |
+| **Opportunities** (unplanned improvements, not scheduled work) | `product-context.md` § Known Opportunities (unplanned) |
+| Scope, goals, boundaries | `project-brief.md`, `product-context.md` |
+| Git default branch vs Spine GitFlow (`develop` + `feature/*`) | `tech-context.md`, summary **Gaps** if mismatch |
+| Graphify status (active / stale / absent; check `graphify-out/`, `graphify-out/graph.json`, `.graphifyignore`) | `system-patterns.md`, summary |
+
+**Hunt signals:** Graphify clusters; grep `TODO|FIXME|HACK|override|custom`; payment/checkout/auth/shipping directories; `$ARGUMENTS`.
+
+**Depth bar:** If any global section would still read like `[Fill in]` after Step 2, assessment was insufficient — explore deeper.
+
+**No `@grill-me`:** Unresolved domain ambiguity → **Gaps** + recommend `/spine-plan` with discovery triggers when delivery starts.
 
 ---
 
-## 5. Mandatory summary
+## Step 2 — Memory Bank bootstrap (global) — agent-optimized
+
+**Primary audience: agents.** Structure for SYNC, grep, and navigation.
+
+| Principle | Guidance |
+|-----------|----------|
+| Structure | Predictable headings per `02-memory-bank.md` Core SYNC |
+| Specificity | Concrete paths, modules, config files, CLI commands |
+| Glossary | Term + definition + code location hint |
+| Architecture | Layer map, request/job flow, key files/classes |
+| Alterations | Table in `system-patterns.md`; non-obvious WHY → `decision-log.md` entry; link both ways |
+| Risks | Bullet list with impact and related paths |
+| Opportunities | Unplanned improvements only (not roadmap milestones) |
+| Cross-links | `See tech-context.md § Known Risks` |
+| Scannable | Bullets and short paragraphs; no marketing tone |
+| English | All generated content |
+| Depth | **Maximize detail**; completeness over brevity |
+
+**Fill rules:**
+
+| Signal | Action |
+|--------|--------|
+| Placeholder (`[Fill in]`, empty section, template boilerplate) | Replace with detailed inferred content |
+| Valid project-specific content already present | Preserve; append only non-conflicting detail |
+| Conflict (repo vs `$ARGUMENTS` vs existing doc) | Do not overwrite; record in **Gaps** |
+| `domain-glossary.md` | Add terms; never delete existing entries |
+| `decision-log.md` | Append bootstrap baseline entry (date, baseline established, key facts + WHY) |
+
+**Files to fill:**
+
+- `docs/memory/global/project-brief.md`
+- `docs/memory/global/product-context.md` (incl. § Known Opportunities (unplanned))
+- `docs/memory/global/domain-glossary.md`
+- `docs/memory/global/system-patterns.md` (preserve Graphify section; incl. § Project-Specific Alterations)
+- `docs/memory/global/tech-context.md` (incl. § Known Risks)
+- `docs/memory/global/decision-log.md`
+
+If a new section is missing in an older consumer template, add the section during fill.
+
+---
+
+## Step 3 — Memory Bank bootstrap (ledger) — limited scope
+
+**In scope:**
+
+- `docs/memory/ledger/progress.md` — update **Current state** only: bootstrap complete, memory bank baseline ready, no active delivery tasks; **never wipe Delivery log**
+- `docs/memory/ledger/learnings.md` — leave empty unless repo evidence supports an incident-style entry; flag in **Gaps** if file missing after install
+
+**Out of scope:**
+
+- **`docs/memory/ledger/roadmap.md` — do not modify** (seed template; future `/spine-roadmap`)
+- **`active_tasks/NNN-*.md` — do not create**
+
+---
+
+## Step 4 — Mandatory summary
 
 Always include:
 
-- **Source:** Existing project files after setup.
-- **Created vs. updated:** What was created in this run vs. what was only updated in assessment.
-- **Memory bank files filled:** List which `docs/memory/global/*` files were populated.
-- **Preserved:** What remained untouched because it was already valid.
-- **Gaps:** Information still dependent on the human.
-- **Setup status:** Confirm `bash .spine/install.sh` precondition was satisfied.
-- **Graphify status:** Report whether `graphify-out/` and `.graphifyignore` were detected and whether graph-first retrieval is currently available. When Graphify is not detected and the repo appears medium/large (many source files, or the user mentions token/exploration cost), suggest in **Gaps**: "Graphify not detected. To enable: see Spine README § Optional: Graphify, or run `bash .spine/scripts/update.sh --graphify-init`."
+- **Assessment coverage:** Graph queries, key dirs, configs explored; confidence level
+- **Memory bank files filled:** Each updated `global/*` and ledger file with one-line depth note
+- **Counts:** alterations documented, risks listed, opportunities captured
+- **Intentionally untouched:** `roadmap.md` (not bootstrap scope)
+- **Created vs. updated vs. preserved**
+- **Gaps:** Credentials, business rules, stakeholder intent, branch policy exceptions, unresolved domain terms
+- **Setup status:** `validate-bootstrap-ready.sh` result
+- **Graphify status:** active / stale / absent; report `graphify-out/` and `.graphifyignore`; suggest README § Optional: Graphify if medium/large repo without Graphify
+- **GitFlow note:** default branch vs Spine target (`develop` + `feature/*`)
+- **Next step:** `/spine-plan <goal>` — bootstrap does not produce plans or tasks
+- **Re-bootstrap:** idempotent enrichment only
+
+If user asks for a plan, task, or roadmap: "Bootstrap builds agent context only. Use `/spine-plan` for delivery planning. Roadmap structuring is a future command."
+
+---
+
+## Knowledge mapping (reference)
+
+| Concept | Primary home | When |
+|---------|--------------|------|
+| Project-specific alteration | `system-patterns.md` § Project-Specific Alterations | Bootstrap |
+| WHY of alteration | `decision-log.md` | Bootstrap |
+| Known risk | `tech-context.md` § Known Risks | Bootstrap |
+| Opportunity (unplanned) | `product-context.md` § Known Opportunities | Bootstrap |
+| Incident / recurrence | `learnings.md` | `/spine-harvest` only |
+| Scheduled milestone | `roadmap.md` | Future `/spine-roadmap` |
 
 ---
 
 ## Acceptance criteria (command behavior)
 
-- [ ] Command validates setup readiness before assessment (`opencode.json`, `docs/memory/` structure).
-- [ ] If setup is missing, command asks confirmation to run `bash .spine/install.sh` (bridge mode), then re-validates and continues only if setup is complete.
-- [ ] Command performs only assessment and memory-bank bootstrap (no installation/setup side effects).
-- [ ] Global memory files are filled/normalized without overwriting valid existing context.
-- [ ] Ledger files (`roadmap`, `progress`, `learnings`) are initialized/updated without deleting useful history.
-- [ ] `completed_tasks/` directory exists; `memory-tags-policy.md` is present or flagged in gaps.
-- [ ] If there is delivery scope, an initial active task follows `_task-template.md` structure.
-- [ ] Final summary clearly lists memory bank files filled, preserved files, known gaps, and setup precondition status.
+- [ ] Runs `validate-bootstrap-ready.sh` before assessment
+- [ ] Deep assessment of source code and Graphify (when present) before writing
+- [ ] Fills `global/*` and ledger (`progress.md`, `learnings.md` if applicable) with agent-optimized detail
+- [ ] Documents alterations, risks, and opportunities when evidence exists
+- [ ] Does **not** modify `roadmap.md`
+- [ ] No installation side effects; no active task or plan creation
+- [ ] Preserves valid existing content; conflicts → **Gaps**
+- [ ] Summary includes counts, untouched files, gaps, and `/spine-plan` handoff
+- [ ] All generated content in English
