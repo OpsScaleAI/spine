@@ -1,15 +1,15 @@
 # Tech Context
 
-## Setup de Desenvolvimento
-[Preencher]
+## Development Setup
+[Fill in]
 
-## Dependencias Principais
-[Preencher]
+## Key Dependencies
+[Fill in]
 
-## Constraints Tecnicos
-[Preencher]
+## Technical Constraints
+[Fill in]
 
-## Variaveis de Ambiente
-| Variavel | Descricao | Exemplo |
+## Environment Variables
+| Variable | Description | Example |
 |---|---|---|
-| [nome] | [descricao] | [exemplo] |
+| [name] | [description] | [example] |

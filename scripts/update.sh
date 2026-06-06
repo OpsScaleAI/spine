@@ -51,7 +51,7 @@ SPINE_LINK="$PROJECT_ROOT/.spine"
 if [[ ! -L "$SPINE_LINK" ]]; then
     echo "ERROR: .spine symlink not found in project root: $PROJECT_ROOT" >&2
     echo "Run: bash <path-to-spine>/scripts/link-spine.sh" >&2
-    echo "Then: /spine-install or bash .spine/install.sh" >&2
+    echo "Then: bash .spine/install.sh" >&2
     exit 1
 fi
 
@@ -111,52 +111,24 @@ if $REPLACE_OPENCODE; then
         echo "  Replaced with template: $PROJECT_OPENCODE"
     fi
 else
+    MERGE_SCRIPT="$SPINE_DIR/scripts/merge-opencode.py"
     if $DRY_RUN; then
         echo "  [DRY-RUN] Would merge Spine instructions into: $PROJECT_OPENCODE"
+    elif [[ ! -f "$MERGE_SCRIPT" ]]; then
+        echo "  ERROR: merge helper not found: $MERGE_SCRIPT" >&2
+        exit 1
     else
-        python3 - "$TEMPLATE_OPENCODE" "$PROJECT_OPENCODE" <<'PY'
-import json
-import sys
-from pathlib import Path
-
-template_path = Path(sys.argv[1])
-project_path = Path(sys.argv[2])
-
-template = json.loads(template_path.read_text(encoding="utf-8"))
-required = template.get("instructions", [])
-
-if project_path.exists():
-    project = json.loads(project_path.read_text(encoding="utf-8"))
-else:
-    project = {"$schema": template.get("$schema", "https://opencode.ai/config.json")}
-
-instructions = project.get("instructions", [])
-if not isinstance(instructions, list):
-    instructions = []
-
-seen = set()
-merged = []
-for item in instructions + required:
-    if isinstance(item, str) and item not in seen:
-        merged.append(item)
-        seen.add(item)
-
-project["instructions"] = merged
-if "$schema" not in project and "$schema" in template:
-    project["$schema"] = template["$schema"]
-
-project_path.write_text(json.dumps(project, indent=2) + "\n", encoding="utf-8")
-print(f"  Merged instructions into: {project_path}")
-PY
+        output="$(python3 "$MERGE_SCRIPT" "$TEMPLATE_OPENCODE" "$PROJECT_OPENCODE")"
+        echo "  $output"
     fi
 fi
 
 echo ""
-echo "Step 4/4: Memory bank preservation"
+echo "Step 4/4: Memory bank"
 if [[ -d "$PROJECT_ROOT/docs/memory" ]]; then
-    echo "  Preserved: docs/memory/ (no destructive updates performed)"
+    echo "  docs/memory/ present (install.sh seeds missing templates without overwriting)"
 else
-    echo "  Note: docs/memory/ not found in this project"
+    echo "  Note: docs/memory/ still missing — run: bash .spine/install.sh --update"
 fi
 
 echo ""

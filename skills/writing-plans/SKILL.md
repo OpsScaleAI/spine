@@ -10,115 +10,145 @@ date_added: "2026-02-27"
 
 ## Overview
 
-Write comprehensive implementation plans assuming the engineer has zero context for our codebase and questionable taste. Document everything they need to know: which files to touch for each task, code, testing, docs they might need to check, how to test it. Give them the whole plan as bite-sized tasks. DRY. YAGNI. TDD. Frequent commits.
-
-Assume they are a skilled developer, but know almost nothing about our toolset or problem domain. Assume they don't know good test design very well.
+Write comprehensive implementation plans assuming the engineer has zero context for our codebase. Document files to touch, tests, and bite-sized steps. DRY. YAGNI. TDD. Frequent commits.
 
 **Announce at start:** "I'm using the writing-plans skill to create the implementation plan."
 
-**Context:** This should be run in a dedicated worktree (created by brainstorming skill).
+**Save plans to:** `docs/memory/active_tasks/<sequential-number>-<descriptive-name>.md`
 
-**Save plans to:** `docs/memory/active_tasks/<numero-sequencial>-<feature-name>.md`
+**Conflict rule:** When used from `/spine-plan`, that command and [`templates/docs/memory/active_tasks/_task-template.md`](../../templates/docs/memory/active_tasks/_task-template.md) (consumer: `docs/memory/active_tasks/_task-template.md`) **take precedence**. This skill fills content; it does not redefine structure.
 
-**Project convention:** For this repo, always prioritize `docs/memory/active_tasks/` over `docs/plans/`. Use Obsidian-style YAML frontmatter per `02-memory-bank.md`: `task_id`, `title`, `goal`, `status`, `tags`, `branch`, `base`, `created_at`, `updated_at`.
+## Before writing
 
-## Bite-Sized Task Granularity
+1. Read `_task-template.md` in the consumer project (`docs/memory/active_tasks/_task-template.md`).
+2. Grep `docs/memory/ledger/learnings.md` and recent progress delivery log for related **tags** per `docs/governance/memory-tags-policy.md`.
+3. Assign the next sequential `NNN` by scanning `active_tasks/` and `completed_tasks/` (ignore `_task-template.md`).
 
-**Each step is one action (2-5 minutes):**
-- "Write the failing test" - step
-- "Run it to make sure it fails" - step
-- "Implement the minimal code to make the test pass" - step
-- "Run the tests and make sure they pass" - step
-- "Commit" - step
+## Document structure (mandatory)
 
-## Plan Document Header
+Every plan **must** start with YAML frontmatter, then body sections in this order:
 
-**Every plan MUST start with this header:**
-
-```markdown
-# [Feature Name] Implementation Plan
-
-> **For Claude:** REQUIRED SUB-SKILL: Use superpowers:executing-plans to implement this plan task-by-task.
-
-**Goal:** [One sentence describing what this builds]
-
-**Architecture:** [2-3 sentences about approach]
-
-**Tech Stack:** [Key technologies/libraries]
-
+```yaml
+---
+task_id: 007
+title: Human-readable title
+goal: One-line outcome
+status: PLANNING
+tags:
+  - area/example
+  - type/feature
+branch: feature/descriptive-name
+base: develop
+execution_skill: executing-plans
+created_at: YYYY-MM-DD
+updated_at: YYYY-MM-DD
+completed_at:
+related_learnings: []
 ---
 ```
 
-## Task Structure
+```markdown
+# 007-descriptive-name
+
+## Discovery notes
+(When @grill-me ran — otherwise omit or leave brief.)
+
+## Objective
+[Expanded goal — architecture and approach belong here, not in a legacy header block.]
+
+## Inputs
+- [Files, configs, dependencies]
+
+## Expected Outputs
+- [Artifacts that must exist when done]
+
+## Acceptance Criteria (verifiable, TDD-ready)
+- [ ] [Criterion 1]
+  - Test: [specific test]
+
+## Test Strategy
+- Positive / Negative / Regression
+- Command: `pytest ...`
+
+## Implementation Plan
+(Optional — omit when ≤3 acceptance criteria; required when execution needs step-by-step detail.)
+```
+
+**Do not use:** inline `**Status:**`, `**Branch:**`, `**Goal:**` blocks at the top, or `superpowers:*` headers. Metadata lives in frontmatter only.
+
+## Bite-sized task granularity
+
+When `## Implementation Plan` is present, use this structure **only inside that section**:
 
 ```markdown
-### Task N: [Component Name]
+### Task N: [Component name]
 
 **Files:**
 - Create: `exact/path/to/file.py`
 - Modify: `exact/path/to/existing.py:123-145`
 - Test: `tests/exact/path/to/test.py`
 
-**Step 1: Write the failing test**
+**Step 1:** Write the failing test (include code when helpful).
 
-```python
-def test_specific_behavior():
-    result = function(input)
-    assert result == expected
+**Step 2:** Run test — expect FAIL with [message].
+
+**Step 3:** Implement minimal code to pass.
+
+**Step 4:** Run test — expect PASS.
+
+**Step 5:** Commit with semantic message.
 ```
 
-**Step 2: Run test to verify it fails**
+Each step is one action (2–5 minutes). Exact file paths always. Complete code in plan when it removes ambiguity.
 
-Run: `pytest tests/path/test.py::test_name -v`
-Expected: FAIL with "function not defined"
+## When to include Implementation Plan
 
-**Step 3: Write minimal implementation**
+| Scope | Implementation Plan |
+|-------|---------------------|
+| ≤3 acceptance criteria, single domain | Omit — execute from Acceptance Criteria |
+| >3 criteria or multi-file refactor | Include Task/Step blocks |
+| Native Plan draft with Task/Step content | Normalize into Implementation Plan section |
 
-```python
-def function(input):
-    return expected
-```
+## Normalizing native Plan drafts
 
-**Step 4: Run test to verify it passes**
+If input is a Cursor/native Plan draft with `**Goal:**`, `**Architecture:**`, or root-level `### Task N:`:
 
-Run: `pytest tests/path/test.py::test_name -v`
-Expected: PASS
+- `goal` → frontmatter `goal`; details → `## Objective`
+- Architecture / tech stack → `## Objective` (subsections if needed)
+- Root-level Task/Step blocks → move under `## Implementation Plan`
+- Generate frontmatter + tags before saving
 
-**Step 5: Commit**
+## GitFlow (Spine default)
 
-```bash
-git add tests/path/test.py src/path/file.py
-git commit -m "feat: add specific feature"
-```
-```
+- `branch: feature/<descriptive-name>`
+- `base: develop`
+- Do not create the branch during planning.
+
+## Execution handoff
+
+When invoked from `/spine-plan`, after saving the task file:
+
+1. Complete the plan contract checklist (command step 5).
+2. Run contract validation (command step 8):
+
+   ```bash
+   bash .spine/scripts/validate-task.sh docs/memory/active_tasks/<file>.md
+   ```
+
+   Fix structural errors and re-run until the script exits 0. This checks format consistency, not plan quality.
+
+3. Stop at the `/spine-plan` approval gate (command step 9):
+
+   > Plan created at `docs/memory/active_tasks/<file>.md`. Can I execute?
+
+Do **not** offer superpowers subagent/parallel-session handoffs. Execution starts with `/spine-execute <plan_file_path>` using `execution_skill` from frontmatter.
 
 ## Remember
-- Exact file paths always
-- Complete code in plan (not "add validation")
-- Exact commands with expected output
-- Reference relevant skills with @ syntax
-- DRY, YAGNI, TDD, frequent commits
 
-## Execution Handoff
-
-After saving the plan, offer execution choice:
-
-**"Plan complete and saved to `docs/memory/active_tasks/<filename>.md`. Two execution options:**
-
-**1. Subagent-Driven (this session)** - I dispatch fresh subagent per task, review between tasks, fast iteration
-
-**2. Parallel Session (separate)** - Open new session with executing-plans, batch execution with checkpoints
-
-**Which approach?"**
-
-**If Subagent-Driven chosen:**
-- **REQUIRED SUB-SKILL:** Use superpowers:subagent-driven-development
-- Stay in this session
-- Fresh subagent per task + code review
-
-**If Parallel Session chosen:**
-- Guide them to open new session in worktree
-- **REQUIRED SUB-SKILL:** New session uses superpowers:executing-plans
+- Reference domain skills with `@` syntax where relevant
+- Record `execution_skill` in frontmatter (no `@` prefix)
+- `/spine-plan` and `_task-template.md` override this skill on structure conflicts
 
 ## When to Use
-This skill is applicable to execute the workflow or actions described in the overview.
+
+Use when `/spine-plan` step 2 invokes planning, or when you have requirements for a multi-step task before touching code.

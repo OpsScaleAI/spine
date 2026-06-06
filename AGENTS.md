@@ -15,7 +15,7 @@ Spine is a workflow framework (agent OS) composed primarily of Markdown rules, B
 
 ```
 spine/
-├── templates/              # Setup templates for /spine-install and /spine-bootstrap
+├── templates/              # Setup templates seeded by install.sh; filled via /spine-bootstrap
 │   ├── opencode.json       # Canonical consumer OpenCode config
 │   └── docs/
 │       ├── memory/
@@ -27,7 +27,7 @@ spine/
 │       ├── quality/        # Guardrails documentation
 │       └── workflow/       # GitFlow and delivery cycle guides
 ├── docs/                   # Local memory bank for Spine development (NOT versioned)
-├── commands/               # Slash-command templates (/spine-plan, /spine-install, etc.)
+├── commands/               # Slash-command templates (/spine-plan, /spine-bootstrap, etc.)
 ├── rules/                  # Source-of-truth rules in .md (Cursor, Claude Code, OpenCode)
 ├── skills/                 # Curated AI skill definitions (each has a SKILL.md)
 ├── scripts/                # link-spine.sh, update.sh, install-graphify.sh
@@ -153,14 +153,15 @@ git clone https://github.com/OpsScaleAI/spine.git ~/Workspace/ide/spine
 # 2. From consumer project root — link .spine
 bash ~/Workspace/ide/spine/scripts/link-spine.sh
 
-# 3. Install symlinks (all skills by default; --core for minimal 5-skill profile)
+# 3. Full deterministic setup (all skills by default; --core for minimal 5-skill profile)
 bash .spine/install.sh
 bash .spine/install.sh --core
 
-# 4. In the agent IDE
-/spine-install
-/spine-bootstrap
+# 4. In the agent IDE (slash commands exist only after step 3)
+/spine-bootstrap  # initial assessment; fill docs/ with consumer context
 ```
+
+After step 2, only `bash .spine/install.sh` works from the terminal — `/spine-*` commands are not available until step 3 creates `.cursor/commands/` and `.opencode/commands/` symlinks.
 
 **Update an existing consumer project:**
 
@@ -168,12 +169,12 @@ bash .spine/install.sh --core
 bash .spine/scripts/update.sh
 ```
 
-#### What `/spine-install` creates
+#### What `install.sh` creates
 
 | File | Source | Versioned in consumer project? |
 |---|---|---|
-| `docs/` (memory bank) | GitHub `templates/docs/` | Yes |
-| `opencode.json` | GitHub `templates/opencode.json` | Yes |
+| `docs/` (memory bank templates) | `templates/docs/` via `.spine` | Yes |
+| `opencode.json` | `templates/opencode.json` (create or merge) | Yes |
 | `.spine`, `.agents/`, etc. | Symlinks via `install.sh` | No (machine-specific) |
 
 #### Consumer project structure
@@ -278,7 +279,7 @@ When `graphify-out/graph.json` exists, agents query the graph first (see `01-cor
 
 Available in `commands/`:
 
-- `/spine-install` — templates, `opencode.json`, symlinks
+- `install.sh` — deterministic setup: symlinks, `docs/` seed, `opencode.json`, Graphify opt-in
 - `/spine-update` — safe refresh via `scripts/update.sh`
 - `/spine-bootstrap` — initial assessment and memory bank fill
 - `/spine-plan` — task plan in memory bank (native Plan draft as input; conditional `@grill-me` discovery)

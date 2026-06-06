@@ -69,42 +69,45 @@ bash ~/Workspace/ide/spine/scripts/link-spine.sh
 
 This creates `.spine` → absolute path to the Spine repository. Use `--spine-dir=PATH` if the repo lives elsewhere, `--force` to replace a mismatched symlink, or `--dry-run` to preview.
 
-### 3. Install project artefacts
+### 3. Install Spine (terminal — full deterministic setup)
 
 ```bash
-bash .spine/install.sh          # all skills (default)
+bash .spine/install.sh          # all skills (default); interactive Graphify opt-in when TTY
 bash .spine/install.sh --core   # minimal 5-skill profile only
+bash .spine/install.sh --no-graphify-prompt   # skip Graphify question (CI/non-interactive)
 ```
 
-This creates (gitignored, machine-specific):
+> **Important:** Slash commands (`/spine-bootstrap`, `/spine-plan`, etc.) are **not** available until this step completes. After `link-spine.sh` (step 2) you only have the `.spine` symlink — the only valid next action is `bash .spine/install.sh` from the terminal.
+
+`install.sh` performs all deterministic setup: symlinks, `docs/` template seed (from local `templates/docs/`), `opencode.json` merge, gitignore entries, and optional Graphify. Re-runs are idempotent — existing `docs/` content is never overwritten.
+
+This creates:
 
 ```text
 PROJECT_ROOT/
-├── .spine              → Spine repository
-├── .agents/skills/     per-skill symlinks
-├── .cursor/rules/      core rule symlinks
-├── .cursor/commands/   command symlinks
-├── .cursor/skills/     → .agents/skills/
-├── .opencode/commands/ command symlinks
-├── .opencode/agents/   agent symlinks (e.g. ask.md)
-├── .claude/skills/     → .agents/skills/
-└── opencode.json       created if missing (template)
+├── .spine              → Spine repository (gitignored symlink)
+├── .agents/skills/     per-skill symlinks (gitignored)
+├── .cursor/rules/      core rule symlinks (gitignored)
+├── .cursor/commands/   command symlinks (gitignored)
+├── .cursor/skills/     → .agents/skills/ (gitignored)
+├── .opencode/commands/ command symlinks (gitignored)
+├── .opencode/agents/   agent symlinks (gitignored)
+├── .claude/skills/     → .agents/skills/ (gitignored)
+├── opencode.json       created or merged (versioned)
+└── docs/               memory bank templates (versioned)
 ```
 
-### 4. Bootstrap (recommended)
+### 4. Bootstrap (IDE, recommended)
 
-Open the project in your agent IDE and run:
+Open (or reload) the project in your agent IDE, then run:
 
 ```
-/spine-install
 /spine-bootstrap
 ```
 
-These commands will:
-1. `/spine-install`: download `docs/` templates, configure `opencode.json`, and run `bash .spine/install.sh`.
-2. `/spine-bootstrap`: perform initial project assessment and populate the memory bank.
+`/spine-bootstrap` performs initial project assessment and fills `docs/` templates with consumer-specific context. Requires step 3 complete.
 
-If `.spine` is missing, run `scripts/link-spine.sh` before `/spine-install`.
+**Prerequisites for slash commands:** (1) `.spine` via `link-spine.sh`, (2) `bash .spine/install.sh`. If slash commands are missing in the IDE, run step 3 from the terminal, then reload the project.
 
 #### Manual `opencode.json` (alternative)
 
@@ -181,7 +184,7 @@ uv tool install graphifyy    # recommended
 
 ### New project (during initial setup)
 
-From the consumer project root, after linking `.spine`:
+From the consumer project root, after linking `.spine` and running `bash .spine/install.sh` (step 3), you can accept the interactive Graphify prompt, or run explicitly:
 
 ```bash
 bash .spine/install.sh --with-graphify --graphify-init
@@ -269,7 +272,7 @@ If your consumer project still loads 6 Spine rules or an `AGENTS.md` in the syst
 
 1. Update the Spine clone: `git -C .spine pull origin master`
 2. Update `opencode.json` — use [`templates/opencode.json`](templates/opencode.json) as the canonical source (3 `instructions` URLs + `compaction` block)
-3. Or run `/spine-update` / `bash .spine/scripts/update.sh` (merge mode syncs `opencode.json` non-destructively)
+3. Or run `bash .spine/scripts/update.sh` (merge mode syncs `opencode.json` non-destructively); use `/spine-update` in the IDE only if slash commands are already installed (step 3)
 4. Refresh Cursor rules: `bash .spine/install.sh --update --targets=cursor`
 5. Remove consumer-root `AGENTS.md` if present (optional)
 6. Restart the agent session
@@ -307,7 +310,9 @@ docs/memory/
   completed_tasks/     # DONE tasks (moved at harvest via git mv)
 ```
 
-**Task files** use Obsidian-style YAML frontmatter (`tags`, `status`, `goal`, `branch`, `base`, …). Reference template: `templates/docs/memory/active_tasks/_task-template.md`.
+**Task files** use Obsidian-style YAML frontmatter (`tags`, `status`, `goal`, `branch`, `base`, …). Reference template: `templates/docs/memory/active_tasks/_task-template.md`. Optional `## Implementation Plan` holds bite-sized Task/Step detail for `/spine-execute`; harvest uses frontmatter and summary only.
+
+Validate a task file manually: `bash .spine/scripts/validate-task.sh docs/memory/active_tasks/NNN-name.md`. `/spine-plan` runs this automatically before the approval gate (structure only, not plan quality).
 
 **Tiered SYNC** (see `rules/02-memory-bank.md`):
 
@@ -319,12 +324,13 @@ docs/memory/
 
 **Harvest** (`/spine-harvest`): append delivery log entry (with **Tags**), update `learnings.md` when applicable, set frontmatter `status: DONE`, `git mv` task to `completed_tasks/`.
 
-**Migration from v2.0:** Run `/spine-update`, seed missing templates via `/spine-install`, manually move DONE files from `active_tasks/` to `completed_tasks/`, optionally restructure `progress.md` (preserve legacy content under a heading).
+**Migration from v2.0:** Run `bash .spine/scripts/update.sh` (or `/spine-update` if slash commands exist), seed missing templates via `bash .spine/install.sh --update`, manually move DONE files from `active_tasks/` to `completed_tasks/`, optionally restructure `progress.md` (preserve legacy content under a heading).
 
 ## Slash Commands
 
+Slash commands are symlinked into `.cursor/commands/` and `.opencode/commands/` by `bash .spine/install.sh` (setup step 3). They are unavailable until that step completes. Deterministic setup (symlinks, `docs/` seed, `opencode.json`) is handled by `install.sh` — not by a slash command.
+
 Available command templates in `commands/`:
-- `/spine-install` for project setup (templates, config, and symlinks).
 - `/spine-update` to refresh an already-installed consumer project safely.
 - `/spine-bootstrap` for initial project assessment and memory bootstrap.
 - `/spine-plan` to create the active task plan in memory-bank.
@@ -423,13 +429,13 @@ flowchart TD
 **v1.1.0** — Per-project installation via URL.
 
 - Rules loaded via remote URLs in project-level `opencode.json` (opt-in)
-- `/spine-install` creates `opencode.json` with Spine rule URLs automatically
+- `install.sh` creates `opencode.json` with Spine rule URLs automatically
 
 **v1.0.0** — First stable release.
 
 - `install.sh` creates symlinks for Cursor, OpenCode, and Claude Code
 - Rules in universal `.md` format (compatible with all agents)
-- 34 curated skills, 7 slash commands, 3 framework rules
+- 34 curated skills, 6 slash commands, 3 framework rules
 
 </details>
 

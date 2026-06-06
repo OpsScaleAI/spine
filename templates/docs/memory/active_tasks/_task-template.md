@@ -17,6 +17,8 @@ related_learnings: []
 # 000-descriptive-name
 
 > Reference template only — not a numbered task. Copy structure when creating tasks via `/spine-plan`.
+> Only `_task-template.md` belongs under `templates/docs/memory/active_tasks/` (plus `.gitkeep` in seed).
+> Do not use inline `**Status:**`, `**Branch:**`, or `superpowers:*` headers — metadata lives in frontmatter only.
 
 ## Discovery notes
 
@@ -47,3 +49,20 @@ related_learnings: []
 - Negative:
 - Regression:
 - Command: `pytest ...`
+
+## Implementation Plan
+
+(Optional — use when the task needs bite-sized execution steps. Omit for small tasks with ≤3 acceptance criteria.)
+
+### Task 1: [Component name]
+
+**Files:**
+- Create: `path/to/file`
+- Modify: `path/to/existing:line-range`
+- Test: `tests/path/to/test.py`
+
+**Step 1:** [One action — write failing test, run command, etc.]
+
+**Step 2:** [Next action]
+
+**Step 3:** Commit with semantic message.
