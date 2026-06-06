@@ -49,6 +49,9 @@ def test_spine_plan_lists_implementation_plan() -> None:
     assert "Plan contract checklist" in text
     assert "validate-task.sh" in text
     assert "Contract validation" in text
+    assert "bash .spine/scripts/validate-task.sh" in text
+    assert "bridge mode" in text.lower()
+    assert "gitignored" in text.lower()
 
 
 def test_spine_execute_reads_implementation_plan() -> None:
@@ -82,3 +85,9 @@ def test_validate_task_script_exists() -> None:
     text = path.read_text(encoding="utf-8")
     assert "Implementation Plan" in text
     assert "superpowers:" in text
+    assert "bash .spine/scripts/validate-task.sh" in text
+
+
+def test_validate_bootstrap_ready_checks_validate_task_script() -> None:
+    text = _read("scripts/validate-bootstrap-ready.sh")
+    assert "validate-task.sh" in text

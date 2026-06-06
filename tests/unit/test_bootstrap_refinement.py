@@ -13,6 +13,7 @@ def test_validate_bootstrap_ready_script_exists() -> None:
     assert "roadmap.md" in text
     assert "spine-bootstrap.md" in text
     assert "opencode.json" in text
+    assert "validate-task.sh" in text
 
 
 def test_global_templates_have_knowledge_sections() -> None:
