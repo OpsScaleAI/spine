@@ -39,6 +39,19 @@ def test_task_template_obsidian_frontmatter() -> None:
     assert "goal:" in text
     assert "branch:" in text
     assert "base:" in text
+    assert "## Implementation Plan" in text
+
+
+def test_writing_plans_skill_no_superpowers_header() -> None:
+    text = _read("skills/writing-plans/SKILL.md")
+    assert "_task-template" in text
+    assert "superpowers:executing-plans" not in text
+
+
+def test_no_003_sample_in_templates() -> None:
+    assert not Path(
+        "templates/docs/memory/active_tasks/003-fix-quote-item-unique-hash-collision.md"
+    ).exists()
 
 
 def test_memory_tags_policy() -> None:
@@ -63,6 +76,7 @@ def test_spine_plan_v21_contract() -> None:
     assert "frontmatter" in text
     assert "_task-template.md" in text
     assert "native plan" in text
+    assert "implementation plan" in text
 
 
 def test_spine_plan_bridge_removed() -> None:
@@ -77,11 +91,12 @@ def test_spine_plan_bridge_removed() -> None:
         assert "spine-plan-bridge" not in _read(path).lower(), path
 
 
-def test_spine_install_seeds_v21() -> None:
-    text = _read("commands/spine-install.md")
-    assert "completed_tasks" in text
+def test_install_sh_seeds_v21() -> None:
+    text = _read("install.sh")
+    assert "seed_docs_templates" in text
     assert "learnings.md" in text
     assert "memory-tags-policy.md" in text
+    assert "completed_tasks/.gitkeep" in text
 
 
 def test_readme_memory_bank_v21_section() -> None:

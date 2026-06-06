@@ -137,6 +137,22 @@ Body sections (no duplicate metadata — no `## Branch`, `## Base`, or body `## 
 ...
 ```
 
+Optional body section (use when bite-sized execution steps are needed):
+
+```markdown
+## Implementation Plan
+
+### Task 1: [Component]
+**Files:** ...
+**Step 1:** ...
+```
+
+**Anti-patterns (do not use in task files):**
+
+- Inline legacy metadata blocks (`**Status:**`, `**Branch:**`, `**Goal:**` at document top)
+- `superpowers:*` skill headers instead of frontmatter `execution_skill`
+- Hotfix/production-base branches in standard feature tasks (exceptions only when documented in workflow docs)
+
 ## Template: ledger/progress.md
 
 ```markdown

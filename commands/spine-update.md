@@ -14,7 +14,8 @@ Goal: update an existing Spine-enabled consumer project safely, preserving `docs
 
 - Project must be a git repository.
 - `.spine` symlink must exist in the project root.
-- If `.spine` is missing, stop and ask the user to run `scripts/link-spine.sh`, then `/spine-install`.
+- If `.spine` is missing, stop and ask the user to run `scripts/link-spine.sh`, then `bash .spine/install.sh`.
+- If slash commands are missing, stop and ask the user to run `bash .spine/install.sh` from the terminal (step 3 in README), reload the IDE, then retry `/spine-update` or use `bash .spine/scripts/update.sh` directly.
 
 ---
 
@@ -32,7 +33,7 @@ This performs:
 3. sync `opencode.json` with current Spine template (merge mode);
 4. preserve `docs/memory/` (non-destructive).
 
-**Memory Bank v2.1 migration (manual, after update):** If DONE tasks remain in `active_tasks/`, run `git mv docs/memory/active_tasks/<file>.md docs/memory/completed_tasks/`. Seed missing `learnings.md` and `memory-tags-policy.md` via `/spine-install` (idempotent). See Spine README § Memory Bank v2.1.
+**Memory Bank v2.1 migration (manual, after update):** If DONE tasks remain in `active_tasks/`, run `git mv docs/memory/active_tasks/<file>.md docs/memory/completed_tasks/`. Seed missing `learnings.md` and `memory-tags-policy.md` via `bash .spine/install.sh --update` (idempotent). See Spine README § Memory Bank v2.1.
 
 ---
 

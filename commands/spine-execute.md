@@ -17,7 +17,11 @@ Act as a Software Engineer focused on rigorous implementation.
    - If the `branch` already exists, switch to it: `git checkout <branch>`.
    - If `branch` or `base` are missing, stop and request a plan correction before implementation.
    - If `base` is not `develop` or `branch` does not match `feature/<descriptive-name>`, stop and request correction to comply with GitFlow.
-3. **Context Reading:** Read the selected active task and related tests mandatorily.
+3. **Context Reading:** Read the selected active task mandatorily:
+   - YAML frontmatter (`goal`, `tags`, `execution_skill`, …)
+   - `## Acceptance Criteria`, `## Test Strategy`
+   - `## Implementation Plan` when present — use Task/Step blocks as the execution checklist (batch via `@executing-plans`)
+   - If Implementation Plan is **missing** and there are **>3** acceptance criteria, stop and ask to extend the plan or proceed criterion-by-criterion
 4. **Execution Skill Selection:**
    - Use the skill specified in frontmatter `execution_skill` (fallback: legacy `Suggested execution skill` field).
    - If no skill is specified, default to `@executing-plans`.

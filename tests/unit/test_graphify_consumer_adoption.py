@@ -13,12 +13,11 @@ def test_graphify_policy_is_optional_and_consumer_scoped() -> None:
     assert "consumer" in text or "projeto consumidor" in text
 
 
-def test_spine_install_has_optional_graphify_onboarding() -> None:
-    text = _read("commands/spine-install.md").lower()
+def test_install_sh_has_optional_graphify_onboarding() -> None:
+    text = _read("install.sh").lower()
     assert "graphify" in text
-    assert "optional" in text
-    assert ".graphifyignore" in text
-    assert "no changes to core instruction loading" in text or "3 core" in text
+    assert "prompt_graphify_opt_in" in text
+    assert ".graphifyignore" in text or "install-graphify.sh" in text
 
 
 def test_spine_bootstrap_detects_graphify_artifacts() -> None:
@@ -76,3 +75,19 @@ def test_spine_update_documents_existing_project_graphify_adoption() -> None:
     assert "adopt graphify on an existing project" in text
     assert "--graphify-init" in text
     assert "graphify-out/graph.json" in text
+
+
+def test_install_sh_prompts_graphify_interactively() -> None:
+    text = _read("install.sh").lower()
+    assert "prompt_graphify_opt_in" in text
+    assert "enable graphify for this project?" in text
+    assert "--no-graphify-prompt" in text
+    assert "medium/large" in text
+
+
+def test_spine_harvest_refreshes_graphify_when_in_use() -> None:
+    text = _read("commands/spine-harvest.md").lower()
+    assert "graphify refresh" in text
+    assert "graphify-out/graph.json" in text
+    assert "graphify update ." in text
+    assert "do not block harvest" in text

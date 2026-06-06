@@ -8,7 +8,7 @@ alwaysApply: true
 
 ## 1. Mandatory minimum flow
 1. **Sync & clarify:** Follow `02-memory-bank.md` — tiered SYNC; when `graphify-out/graph.json` exists, use Graphify graph-first exploration, then post-SYNC assumptions, ambiguities, and simplest approach.
-2. **Plan:** create/update `docs/memory/active_tasks/<sequential-number>-<descriptive-name>.md` with Obsidian-style frontmatter (`branch`, `base`, `tags`, `goal`, `status`, …), scope, verifiable acceptance criteria (each paired with a test). Do not create the branch during planning.
+2. **Plan:** create/update `docs/memory/active_tasks/<sequential-number>-<descriptive-name>.md` matching `_task-template.md` (Obsidian frontmatter + body sections; optional `## Implementation Plan` for bite-sized steps). Do not create the branch during planning.
 3. **Branch:** at execution time, create or switch to `branch` from task frontmatter, based on `base`.
 4. **Test (TDD):**
    a. Write a failing test for the first acceptance criterion.
