@@ -11,3 +11,9 @@
 
 ## User Experience (UX Goals)
 - [Fill in]
+
+## Known Opportunities (unplanned)
+
+Improvement ideas not yet scheduled. Future `/spine-roadmap` may promote items into `ledger/roadmap.md`. Do not use this section for delivery tasks — use `/spine-plan`.
+
+- [Opportunity]: [one-line benefit] — hint: `path/` or area

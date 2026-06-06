@@ -105,7 +105,11 @@ Open (or reload) the project in your agent IDE, then run:
 /spine-bootstrap
 ```
 
-`/spine-bootstrap` performs initial project assessment and fills `docs/` templates with consumer-specific context. Requires step 3 complete.
+`/spine-bootstrap` performs a **deep assessment** of the codebase (and Graphify when present), then fills memory bank templates with **agent-optimized** detail: `global/*` (including project-specific alterations, known risks, and unplanned opportunities), and `progress.md` Current state. It does **not** fill `roadmap.md`, create active tasks, or produce delivery plans — use `/spine-plan` next.
+
+Readiness check: `bash .spine/scripts/validate-bootstrap-ready.sh`
+
+Requires step 3 complete.
 
 **Prerequisites for slash commands:** (1) `.spine` via `link-spine.sh`, (2) `bash .spine/install.sh`. If slash commands are missing in the IDE, run step 3 from the terminal, then reload the project.
 
@@ -332,7 +336,7 @@ Slash commands are symlinked into `.cursor/commands/` and `.opencode/commands/` 
 
 Available command templates in `commands/`:
 - `/spine-update` to refresh an already-installed consumer project safely.
-- `/spine-bootstrap` for initial project assessment and memory bootstrap.
+- `/spine-bootstrap` for deep assessment and agent-optimized memory bank fill (not planning; not roadmap).
 - `/spine-plan` to create the active task plan in memory-bank.
 - `/spine-execute` to implement the selected active task with validation cycle.
 - `/spine-harvest` to consolidate delivery learnings and close the task.
