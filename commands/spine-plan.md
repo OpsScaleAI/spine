@@ -33,9 +33,17 @@ Act as a Senior Software Architect. Follow the instructions provided in $ARGUMEN
    - If `graphify-out/graph.json` exists in the project, query graph first for exploration and architecture discovery, then use direct file reads for implementation details. If graph is missing/stale, fallback to normal repository reading.
 
 2. **Planning Skill (mandatory):**
-   - Use the `@writing-plans` skill to structure the plan into small, testable, executable tasks.
+   - Use the `@writing-plans` skill to structure content into the Memory Bank task contract (`templates/docs/memory/active_tasks/_task-template.md`).
+   - `@writing-plans` **fills** template sections; it does not replace frontmatter or rename body headings.
+   - Bite-sized Task/Step detail belongs under optional `## Implementation Plan` (omit when ≤3 acceptance criteria).
    - Run only after discovery is complete or skipped.
    - If there is a conflict between a skill and this command, **this command takes precedence** to preserve the project workflow.
+
+**Native Plan normalization:** When `$ARGUMENTS` is a native Plan draft with `**Goal:**`, `**Architecture:**`, `**Tech Stack:**`, or root-level `### Task N:` blocks:
+   - Map `goal` → frontmatter `goal`; expand architecture/stack in `## Objective`
+   - Move root-level Task/Step blocks → `## Implementation Plan`
+   - Generate full frontmatter + `tags` (1–5) before saving
+   - Remove legacy inline Status/Branch/Goal headers and `superpowers:*` references
 
 3. **Execution Skill Selection (contextual):**
    - Based on the task's domain and technology, select the most appropriate execution skill:
@@ -61,19 +69,39 @@ Act as a Senior Software Architect. Follow the instructions provided in $ARGUMEN
      - `branch`, `base: develop`, `execution_skill`
      - `created_at`, `updated_at` (today, `YYYY-MM-DD`)
      - `completed_at:` (empty), `related_learnings: []`
-   - Body sections (no inline `## Branch`, `## Base`, or `## Status`):
+   - Body sections (no inline `## Branch`, `## Base`, or `## Status`; no top-level `**Status:**` / `**Branch:**` blocks):
      - `## Discovery notes` (when `@grill-me` ran)
-     - Objective, Inputs, Expected outputs, Acceptance criteria, Test strategy
+     - `## Objective`, `## Inputs`, `## Expected Outputs`, `## Acceptance Criteria (verifiable, TDD-ready)`, `## Test Strategy`
+     - `## Implementation Plan` (optional — when scope needs bite-sized Task/Step execution detail)
 
-5. **Scope Validation:** After writing the plan, evaluate whether it is well-scoped before presenting it for approval:
+5. **Plan contract checklist (before approval gate):**
+   - [ ] Frontmatter complete (`task_id`, `title`, `goal`, `status`, `tags`, `branch`, `base`, dates)
+   - [ ] `tags` present (1–5 per `memory-tags-policy.md`)
+   - [ ] `branch` matches `feature/<descriptive-name>`, `base: develop`
+   - [ ] No legacy inline Status/Branch/Goal block; no `superpowers:*` headers
+   - [ ] Task/Step blocks only under `## Implementation Plan` (if present)
+
+6. **Scope Validation:** After writing the plan, evaluate whether it is well-scoped before presenting it for approval:
    - **More than 2 execution skills needed?** → Suggest splitting into separate plans, each with a single primary skill.
    - **More than 7 acceptance criteria?** → Suggest splitting into smaller plans with tighter scope.
    - **Domains mixed** (e.g., infrastructure + UI + backend in the same plan)? → Suggest splitting along domain boundaries.
    - Present your evaluation to the user: "This plan covers [X domains / Y acceptance criteria]. I recommend splitting into [N] smaller plans. Proceed as-is or split?"
    - If the user chooses to split: create the first plan immediately and note the remaining plans as suggestions in `docs/memory/ledger/roadmap.md`.
 
-6. **Test Strategy:** Define which tests will be created/updated in `tests/` and the execution command.
+7. **Test Strategy:** Define which tests will be created/updated in `tests/` and the execution command.
    - If there is UI/E2E, record in the strategy which Playwright skill will be used and why.
 
-7. **Approval Gate:** Stop and ask for confirmation:
+8. **Contract validation (mandatory — structure only):**
+   - Run from project root (validates shape, not plan quality):
+
+     ```bash
+     bash .spine/scripts/validate-task.sh docs/memory/active_tasks/<sequential-number>-<descriptive-name>.md
+     ```
+
+   - **On success:** proceed to the approval gate. Include any `WARNING:` lines in your summary (e.g. non-`feature/` branch) — user may accept or request fixes.
+   - **On failure:** fix the task file to match `_task-template.md` / Memory Bank v2.1, re-run until exit code 0. Do not open the approval gate while validation fails.
+   - **What the script checks:** YAML frontmatter keys, tag count (1–5), required sections (`## Objective`, `## Acceptance Criteria`), legacy `**Status:**` / `**Branch:**` blocks, promotional `superpowers:` lines, Task/Step blocks only under `## Implementation Plan`.
+   - **What it does not check:** scope quality, test design, or completeness of acceptance criteria — step 5 checklist and human review still apply.
+
+9. **Approval Gate:** Stop and ask for confirmation:
    - "Plan created at docs/memory/active_tasks/<sequential-number>-<descriptive-name>.md. Can I execute?"

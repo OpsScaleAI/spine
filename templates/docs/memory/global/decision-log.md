@@ -1,10 +1,10 @@
 # Decision Log
 
-## Decisoes Arquiteturais
+## Architectural Decisions
 
-### [DATA] - [TITULO]
-**Contexto:** [Preencher]
+### [DATE] - [TITLE]
+**Context:** [Fill in]
 
-**Decisao:** [Preencher]
+**Decision:** [Fill in]
 
-**Consequencias:** [Preencher]
+**Consequences:** [Fill in]

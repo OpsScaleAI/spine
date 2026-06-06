@@ -1,13 +1,13 @@
 # Product Context
 
-## Por que este projeto existe?
-[Preencher]
+## Why does this project exist?
+[Fill in]
 
-## Problemas que resolve
-- [Preencher]
+## Problems it solves
+- [Fill in]
 
-## Como deve funcionar (visao de alto nivel)
-[Preencher]
+## How it should work (high-level view)
+[Fill in]
 
-## Experiencia do Usuario (UX Goals)
-- [Preencher]
+## User Experience (UX Goals)
+- [Fill in]

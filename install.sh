@@ -37,6 +37,7 @@ LIST_SKILLS=false
 TARGETS="cursor,opencode,claude"
 WITH_GRAPHIFY=false
 GRAPHIFY_INIT=false
+NO_GRAPHIFY_PROMPT=false
 
 for arg in "$@"; do
     case "$arg" in
@@ -58,6 +59,7 @@ for arg in "$@"; do
         --targets=*)      TARGETS="${arg#--targets=}" ;;
         --with-graphify)  WITH_GRAPHIFY=true ;;
         --graphify-init)  WITH_GRAPHIFY=true; GRAPHIFY_INIT=true ;;
+        --no-graphify-prompt) NO_GRAPHIFY_PROMPT=true ;;
         -h|--help)
             echo "Usage: bash install.sh [OPTIONS]"
             echo ""
@@ -75,6 +77,7 @@ for arg in "$@"; do
             echo "  --targets=LIST       Comma-separated: cursor,opencode,claude"
             echo "  --with-graphify      Configure Graphify in project (.graphifyignore + guidance)"
             echo "  --graphify-init      Also run initial graph build (implies --with-graphify)"
+            echo "  --no-graphify-prompt Skip interactive Graphify opt-in prompt (non-TTY skips automatically)"
             echo "  --force              Replace mismatched symlinks"
             echo "  --dry-run            Preview without making changes"
             echo ""
@@ -926,46 +929,235 @@ validate_health() {
     fi
 }
 
-# --- Copy templates (opencode.json) into project ---
+# --- Seed docs/ templates from Spine templates/docs/ (idempotent) ---
 
-copy_templates() {
+get_docs_seed_paths() {
+    # active_tasks/: only _task-template.md — no sample numbered tasks
+    cat <<'EOF'
+memory/global/project-brief.md
+memory/global/product-context.md
+memory/global/domain-glossary.md
+memory/global/system-patterns.md
+memory/global/tech-context.md
+memory/global/decision-log.md
+memory/ledger/roadmap.md
+memory/ledger/progress.md
+memory/ledger/learnings.md
+memory/active_tasks/_task-template.md
+governance/skills-policy.md
+governance/memory-tags-policy.md
+quality/guardrails.md
+workflow/gitflow-operacional.md
+workflow/ciclo-de-entrega.md
+EOF
+}
+
+seed_docs_templates() {
     local project_root="$1"
-    local templates_dir="$SPINE_DIR/templates"
+    local templates_docs="$SPINE_DIR/templates/docs"
+    local rel dest src
 
     echo ""
-    echo "Templates:"
+    echo "Docs templates:"
 
-    if [[ ! -d "$templates_dir" ]]; then
-        log_warn "templates/ directory not found in $SPINE_DIR"
-        return
+    if [[ ! -d "$templates_docs" ]]; then
+        log_warn "templates/docs/ not found in $SPINE_DIR"
+        return 1
     fi
 
-    local template_files=("opencode.json")
-    local tf dest
+    local seeded=0 skipped=0 missing=0
 
-    for tf in "${template_files[@]}"; do
-        if [[ ! -f "$templates_dir/$tf" ]]; then
-            log_skipped "$tf (not found in templates/)"
+    while IFS= read -r rel; do
+        [[ -z "$rel" ]] && continue
+        src="$templates_docs/$rel"
+        dest="$project_root/docs/$rel"
+
+        if [[ ! -f "$src" ]]; then
+            log_warn "template missing: templates/docs/$rel"
+            missing=$((missing + 1))
             continue
         fi
 
-        dest="$project_root/$tf"
-
         if [[ -f "$dest" ]]; then
-            log_skipped "$tf (already exists in project, not overwriting)"
+            log_skipped "docs/$rel (already exists, not overwriting)"
+            skipped=$((skipped + 1))
             continue
         fi
 
         if $DRY_RUN; then
-            echo "  [DRY-RUN] Would copy: $tf"
+            echo "  [DRY-RUN] Would copy: docs/$rel"
+            seeded=$((seeded + 1))
         else
-            cp "$templates_dir/$tf" "$dest"
-            log_linked "$tf (copied from templates/)"
+            mkdir -p "$(dirname "$dest")"
+            cp "$src" "$dest"
+            log_linked "docs/$rel (seeded from templates/)"
+            seeded=$((seeded + 1))
+        fi
+    done < <(get_docs_seed_paths)
+
+    local dir gitkeep_path
+    for dir in \
+        "$project_root/docs/documentation" \
+        "$project_root/docs/memory/active_tasks" \
+        "$project_root/docs/memory/completed_tasks"; do
+        if $DRY_RUN; then
+            echo "  [DRY-RUN] Would ensure directory: ${dir#"$project_root/"}"
+        else
+            mkdir -p "$dir"
         fi
     done
+
+    for gitkeep_path in \
+        "$project_root/docs/memory/active_tasks/.gitkeep" \
+        "$project_root/docs/memory/completed_tasks/.gitkeep"; do
+        if [[ -f "$gitkeep_path" ]]; then
+            log_skipped "${gitkeep_path#"$project_root/"} (already exists)"
+            continue
+        fi
+        if $DRY_RUN; then
+            echo "  [DRY-RUN] Would create: ${gitkeep_path#"$project_root/"}"
+        else
+            : > "$gitkeep_path"
+            log_linked "${gitkeep_path#"$project_root/"} (created)"
+        fi
+    done
+
+    echo ""
+    echo "  Docs seed: $seeded copied, $skipped skipped (existing), $missing template gaps"
+}
+
+# --- Merge or create opencode.json from Spine template ---
+
+merge_or_copy_opencode() {
+    local project_root="$1"
+    local template_opencode="$SPINE_DIR/templates/opencode.json"
+    local project_opencode="$project_root/opencode.json"
+    local merge_script="$SPINE_DIR/scripts/merge-opencode.py"
+
+    echo ""
+    echo "opencode.json:"
+
+    if [[ ! -f "$template_opencode" ]]; then
+        log_warn "templates/opencode.json not found in $SPINE_DIR"
+        return 1
+    fi
+
+    if [[ ! -f "$merge_script" ]]; then
+        log_warn "merge helper not found: $merge_script"
+        return 1
+    fi
+
+    if $DRY_RUN; then
+        if [[ -f "$project_opencode" ]]; then
+            echo "  [DRY-RUN] Would merge Spine instructions into: opencode.json"
+        else
+            echo "  [DRY-RUN] Would create: opencode.json from template"
+        fi
+        return 0
+    fi
+
+    local output
+    if output="$(python3 "$merge_script" "$template_opencode" "$project_opencode" 2>&1)"; then
+        log_linked "opencode.json ($output)"
+    else
+        log_warn "opencode.json merge failed: $output"
+        return 1
+    fi
 }
 
 # --- Optional Graphify setup for consumer projects ---
+
+should_prompt_graphify() {
+    $NO_GRAPHIFY_PROMPT && return 1
+    $UNINSTALL_MODE && return 1
+    $LIST_SKILLS && return 1
+    [[ -n "$ADD_SKILL" || -n "$REMOVE_SKILL" ]] && return 1
+    $DRY_RUN && return 1
+    $WITH_GRAPHIFY && return 1
+    $UPDATE_MODE && return 1
+    [[ ! -t 0 ]] && return 1
+    return 0
+}
+
+install_graphify_cli_if_needed() {
+    if command -v graphify >/dev/null 2>&1; then
+        return 0
+    fi
+
+    echo ""
+    echo "Graphify CLI not found. Attempting install via uv..."
+    if command -v uv >/dev/null 2>&1; then
+        if uv tool install graphifyy; then
+            echo "Graphify CLI installed."
+            return 0
+        fi
+        echo "WARNING: uv tool install graphifyy failed." >&2
+    else
+        echo "WARNING: uv not found. Install Graphify manually:" >&2
+        echo "  uv tool install graphifyy" >&2
+        echo "  # alternatives: pipx install graphifyy | pip install graphifyy" >&2
+    fi
+    return 1
+}
+
+prompt_graphify_opt_in() {
+    local project_root="$1"
+
+    if ! should_prompt_graphify; then
+        return 0
+    fi
+
+    if [[ -f "$project_root/graphify-out/graph.json" ]]; then
+        echo ""
+        echo "Graphify: already active (graphify-out/graph.json exists). Skipping opt-in prompt."
+        return 0
+    fi
+
+    echo ""
+    echo "==========================================="
+    echo "  Optional: Graphify"
+    echo "==========================================="
+    echo ""
+    echo "Graphify is an optional retrieval layer for agent exploration."
+    echo "When graphify-out/graph.json exists, Spine agents query the graph first"
+    echo "during exploration, then fall back to direct file reads."
+    echo ""
+    echo "Recommended for:"
+    echo "  - medium/large codebases with many modules or services"
+    echo "  - projects where broad file scanning increases token cost"
+    echo ""
+    echo "Usually skip for:"
+    echo "  - small repos, docs-only trees, or greenfield prototypes"
+    echo "  - when you prefer direct file reads only"
+    echo ""
+    echo "The memory bank (docs/memory/) remains the operational source of truth."
+    echo ""
+
+    local response=""
+    while true; do
+        read -r -p "Enable Graphify for this project? [y/N]: " response
+        response="$(printf '%s' "$response" | tr '[:upper:]' '[:lower:]')"
+        case "$response" in
+            y|yes)
+                WITH_GRAPHIFY=true
+                GRAPHIFY_INIT=true
+                install_graphify_cli_if_needed || true
+                echo ""
+                echo "Graphify: enabled (project setup + initial graph build)"
+                break
+                ;;
+            n|no|"")
+                echo ""
+                echo "Graphify: skipped. Enable later with:"
+                echo "  bash .spine/install.sh --with-graphify --graphify-init"
+                break
+                ;;
+            *)
+                echo "Please answer y or n."
+                ;;
+        esac
+    done
+}
 
 setup_project_graphify() {
     local project_root="$1"
@@ -1144,8 +1336,11 @@ print_project_summary() {
     echo "  .opencode/commands/    (per-file command symlinks)"
     echo "  .opencode/agents/      (per-file agent symlinks)"
     echo ""
+    echo "  docs/       memory bank templates (seeded, fill via /spine-bootstrap)"
     echo "  Rules:      opencode.json (GitHub URLs)"
     echo "  Skills:     docs/governance/skills-policy.md"
+    echo ""
+    echo "Next step (IDE): /spine-bootstrap"
     echo ""
     echo "==========================================="
 }
@@ -1240,13 +1435,15 @@ if $INSTALL_CLAUDE; then
     install_project_claude "$PROJECT_ROOT"
 fi
 
-# Copy templates (opencode.json) if not present
-copy_templates "$PROJECT_ROOT"
+# Seed docs/ templates and merge opencode.json
+seed_docs_templates "$PROJECT_ROOT"
+merge_or_copy_opencode "$PROJECT_ROOT"
 
 # Add gitignore entries
 add_gitignore_entries "$PROJECT_ROOT"
 
-# Optional Graphify setup
+# Optional Graphify setup (interactive opt-in on fresh install)
+prompt_graphify_opt_in "$PROJECT_ROOT"
 if $WITH_GRAPHIFY; then
     setup_project_graphify "$PROJECT_ROOT"
 fi

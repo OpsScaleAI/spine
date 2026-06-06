@@ -108,7 +108,8 @@ Reduzir complexidade operacional e manter somente skills com valor recorrente no
 
 Use esta regra para evitar ambiguidade entre descoberta e estruturação de planos:
 
-- **Pipeline fixo:** `@grill-me` (descoberta, condicional) → `@writing-plans` (estruturação, obrigatório).
+- **Pipeline fixo:** `@grill-me` (descoberta, condicional) → `@writing-plans` (preenche `_task-template.md`, obrigatório) → gate `/spine-plan`.
+- **Contrato de tarefa:** frontmatter YAML + seções fixas; detalhe Task/Step opcional em `## Implementation Plan` (omitir se ≤3 critérios de aceite).
 - **Default simples:** escopo claro e single-domain → pular `@grill-me`, ir direto para `@writing-plans`.
 - **Escalar descoberta:** usar `@grill-me` quando escopo for ambíguo, multi-domínio, ou houver decisões arquiteturais/segurança/schema/infra em aberto.
 
@@ -131,7 +132,8 @@ Use esta regra para evitar ambiguidade entre descoberta e estruturação de plan
 - **Promoção de conhecimento:** decisões de escopo da tarefa → `## Discovery notes`; termos canônicos de domínio → `domain-glossary.md`; decisões arquiteturais (critério triplo: difícil reverter, surpreendente sem contexto, trade-off real) → `decision-log.md`.
 
 ### Relação com outras skills de workflow
-- **`writing-plans`:** sempre após descoberta (ou após skip). Estrutura tarefas, arquivos, testes e GitFlow.
+- **`writing-plans`:** sempre após descoberta (ou após skip). Preenche `_task-template.md` (frontmatter + seções); Task/Step só em `## Implementation Plan`.
+- **`executing-plans`:** lê frontmatter e Implementation Plan; para em `REVIEW` — `/spine-harvest` fecha a entrega.
 - **`handoff-protocol`:** aplica-se na execução multi-agente, não substitui descoberta de escopo.
 
 ## Diretriz Operacional: Playwright
@@ -167,4 +169,4 @@ Use esta regra curta para evitar ambiguidade e overengineering:
 
 ## Sincronização em Projetos Consumidor
 
-Este arquivo é copiado para `docs/governance/skills-policy.md` no `/spine-install`. Atualizações posteriores no template Spine **não** sobrescrevem automaticamente o arquivo local. Após pull do Spine, revisar manualmente diferenças entre `templates/docs/governance/skills-policy.md` (Spine) e `docs/governance/skills-policy.md` (projeto) e incorporar mudanças relevantes.
+Este arquivo é copiado para `docs/governance/skills-policy.md` pelo `bash .spine/install.sh`. Atualizações posteriores no template Spine **não** sobrescrevem automaticamente o arquivo local. Após pull do Spine, revisar manualmente diferenças entre `templates/docs/governance/skills-policy.md` (Spine) e `docs/governance/skills-policy.md` (projeto) e incorporar mudanças relevantes.

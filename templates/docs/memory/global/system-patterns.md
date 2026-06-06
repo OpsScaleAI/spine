@@ -8,11 +8,11 @@
 - Recommended for medium/large consumer repositories where broad file scanning increases input-token cost.
 - Setup and `graphify-out` generation: [Spine README — Optional: Graphify](https://github.com/OpsScaleAI/spine#optional-graphify).
 
-## Arquitetura
-[Preencher]
+## Architecture
+[Fill in]
 
-## Padroes de Design
-[Preencher]
+## Design Patterns
+[Fill in]
 
-## Dependencias
-[Preencher]
+## Dependencies
+[Fill in]
