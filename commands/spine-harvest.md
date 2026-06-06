@@ -18,6 +18,11 @@ Act as a Tech Lead and Knowledge Manager.
 
 3. **Final Verification:** Run the full test suite to ensure there are no regressions.
 
+3.5. **Graphify refresh (only when Graphify is in use):**
+   - Proceed only if `graphify-out/graph.json` exists in the project root (Graphify is active for this consumer project).
+   - If `graphify` CLI is available, run `graphify update .` from the project root to refresh the exploration graph after delivery changes.
+   - If the CLI is missing or the update fails, note it in the harvest summary; do not block harvest or Git consolidation.
+
 4. **Memory Bank Update:**
 
    **4a. `docs/memory/ledger/progress.md`**
@@ -38,6 +43,7 @@ Act as a Tech Lead and Knowledge Manager.
    - `docs/memory/global/decision-log.md` — architectural decisions only.
    - `docs/memory/global/domain-glossary.md` — canonical terms promoted during discovery or delivery.
    - `docs/memory/global/system-patterns.md` — new patterns established.
+   - `## Implementation Plan` in the task body is not copied to the delivery log (summary uses frontmatter `title`, `tags`, and delivery description only).
 
 5. **Active Task Closure:**
    - Update frontmatter: `status: DONE`, `completed_at: YYYY-MM-DD`, `updated_at: YYYY-MM-DD`.
@@ -56,4 +62,4 @@ Act as a Tech Lead and Knowledge Manager.
    - Merge only a valid `feature/<descriptive-name>` branch into `develop`.
    - Remove the local feature branch.
 
-7. **Summary:** Present a concise summary of what was learned and improved in the project.
+7. **Summary:** Present a concise summary of what was learned and improved in the project. When step 3.5 ran (or was skipped/failed), include Graphify refresh status.

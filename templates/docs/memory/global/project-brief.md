@@ -1,16 +1,16 @@
 # Project Brief
 
-## Nome do Projeto
-[Preencher]
+## Project Name
+[Fill in]
 
-## Escopo
-[Preencher]
+## Scope
+[Fill in]
 
-## Objetivos
-- [Preencher]
+## Goals
+- [Fill in]
 
-## Limites (O que NAO faz parte)
-- [Preencher]
+## Boundaries (Out of Scope)
+- [Fill in]
 
 ## Stakeholders
-- [Preencher]
+- [Fill in]
