@@ -36,6 +36,10 @@ if [[ ! -e .spine ]]; then
     fail "missing .spine (run link-spine.sh then bash .spine/install.sh)"
 fi
 
+if [[ ! -f .spine/scripts/validate-task.sh ]]; then
+    fail "missing .spine/scripts/validate-task.sh (run bash .spine/scripts/update.sh)"
+fi
+
 # --- Slash commands ---
 if [[ ! -f .cursor/commands/spine-bootstrap.md ]] && [[ ! -f .opencode/commands/spine-bootstrap.md ]]; then
     fail "spine-bootstrap slash command not found (.cursor/commands/ or .opencode/commands/)"

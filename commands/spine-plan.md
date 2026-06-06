@@ -9,6 +9,8 @@ Act as a Senior Software Architect. Follow the instructions provided in $ARGUMEN
 
 **Native Plan input:** If `$ARGUMENTS` contains a native Plan draft (from Cursor Plan mode or similar), treat it as input to normalize into the active task artifact. Native Plan = draft; `/spine-plan` = versioned contract in `docs/memory/active_tasks/`. Discovery and GitFlow rules below still apply.
 
+**Precondition:** `.spine` symlink present and `bash .spine/install.sh` completed (same as `/spine-bootstrap`). The contract validator lives at `.spine/scripts/validate-task.sh` — **not** at `scripts/validate-task.sh` in the consumer tree.
+
 1. **Discovery (conditional — `@grill-me`):**
    Run `@grill-me` **before** `@writing-plans` when **any** of the following applies. Otherwise skip discovery and proceed to step 2.
 
@@ -92,14 +94,19 @@ Act as a Senior Software Architect. Follow the instructions provided in $ARGUMEN
    - If there is UI/E2E, record in the strategy which Playwright skill will be used and why.
 
 8. **Contract validation (mandatory — structure only):**
-   - Run from project root (validates shape, not plan quality):
+   - **Always execute** the validator from project root — never skip because file search or Glob did not find the script (`.spine` is gitignored in consumer projects). Valid path: `.spine/scripts/validate-task.sh`.
 
      ```bash
      bash .spine/scripts/validate-task.sh docs/memory/active_tasks/<sequential-number>-<descriptive-name>.md
      ```
 
    - **On success:** proceed to the approval gate. Include any `WARNING:` lines in your summary (e.g. non-`feature/` branch) — user may accept or request fixes.
-   - **On failure:** fix the task file to match `_task-template.md` / Memory Bank v2.1, re-run until exit code 0. Do not open the approval gate while validation fails.
+   - **On failure (contract errors):** fix the task file to match `_task-template.md` / Memory Bank v2.1, re-run until exit code 0. Do not open the approval gate while validation fails.
+   - **On failure (script missing — bridge mode):**
+     1. Stop planning; do not open the approval gate.
+     2. Ask: "Spine setup is outdated or incomplete. Run `bash .spine/scripts/update.sh` from the project root (or refresh the `.spine` symlink), then retry `/spine-plan`?"
+     3. If yes: user runs update in terminal, reload IDE, re-run validation on the task file.
+     4. If no: list that `.spine/scripts/validate-task.sh` is missing and stop.
    - **What the script checks:** YAML frontmatter keys, tag count (1–5), required sections (`## Objective`, `## Acceptance Criteria`), legacy `**Status:**` / `**Branch:**` blocks, promotional `superpowers:` lines, Task/Step blocks only under `## Implementation Plan`.
    - **What it does not check:** scope quality, test design, or completeness of acceptance criteria — step 5 checklist and human review still apply.
 
