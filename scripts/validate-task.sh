@@ -3,9 +3,9 @@ set -uo pipefail
 
 # Validate a Memory Bank active task file against the v2.1 contract.
 #
-# Usage:
-#   bash scripts/validate-task.sh docs/memory/active_tasks/007-foo.md
-#   bash scripts/validate-task.sh --dry-run path/to/task.md
+# Usage (from consumer project root):
+#   bash .spine/scripts/validate-task.sh docs/memory/active_tasks/007-foo.md
+#   bash .spine/scripts/validate-task.sh --dry-run path/to/task.md
 
 DRY_RUN=false
 TASK_FILE=""
@@ -14,7 +14,7 @@ for arg in "$@"; do
     case "$arg" in
         --dry-run) DRY_RUN=true ;;
         -h|--help)
-            echo "Usage: bash scripts/validate-task.sh [--dry-run] TASK.md"
+            echo "Usage: bash .spine/scripts/validate-task.sh [--dry-run] TASK.md"
             exit 0
             ;;
         *)
