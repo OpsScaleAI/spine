@@ -158,8 +158,13 @@ bash .spine/install.sh
 bash .spine/install.sh --core
 
 # 4. In the agent IDE (slash commands exist only after step 3)
-/spine-bootstrap  # initial assessment; fill docs/ with consumer context
+/spine-bootstrap  # deep assessment; fill docs/memory/ global + progress (agent-optimized context)
+/spine-plan       # first delivery task and plan
 ```
+
+**Bootstrap vs plan:** `/spine-bootstrap` builds agent context (code + Graphify assessment, alterations, risks, opportunities in `global/`). It does not modify `roadmap.md` or create `active_tasks/`. `/spine-plan` owns delivery planning.
+
+Readiness: `bash .spine/scripts/validate-bootstrap-ready.sh`
 
 After step 2, only `bash .spine/install.sh` works from the terminal — `/spine-*` commands are not available until step 3 creates `.cursor/commands/` and `.opencode/commands/` symlinks.
 

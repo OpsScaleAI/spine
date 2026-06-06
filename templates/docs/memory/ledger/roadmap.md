@@ -1,7 +1,7 @@
 # Roadmap
 
-## Milestone 1: [Nome]
+## Milestone 1: [Name]
 - [ ] [Item]
 
-## Milestone 2: [Nome]
+## Milestone 2: [Name]
 - [ ] [Item]
