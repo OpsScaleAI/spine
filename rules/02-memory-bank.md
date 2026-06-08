@@ -59,9 +59,35 @@ docs/memory/
 
 ## Tiered SYNC (reading rules)
 
-If `graphify-out/graph.json` exists, it can be used as an auxiliary discovery layer (graph-first exploration), but it does not replace reading and maintaining the memory bank.
+If `graphify-out/graph.json` exists, follow the **Graphify Discovery Protocol** below after memory bank SYNC. Graphify is an auxiliary code-structure layer; it does not replace reading and maintaining the memory bank.
 
 If a file does not exist, create it only if it is part of the current task flow.
+
+## Graphify Discovery Protocol
+
+**When:** `graphify-out/graph.json` exists in the project root (Graphify active).
+
+**Precedence (highest first):**
+
+1. Memory bank (`docs/memory/`) — scope, alterations, decisions
+2. This protocol — how to use the graph
+3. Graphify platform always-on artifacts (Cursor `graphify.mdc`, OpenCode plugin, Claude PreToolUse hook)
+4. Broad file search (Glob/grep) — last resort when graph is absent or insufficient
+
+**Discovery sequence (execute in order; do not skip because file search is easier):**
+
+1. Read `graphify-out/GRAPH_REPORT.md` (god nodes, communities, suggested questions)
+2. Run targeted queries from project root:
+   ```bash
+   graphify query "<question>" --graph graphify-out/graph.json
+   ```
+3. Open source files cited in query output; confirm **EXTRACTED** edges; treat **INFERRED** as hypotheses until file reads confirm
+4. Cross-check `docs/memory/global/system-patterns.md` § Project-Specific Alterations before suggesting "standard" platform behavior
+5. Do **not** paste full `graph.json` into context
+
+**Skill trigger:** When the user types `/graphify`, invoke the graphify skill before other work (rebuild, query, or explain per skill).
+
+**Verify integration:** `bash .spine/scripts/validate-graphify-integration.sh` (from project root after enabling Graphify via `bash .spine/install.sh` prompt or `--with-graphify`).
 
 ### Core (every session)
 

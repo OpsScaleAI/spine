@@ -88,3 +88,13 @@ if [[ $errors -gt 0 ]]; then
 fi
 
 echo "OK: project is ready for /spine-bootstrap."
+
+# Soft warning when graph exists but tri-platform integration may be incomplete
+if [[ -f graphify-out/graph.json ]] && [[ -f .spine/scripts/validate-graphify-integration.sh ]]; then
+    if ! bash .spine/scripts/validate-graphify-integration.sh >/dev/null 2>&1; then
+        echo "NOTE: graphify-out/graph.json exists but tri-platform integration may be incomplete." >&2
+        echo "      Run: bash .spine/scripts/validate-graphify-integration.sh" >&2
+        echo "      Or:  bash .spine/install.sh and answer yes at the Graphify prompt" >&2
+        echo "      (non-interactive: bash .spine/install.sh --with-graphify)" >&2
+    fi
+fi

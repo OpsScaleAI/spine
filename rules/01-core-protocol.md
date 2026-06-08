@@ -7,7 +7,7 @@ alwaysApply: true
 # CORE PROTOCOL (Solo Lean)
 
 ## 1. Mandatory minimum flow
-1. **Sync & clarify:** Follow `02-memory-bank.md` — tiered SYNC; when `graphify-out/graph.json` exists, use Graphify graph-first exploration, then post-SYNC assumptions, ambiguities, and simplest approach.
+1. **Sync & clarify:** Follow `02-memory-bank.md` — tiered SYNC; when `graphify-out/graph.json` exists, follow the **Graphify Discovery Protocol** (`GRAPH_REPORT.md` → `graphify query` → targeted file reads), then post-SYNC assumptions, ambiguities, and simplest approach.
 2. **Plan:** create/update `docs/memory/active_tasks/<sequential-number>-<descriptive-name>.md` matching `_task-template.md` (Obsidian frontmatter + body sections; optional `## Implementation Plan` for bite-sized steps). Do not create the branch during planning.
 3. **Branch:** at execution time, create or switch to `branch` from task frontmatter, based on `base`.
 4. **Test (TDD):**
@@ -29,6 +29,7 @@ alwaysApply: true
 - [ ] `docs/memory/global/domain-glossary.md` updated (if canonical domain terms were promoted during discovery)
 
 ## 3. Guard rails
+- When the user types `/graphify`, invoke the graphify skill before other work (rebuild, query, or explain per skill).
 - Never use `git push --force`.
 - Never assume an ambiguous requirement without confirmation. Surface assumptions and tradeoffs first.
 - No silent decisions: architectural decisions require a recorded "why".
