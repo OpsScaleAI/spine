@@ -37,6 +37,8 @@ LIST_SKILLS=false
 TARGETS="cursor,opencode,claude"
 WITH_GRAPHIFY=false
 GRAPHIFY_INIT=false
+GRAPHIFY_HOOKS=false
+GRAPHIFY_UNINSTALL=false
 NO_GRAPHIFY_PROMPT=false
 
 for arg in "$@"; do
@@ -57,8 +59,10 @@ for arg in "$@"; do
         --remove-skill=*) REMOVE_SKILL="${arg#--remove-skill=}" ;;
         --list-skills)    LIST_SKILLS=true ;;
         --targets=*)      TARGETS="${arg#--targets=}" ;;
-        --with-graphify)  WITH_GRAPHIFY=true ;;
+        --with-graphify)  WITH_GRAPHIFY=true; GRAPHIFY_INIT=true ;;
         --graphify-init)  WITH_GRAPHIFY=true; GRAPHIFY_INIT=true ;;
+        --graphify-hooks) GRAPHIFY_HOOKS=true ;;
+        --graphify-uninstall) GRAPHIFY_UNINSTALL=true ;;
         --no-graphify-prompt) NO_GRAPHIFY_PROMPT=true ;;
         -h|--help)
             echo "Usage: bash install.sh [OPTIONS]"
@@ -75,8 +79,11 @@ for arg in "$@"; do
             echo "  --remove-skill=NAME  Remove a single skill from project"
             echo "  --list-skills        List available and installed skills"
             echo "  --targets=LIST       Comma-separated: cursor,opencode,claude"
-            echo "  --with-graphify      Configure Graphify in project (.graphifyignore + guidance)"
-            echo "  --graphify-init      Also run initial graph build (implies --with-graphify)"
+            echo "  Graphify: enabled interactively at end of install when TTY (answer yes at prompt)"
+            echo "  --with-graphify      Non-interactive: full Graphify co-install (CI/scripts; same as --graphify-init)"
+            echo "  --graphify-init      Alias for --with-graphify (full tri-platform co-install)"
+            echo "  --graphify-hooks     Also run graphify hook install (post-commit graph refresh)"
+            echo "  --graphify-uninstall Remove Graphify platform artifacts (Cursor mdc, OpenCode plugin, Claude hook)"
             echo "  --no-graphify-prompt Skip interactive Graphify opt-in prompt (non-TTY skips automatically)"
             echo "  --force              Replace mismatched symlinks"
             echo "  --dry-run            Preview without making changes"
@@ -89,7 +96,7 @@ for arg in "$@"; do
             echo "  bash .spine/install.sh --list-skills"
             echo "  bash .spine/install.sh --add-skill=astro"
             echo "  bash .spine/install.sh --uninstall"
-            echo "  bash .spine/install.sh --with-graphify --graphify-init"
+            echo "  bash .spine/install.sh --with-graphify   # non-interactive Graphify enable"
             exit 0
             ;;
         *)
@@ -1074,9 +1081,19 @@ should_prompt_graphify() {
     [[ -n "$ADD_SKILL" || -n "$REMOVE_SKILL" ]] && return 1
     $DRY_RUN && return 1
     $WITH_GRAPHIFY && return 1
-    $UPDATE_MODE && return 1
     [[ ! -t 0 ]] && return 1
     return 0
+}
+
+graphify_integration_complete() {
+    local project_root="$1"
+    local validate="$SPINE_DIR/scripts/validate-graphify-integration.sh"
+
+    if [[ ! -f "$validate" ]]; then
+        return 1
+    fi
+
+    (cd "$project_root" && bash "$validate" --targets="$TARGETS" >/dev/null 2>&1)
 }
 
 install_graphify_cli_if_needed() {
@@ -1102,25 +1119,41 @@ install_graphify_cli_if_needed() {
 
 prompt_graphify_opt_in() {
     local project_root="$1"
+    local prompt_title="Optional: Graphify"
+    local prompt_question="Enable Graphify for this project? [y/N]: "
+    local graph_exists=false
 
     if ! should_prompt_graphify; then
         return 0
     fi
 
-    if [[ -f "$project_root/graphify-out/graph.json" ]]; then
+    if graphify_integration_complete "$project_root"; then
         echo ""
-        echo "Graphify: already active (graphify-out/graph.json exists). Skipping opt-in prompt."
+        echo "Graphify: integration complete (graph + Cursor/OpenCode/Claude). Skipping opt-in prompt."
         return 0
+    fi
+
+    if [[ -f "$project_root/graphify-out/graph.json" ]]; then
+        graph_exists=true
+        prompt_title="Complete Graphify integration?"
+        prompt_question="Complete Graphify integration for this project? [y/N]: "
     fi
 
     echo ""
     echo "==========================================="
-    echo "  Optional: Graphify"
+    echo "  $prompt_title"
     echo "==========================================="
     echo ""
-    echo "Graphify is an optional retrieval layer for agent exploration."
-    echo "When graphify-out/graph.json exists, Spine agents query the graph first"
-    echo "during exploration, then fall back to direct file reads."
+    if $graph_exists; then
+        echo "Graphify graph exists but tri-platform integration is incomplete"
+        echo "(Cursor mdc, OpenCode plugin, or Claude hook missing)."
+        echo ""
+    fi
+    echo "Graphify is an optional code-structure layer (Spine owns docs/memory; Graphify maps source)."
+    echo "Enabling runs graphify update . and installs:"
+    echo "  - Cursor: .cursor/rules/graphify.mdc"
+    echo "  - OpenCode: plugin + opencode.json registration"
+    echo "  - Claude Code: CLAUDE.md section + PreToolUse hook"
     echo ""
     echo "Recommended for:"
     echo "  - medium/large codebases with many modules or services"
@@ -1135,7 +1168,7 @@ prompt_graphify_opt_in() {
 
     local response=""
     while true; do
-        read -r -p "Enable Graphify for this project? [y/N]: " response
+        read -r -p "$prompt_question" response
         response="$(printf '%s' "$response" | tr '[:upper:]' '[:lower:]')"
         case "$response" in
             y|yes)
@@ -1143,13 +1176,15 @@ prompt_graphify_opt_in() {
                 GRAPHIFY_INIT=true
                 install_graphify_cli_if_needed || true
                 echo ""
-                echo "Graphify: enabled (project setup + initial graph build)"
+                echo "Graphify: enabled (graph build + tri-platform co-install for $TARGETS)"
                 break
                 ;;
             n|no|"")
                 echo ""
-                echo "Graphify: skipped. Enable later with:"
-                echo "  bash .spine/install.sh --with-graphify --graphify-init"
+                echo "Graphify: skipped. Enable later by re-running:"
+                echo "  bash .spine/install.sh"
+                echo "and answering yes at the Graphify prompt."
+                echo "(Non-interactive: bash .spine/install.sh --with-graphify)"
                 break
                 ;;
             *)
@@ -1171,9 +1206,15 @@ setup_project_graphify() {
         return 1
     fi
 
-    local cmd=(bash "$helper" "--project-root=$project_root")
+    local cmd=(bash "$helper" "--project-root=$project_root" "--targets=$TARGETS")
     if $GRAPHIFY_INIT; then
         cmd+=("--init-graph")
+    fi
+    if $GRAPHIFY_HOOKS; then
+        cmd+=("--graphify-hooks")
+    fi
+    if $GRAPHIFY_UNINSTALL; then
+        cmd+=("--uninstall")
     fi
     if $DRY_RUN; then
         cmd+=("--dry-run")
@@ -1377,6 +1418,13 @@ if $UNINSTALL_MODE; then
     exit 0
 fi
 
+# Handle --graphify-uninstall (Graphify platform artifacts only)
+if $GRAPHIFY_UNINSTALL; then
+    require_spine_symlink "$PROJECT_ROOT"
+    setup_project_graphify "$PROJECT_ROOT"
+    exit 0
+fi
+
 echo "Spine Project Installer"
 echo "Repository: $SPINE_DIR"
 echo "Project:    $PROJECT_ROOT"
@@ -1386,9 +1434,12 @@ if $FORCE; then echo "Mode: force (will replace existing symlinks)"; fi
 if $UPDATE_MODE; then echo "Mode: update (install + cleanup dangling)"; fi
 if $DRY_RUN; then echo "Mode: dry-run (preview only)"; fi
 if $WITH_GRAPHIFY; then
-    echo "Graphify:   enabled (optional consumer setup)"
+    echo "Graphify:   enabled (tri-platform: cursor, opencode, claude)"
     if $GRAPHIFY_INIT; then
-        echo "Graphify:   initial graph build enabled"
+        echo "Graphify:   initial graph build + platform co-install"
+    fi
+    if $GRAPHIFY_HOOKS; then
+        echo "Graphify:   git hooks enabled"
     fi
 fi
 

@@ -177,44 +177,53 @@ bash .spine/scripts/update.sh --graphify-init      # setup + first graph build
 
 ## Optional: Graphify
 
-Graphify is an optional retrieval optimization layer for consumer projects. When `graphify-out/graph.json` exists in the project, Spine rules instruct agents to query the graph first during exploration, then fall back to direct file reads. The memory bank (`docs/memory/`) remains the operational source of truth. Graphify is recommended for medium/large repositories where broad file scanning increases input-token cost.
+Graphify is an optional **code-structure** layer for consumer projects. **Spine** owns conceptual/documentary context (`docs/memory/`); **Graphify** accelerates where to look in source via `GRAPH_REPORT.md` and `graphify query`. The memory bank remains the operational source of truth.
+
+When active, agents follow the **Graphify Discovery Protocol** in `rules/02-memory-bank.md`: read `graphify-out/GRAPH_REPORT.md` → run `graphify query` → targeted file reads.
 
 ### Install CLI (once per machine)
 
 ```bash
-uv tool install graphifyy    # recommended
+uv tool install graphifyy    # recommended; minimum graphifyy 0.7.16 for tri-platform co-install
 # alternatives: pipx install graphifyy | pip install graphifyy
 ```
 
-### New project (during initial setup)
+### Enable Graphify (primary: interactive prompt)
 
-From the consumer project root, after linking `.spine` and running `bash .spine/install.sh` (step 3), you can accept the interactive Graphify prompt, or run explicitly:
+During `bash .spine/install.sh` (or `bash .spine/install.sh --update`) in a terminal, answer **yes** at the Graphify prompt. No extra flags are required.
+
+This copies `.graphifyignore`, runs `graphify update .` (produces `graphify-out/graph.json` + `GRAPH_REPORT.md`), and co-installs Graphify for Cursor, OpenCode, and Claude Code (default `--targets=cursor,opencode,claude`).
+
+**Non-interactive / CI only:**
 
 ```bash
-bash .spine/install.sh --with-graphify --graphify-init
+bash .spine/install.sh --with-graphify          # same full co-install, no prompt
+bash .spine/install.sh --no-graphify-prompt       # skip prompt (also skipped when not a TTY)
 ```
 
-This copies `.graphifyignore` from the Spine template and runs `graphify update .`, producing `graphify-out/graph.json`.
+### Tri-platform co-install (what "yes" installs)
+
+| IDE | Graphify artifact | Spine coexistence |
+|-----|-------------------|-------------------|
+| **Cursor** | `.cursor/rules/graphify.mdc` | Spine rule symlinks in same directory |
+| **OpenCode** | `.opencode/plugins/graphify.js` + plugin in `opencode.json` | Spine 3 URL `instructions` preserved |
+| **Claude Code** | `CLAUDE.md` section + PreToolUse hook | `.claude/skills/` Spine symlink preserved |
+
+Optional git hooks: add `--graphify-hooks` to install (interactive yes does not enable hooks by default).
+
+Remove platform artifacts only: `bash .spine/install.sh --graphify-uninstall`
 
 ### Existing project already using Spine
 
-If the project already has `.spine`, `docs/memory/`, and symlinks, use one of these paths to generate `graphify-out` for the first time:
-
-**Path A — install flags (minimal)**
+Re-run install and answer yes at the prompt (also offered on `--update` when integration is incomplete):
 
 ```bash
 cd /path/to/existing-project
-bash .spine/install.sh --with-graphify --graphify-init
+bash .spine/install.sh
+# or: bash .spine/install.sh --update
 ```
 
-**Path B — via update (pull Spine + enable Graphify)**
-
-```bash
-cd /path/to/existing-project
-bash .spine/scripts/update.sh --graphify-init
-```
-
-(`--graphify-init` implies `--with-graphify`.)
+**Non-interactive:** `bash .spine/install.sh --with-graphify` or `bash .spine/scripts/update.sh --graphify-init`
 
 **Manual fallback** (if flags are unavailable on an old Spine clone):
 
@@ -225,11 +234,19 @@ bash .spine/scripts/install-graphify.sh --project-root=. --init-graph
 ### Verify activation
 
 ```bash
-test -f graphify-out/graph.json && echo "Graphify active"
-ls -la .graphifyignore
+bash .spine/scripts/validate-graphify-integration.sh
 ```
 
-Agents use graph-first exploration once `graphify-out/graph.json` exists (see `rules/01-core-protocol.md` and `rules/02-memory-bank.md`).
+Reports per-IDE status (graph, Cursor mdc, OpenCode plugin, Claude hook, CLI version).
+
+Quick check:
+
+```bash
+test -f graphify-out/graph.json && echo "Graphify active"
+test -f graphify-out/GRAPH_REPORT.md && echo "Report ready"
+```
+
+Agents follow the Graphify Discovery Protocol when `graphify-out/graph.json` exists (see `rules/01-core-protocol.md` and `rules/02-memory-bank.md` § Graphify Discovery Protocol).
 
 ### Refresh / regenerate `graphify-out`
 
@@ -252,7 +269,9 @@ graphify update .
 | `graphify: command not found` | Install CLI: `uv tool install graphifyy` |
 | No `graphify-out/graph.json` after setup | Run `graphify update .` manually from the project root |
 | Graph build fails | Check `.graphifyignore`; ensure you are in the project root; rerun `graphify update .` |
-| Agents still scan files broadly | Confirm `graphify-out/graph.json` exists; restart the agent session |
+| Agents still scan files broadly | Run `bash .spine/scripts/validate-graphify-integration.sh`; restart agent session |
+| OpenCode plugin missing | Re-run `bash .spine/install.sh` and answer yes; or `--with-graphify` (non-interactive); ensure graphifyy >= 0.7.16 |
+| Root `AGENTS.md` from Graphify | Optional delete; Spine uses URL rules + Discovery Protocol, not root AGENTS.md |
 
 ## Migration from v1.2 and earlier
 

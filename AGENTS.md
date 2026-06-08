@@ -211,7 +211,7 @@ bash .spine/install.sh --skills=core            # minimal 5-skill profile
 bash .spine/install.sh --update
 bash .spine/install.sh --uninstall
 bash .spine/install.sh --targets=cursor,opencode,claude
-bash .spine/install.sh --with-graphify --graphify-init
+bash .spine/install.sh --with-graphify   # non-interactive Graphify (prompt: answer yes during install)
 ```
 
 **Core skills** (the `--core` profile):
@@ -270,15 +270,16 @@ Canonical template: `templates/opencode.json`
 
 ### Optional tooling
 
-**Graphify** (retrieval optimization — optional):
+**Graphify** (code-structure layer — optional; tri-platform: Cursor, OpenCode, Claude Code):
 
-- Install CLI: `uv tool install graphifyy`
-- Enable in project: `bash .spine/install.sh --with-graphify --graphify-init` or `bash .spine/scripts/update.sh --graphify-init`
-- Verify: `test -f graphify-out/graph.json`
+- Install CLI: `uv tool install graphifyy` (minimum recommended: 0.7.16)
+- Co-install: answer **yes** at Graphify prompt during `bash .spine/install.sh` (or `--update` when integration incomplete); non-interactive: `--with-graphify` or `bash .spine/scripts/update.sh --graphify-init`
+- Verify: `bash .spine/scripts/validate-graphify-integration.sh`
+- Uninstall platform artifacts: `bash .spine/install.sh --graphify-uninstall`
 - Refresh: `graphify update .`
 - Full guide: README § **Optional: Graphify**
 
-When `graphify-out/graph.json` exists, agents query the graph first (see `01-core-protocol.md`, `02-memory-bank.md`). Memory bank remains mandatory.
+**Spine vs Graphify:** memory bank (`docs/memory/`) is source of truth for scope and delivery; Graphify maps source code via `GRAPH_REPORT.md` + `graphify query` (see `02-memory-bank.md` § Graphify Discovery Protocol). Co-install delegates platform hooks/plugins/rules to Graphify CLI; Spine orchestrates workflow and OpenCode `opencode.json` merge.
 
 ### Slash commands
 
