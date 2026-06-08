@@ -52,7 +52,7 @@ Goal: **complete project understanding**. Do not write memory bank files until a
 **Discovery order:**
 
 1. `$ARGUMENTS` (if non-empty)
-2. **Graphify** when `graphify-out/graph.json` exists: query graph first for architecture, modules, entry points, integrations; confirm with targeted file reads
+2. **Graphify** when `graphify-out/graph.json` exists: follow `02-memory-bank.md` **Graphify Discovery Protocol** — read `GRAPH_REPORT.md`, run `graphify query` for architecture/modules/entry points/integrations, confirm with targeted file reads. Run `bash .spine/scripts/validate-graphify-integration.sh` and report per-IDE status in the summary.
 3. **Source and configs:** README, manifests, CI, infra, entry points, layer structure, tests, env patterns
 4. Existing memory bank (re-bootstrap) — conflicts → **Gaps**, do not silently overwrite
 
@@ -145,7 +145,7 @@ Always include:
 - **Created vs. updated vs. preserved**
 - **Gaps:** Credentials, business rules, stakeholder intent, branch policy exceptions, unresolved domain terms
 - **Setup status:** `validate-bootstrap-ready.sh` result
-- **Graphify status:** active / stale / absent; report `graphify-out/` and `.graphifyignore`; suggest README § Optional: Graphify if medium/large repo without Graphify
+- **Graphify status:** active / partial / absent; per-IDE integration (Cursor mdc, OpenCode plugin, Claude hook); whether `GRAPH_REPORT.md` was read and sample `graphify query` commands run; suggest README § Optional: Graphify if medium/large repo without Graphify
 - **GitFlow note:** default branch vs Spine target (`develop` + `feature/*`)
 - **Next step:** `/spine-plan <goal>` — bootstrap does not produce plans or tasks
 - **Re-bootstrap:** idempotent enrichment only

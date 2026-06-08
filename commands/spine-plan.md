@@ -32,7 +32,7 @@ Act as a Senior Software Architect. Follow the instructions provided in $ARGUMEN
    **Shared context rules (always apply):**
 
    - If `$ARGUMENTS` contains non-empty content, treat it as a project briefing and incorporate it into scope without contradicting facts already present in memory bank files.
-   - If `graphify-out/graph.json` exists in the project, query graph first for exploration and architecture discovery, then use direct file reads for implementation details. If graph is missing/stale, fallback to normal repository reading.
+   - If `graphify-out/graph.json` exists, follow `02-memory-bank.md` **Graphify Discovery Protocol** (`GRAPH_REPORT.md` → `graphify query` → targeted file reads). If graph is missing/stale, fallback to normal repository reading.
 
 2. **Planning Skill (mandatory):**
    - Use the `@writing-plans` skill to structure content into the Memory Bank task contract (`templates/docs/memory/active_tasks/_task-template.md`).

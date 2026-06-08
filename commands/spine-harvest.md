@@ -62,4 +62,4 @@ Act as a Tech Lead and Knowledge Manager.
    - Merge only a valid `feature/<descriptive-name>` branch into `develop`.
    - Remove the local feature branch.
 
-7. **Summary:** Present a concise summary of what was learned and improved in the project. When step 3.5 ran (or was skipped/failed), include Graphify refresh status.
+7. **Summary:** Present a concise summary of what was learned and improved in the project. When step 3.5 ran (or was skipped/failed), include Graphify refresh status and whether `graphify query` was used during delivery exploration.
