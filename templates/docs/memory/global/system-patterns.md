@@ -2,11 +2,13 @@
 
 ## Optional Complementary Tooling
 
-- **Graphify** can be adopted at the consumer-project level as a retrieval optimization layer.
-- Graphify is **optional** and **not a dependency** of Spine itself.
-- Use Graphify to compress exploration context (graph queries first), while `docs/memory/` and Spine rules remain the operational source of truth.
-- Recommended for medium/large consumer repositories where broad file scanning increases input-token cost.
-- Setup and `graphify-out` generation: [Spine README — Optional: Graphify](https://github.com/OpsScaleAI/spine#optional-graphify).
+- **Graphify** is an optional consumer-project retrieval layer for **code structure** (modules, flows, entry points).
+- Graphify is **not a dependency** of Spine. `docs/memory/` remains the operational source of truth for scope, decisions, and delivery.
+- **Spine** owns conceptual/documentary context; **Graphify** accelerates where to look in source (see `02-memory-bank.md` § Graphify Discovery Protocol).
+- When active: read `graphify-out/GRAPH_REPORT.md`, then `graphify query "<question>" --graph graphify-out/graph.json`, then targeted file reads.
+- Co-install (Cursor + OpenCode + Claude Code): answer yes at Graphify prompt during `bash .spine/install.sh` (non-interactive: `--with-graphify`)
+- Verify: `bash .spine/scripts/validate-graphify-integration.sh`
+- Full guide: [Spine README — Optional: Graphify](https://github.com/OpsScaleAI/spine#optional-graphify).
 
 ## Architecture
 [Fill in]

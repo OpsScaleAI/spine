@@ -71,24 +71,27 @@ bash .spine/scripts/update.sh --graphify-init
 
 ### Adopt Graphify on an existing project
 
-When the consumer project already uses Spine but `graphify-out/graph.json` is missing:
+When the consumer project already uses Spine but Graphify is not fully integrated:
 
 1. Install Graphify CLI on the machine if needed: `uv tool install graphifyy` (recommended).
-2. Recommended entrypoint from project root:
+2. **Primary (interactive):** from project root, run install or update — answer **yes** at the Graphify prompt when integration is incomplete:
 
 ```bash
-bash .spine/scripts/update.sh --graphify-init
+bash .spine/install.sh
+# or: bash .spine/install.sh --update
 ```
 
-This pulls the latest Spine source, reconciles symlinks, copies `.graphifyignore` if missing, runs `graphify update .`, and preserves `docs/memory/`.
+3. **Non-interactive:** `bash .spine/scripts/update.sh --graphify-init` (pulls Spine, reconciles symlinks, full co-install).
 
-3. Verify activation:
+This copies `.graphifyignore` if missing, runs `graphify update .`, co-installs Graphify for Cursor + OpenCode + Claude Code (default targets), merges OpenCode plugin into `opencode.json`, and preserves `docs/memory/`.
+
+4. Verify tri-platform integration:
 
 ```bash
-test -f graphify-out/graph.json && echo "Graphify active"
+bash .spine/scripts/validate-graphify-integration.sh
 ```
 
-4. Refresh after large refactors: `graphify update .`
+5. Refresh after large refactors: `graphify update .`
 
 Full guide: Spine repository README, section **Optional: Graphify**.
 
@@ -102,7 +105,7 @@ Always report:
 - Symlink reconciliation result.
 - `opencode.json` mode used (merge or replace).
 - Confirmation that `docs/memory/` was preserved.
-- Graphify status when `--with-graphify` or `--graphify-init` was used: whether `.graphifyignore` exists, whether `graphify-out/graph.json` was created, and the refresh command if the graph build failed.
+- Graphify status when `--with-graphify` or `--graphify-init` was used: `.graphifyignore`, `graphify-out/graph.json`, per-IDE integration (Cursor mdc, OpenCode plugin, Claude hook), result of `validate-graphify-integration.sh`, and refresh command if graph build failed.
 - Any blockers and exact command to recover.
 
 ---

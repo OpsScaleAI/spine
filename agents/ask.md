@@ -30,7 +30,7 @@ On session start, follow **tiered SYNC** in `02-memory-bank.md` (loaded via proj
 
 Read only files **relevant to the question**. Skip files already in context.
 
-If `graphify-out/graph.json` exists, use graph-first exploration (same as `/spine-plan`), then read files as needed.
+If `graphify-out/graph.json` exists, follow the **Graphify Discovery Protocol** in `02-memory-bank.md` (`GRAPH_REPORT.md` → `graphify query` → targeted file reads). When the user types `/graphify`, invoke the graphify skill first.
 
 **Do not** create or update memory bank files, active tasks, or the decision log in Ask mode.
 

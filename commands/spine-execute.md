@@ -30,17 +30,18 @@ Act as a Software Engineer focused on rigorous implementation.
      - keep `playwright-cli` for short/interactive tasks;
      - use `playwright-skill` only for multi-step flows, multiple validations, and re-runnable scripts.
    - Do not switch from `playwright-cli` to `playwright-skill` (or vice versa) without recording an objective justification in the active task.
-5. **Atomic Implementation:** Implement the required code by following `docs/memory/global/system-patterns.md` and the active task guidelines.
-6. **Validation Cycle:**
+5. **Code discovery (when locating implementation targets):** If `graphify-out/graph.json` exists and the target file/module is unclear, follow the **Graphify Discovery Protocol** in `02-memory-bank.md` before broad Glob/grep scans.
+6. **Atomic Implementation:** Implement the required code by following `docs/memory/global/system-patterns.md` and the active task guidelines.
+7. **Validation Cycle:**
    - Run the test command defined in the active task.
    - If it fails, analyze the error and fix the code (not the test, unless the test is logically wrong).
    - Repeat until all tests pass.
-7. **Execution Status:** Update frontmatter at start and end:
+8. **Execution Status:** Update frontmatter at start and end:
    - At beginning: `status: IN_PROGRESS`, bump `updated_at`.
    - When complete: `status: REVIEW`, bump `updated_at`.
    - When marking `REVIEW`, record a minimal checklist with tests executed and test results in the task body.
-8. **Restriction:** Do not perform refactors outside the active task scope. If you find a necessary improvement, record it in "Notes" in the task itself.
-9. **Completion Gate (mandatory):**
+9. **Restriction:** Do not perform refactors outside the active task scope. If you find a necessary improvement, record it in "Notes" in the task itself.
+10. **Completion Gate (mandatory):**
    - Before sending the final execution response, verify frontmatter `status` is `REVIEW`.
    - If status is not `REVIEW`, stop and update it before completion.
    - `REVIEW` is valid only if evidence is present: `Tests executed` list and `Test results` summary.
