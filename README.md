@@ -273,6 +273,101 @@ graphify update .
 | OpenCode plugin missing | Re-run `bash .spine/install.sh` and answer yes; or `--with-graphify` (non-interactive); ensure graphifyy >= 0.7.16 |
 | Root `AGENTS.md` from Graphify | Optional delete; Spine uses URL rules + Discovery Protocol, not root AGENTS.md |
 
+## Optional: MkDocs
+
+MkDocs is an optional **public-facing documentation** layer for consumer projects. **Spine** owns operational context (`docs/memory/`); **MkDocs** generates a static documentation site from `docs/mkdocs/`.
+
+When active, agents follow the `documentation-driven-development` skill: update `docs/mkdocs/*.md` alongside code changes, and verify the build passes at harvest.
+
+### Install CLI (once per machine)
+
+```bash
+pip install mkdocs
+# or for Material theme:
+pip install mkdocs-material
+```
+
+### Enable MkDocs (primary: interactive prompt)
+
+During `bash .spine/install.sh` (or `bash .spine/install.sh --update`) in a terminal, answer **yes** at the MkDocs prompt. No extra flags are required.
+
+This seeds `docs/mkdocs/mkdocs.yml`, `docs/mkdocs/index.md`, `docs/mkdocs/architecture.md`, and runs `mkdocs build --strict` to verify.
+
+**Non-interactive / CI only:**
+
+```bash
+bash .spine/install.sh --with-mkdocs              # full setup, no prompt
+bash .spine/install.sh --no-mkdocs-prompt          # skip prompt (also skipped when not a TTY)
+```
+
+### Existing project already using Spine
+
+Re-run install and answer yes at the prompt (also offered on `--update` when integration is incomplete):
+
+```bash
+cd /path/to/existing-project
+bash .spine/install.sh
+# or: bash .spine/install.sh --update
+```
+
+**Non-interactive:** `bash .spine/install.sh --with-mkdocs` or `bash .spine/scripts/update.sh --with-mkdocs`
+
+**Manual fallback:**
+
+```bash
+bash .spine/scripts/install-mkdocs.sh --project-root=. --init-mkdocs
+```
+
+### Verify activation
+
+```bash
+bash .spine/scripts/validate-mkdocs-integration.sh
+```
+
+Reports config, CLI, build status, and gitignore check.
+
+Quick check:
+
+```bash
+test -f docs/mkdocs/mkdocs.yml && echo "MkDocs configured"
+mkdocs build -f docs/mkdocs/mkdocs.yml --strict && echo "Build passes"
+```
+
+### Preview documentation
+
+```bash
+mkdocs serve -f docs/mkdocs/mkdocs.yml
+# or:
+cd docs/mkdocs && mkdocs serve
+```
+
+### Refresh build
+
+After updating documentation files:
+
+```bash
+mkdocs build -f docs/mkdocs/mkdocs.yml
+```
+
+### Git policy
+
+- `docs/mkdocs/site/` is machine-generated; add to project `.gitignore`.
+- `docs/mkdocs/mkdocs.yml` and `docs/mkdocs/*.md` source files are safe to commit.
+- `install.sh` automatically adds `docs/mkdocs/site/` to `.gitignore`.
+
+### Remove MkDocs
+
+Remove templates and config only: `bash .spine/install.sh --mkdocs-uninstall`
+
+### Troubleshooting
+
+| Symptom | Fix |
+|---|---|
+| `mkdocs: command not found` | Install CLI: `pip install mkdocs` |
+| Build fails with broken links | Check `docs/mkdocs/*.md` for valid relative links |
+| `site/` appears in git status | Add `docs/mkdocs/site/` to `.gitignore` and re-run install |
+| Documentation not updating at harvest | Ensure `docs/mkdocs/mkdocs.yml` exists; run harvest step 4d manually |
+
 ## Migration from v1.2 and earlier
 
 | Old setup | Action |

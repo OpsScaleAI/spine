@@ -1,7 +1,5 @@
 {
   "$schema": "https://opencode.ai/config.json",
-  "model": "opencode-go/deepseek-v4-pro",
-  "small_model": "nvidia/deepseek-ai/deepseek-v4-pro",
   "default_agent": "ask",
   "instructions": [
     "https://raw.githubusercontent.com/OpsScaleAI/spine/refs/heads/master/rules/01-core-protocol.md",
@@ -19,25 +17,15 @@
   "compaction": {
     "auto": true,
     "prune": false,
-    "tail_turns": 2,
-    "preserve_recent_tokens": 16000,
-    "reserved": 2000
+    "tail_turns": 4,
+    "preserve_recent_tokens": 32000,
+    "reserved": 4000
   },
   "agent": {
-    "plan": {
-      "mode": "primary",
-      "model": "opencode-go/deepseek-v4-pro",
-      "variant": "medium"
-    },
-    "build": {
-      "mode": "primary",
-      "model": "opencode-go/deepseek-v4-pro",
-      "variant": "medium"
-    },
     "ask": {
       "description": "Read-only thinking partner — explore, critique, and plan without modifying the codebase",
       "mode": "primary",
-      "model": "opencode-go/deepseek-v4-pro",
+      "model": "opencode-go/qwen3.7-max",
       "temperature": 0.3,
       "prompt": "{file:.spine/agents/ask.md}",
       "permission": {

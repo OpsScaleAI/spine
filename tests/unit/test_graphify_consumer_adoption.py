@@ -100,7 +100,6 @@ def test_install_sh_prompts_graphify_interactively() -> None:
     assert "prompt_graphify_opt_in" in text
     assert "enable graphify for this project?" in text
     assert "complete graphify integration" in text
-    assert "answering yes at the graphify prompt" in text
     assert "--no-graphify-prompt" in text
     assert "medium/large" in text
 

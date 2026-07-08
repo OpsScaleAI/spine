@@ -40,6 +40,10 @@ GRAPHIFY_INIT=false
 GRAPHIFY_HOOKS=false
 GRAPHIFY_UNINSTALL=false
 NO_GRAPHIFY_PROMPT=false
+WITH_MKDOCS=false
+MKDOCS_INIT=false
+MKDOCS_UNINSTALL=false
+NO_MKDOCS_PROMPT=false
 
 for arg in "$@"; do
     case "$arg" in
@@ -64,6 +68,9 @@ for arg in "$@"; do
         --graphify-hooks) GRAPHIFY_HOOKS=true ;;
         --graphify-uninstall) GRAPHIFY_UNINSTALL=true ;;
         --no-graphify-prompt) NO_GRAPHIFY_PROMPT=true ;;
+        --with-mkdocs)    WITH_MKDOCS=true; MKDOCS_INIT=true ;;
+        --mkdocs-uninstall) MKDOCS_UNINSTALL=true ;;
+        --no-mkdocs-prompt) NO_MKDOCS_PROMPT=true ;;
         -h|--help)
             echo "Usage: bash install.sh [OPTIONS]"
             echo ""
@@ -85,6 +92,10 @@ for arg in "$@"; do
             echo "  --graphify-hooks     Also run graphify hook install (post-commit graph refresh)"
             echo "  --graphify-uninstall Remove Graphify platform artifacts (Cursor mdc, OpenCode plugin, Claude hook)"
             echo "  --no-graphify-prompt Skip interactive Graphify opt-in prompt (non-TTY skips automatically)"
+            echo "  MkDocs: enabled interactively at end of install when TTY (answer yes at prompt)"
+            echo "  --with-mkdocs        Non-interactive: full MkDocs setup (CI/scripts)"
+            echo "  --mkdocs-uninstall   Remove MkDocs templates and config from project"
+            echo "  --no-mkdocs-prompt   Skip interactive MkDocs opt-in prompt (non-TTY skips automatically)"
             echo "  --force              Replace mismatched symlinks"
             echo "  --dry-run            Preview without making changes"
             echo ""
@@ -97,6 +108,7 @@ for arg in "$@"; do
             echo "  bash .spine/install.sh --add-skill=astro"
             echo "  bash .spine/install.sh --uninstall"
             echo "  bash .spine/install.sh --with-graphify   # non-interactive Graphify enable"
+            echo "  bash .spine/install.sh --with-mkdocs     # non-interactive MkDocs enable"
             exit 0
             ;;
         *)
@@ -1120,7 +1132,7 @@ install_graphify_cli_if_needed() {
 prompt_graphify_opt_in() {
     local project_root="$1"
     local prompt_title="Optional: Graphify"
-    local prompt_question="Enable Graphify for this project? [y/N]: "
+    local prompt_question="Enable Graphify for this project? [Y/n]: "
     local graph_exists=false
 
     if ! should_prompt_graphify; then
@@ -1136,7 +1148,7 @@ prompt_graphify_opt_in() {
     if [[ -f "$project_root/graphify-out/graph.json" ]]; then
         graph_exists=true
         prompt_title="Complete Graphify integration?"
-        prompt_question="Complete Graphify integration for this project? [y/N]: "
+        prompt_question="Complete Graphify integration for this project? [Y/n]: "
     fi
 
     echo ""
@@ -1171,7 +1183,7 @@ prompt_graphify_opt_in() {
         read -r -p "$prompt_question" response
         response="$(printf '%s' "$response" | tr '[:upper:]' '[:lower:]')"
         case "$response" in
-            y|yes)
+            y|yes|"")
                 WITH_GRAPHIFY=true
                 GRAPHIFY_INIT=true
                 install_graphify_cli_if_needed || true
@@ -1179,12 +1191,10 @@ prompt_graphify_opt_in() {
                 echo "Graphify: enabled (graph build + tri-platform co-install for $TARGETS)"
                 break
                 ;;
-            n|no|"")
+            n|no)
                 echo ""
-                echo "Graphify: skipped. Enable later by re-running:"
-                echo "  bash .spine/install.sh"
-                echo "and answering yes at the Graphify prompt."
-                echo "(Non-interactive: bash .spine/install.sh --with-graphify)"
+                echo "Graphify: skipped. Re-run and press Enter to enable, or use:"
+                echo "  bash .spine/install.sh --with-graphify"
                 break
                 ;;
             *)
@@ -1214,6 +1224,118 @@ setup_project_graphify() {
         cmd+=("--graphify-hooks")
     fi
     if $GRAPHIFY_UNINSTALL; then
+        cmd+=("--uninstall")
+    fi
+    if $DRY_RUN; then
+        cmd+=("--dry-run")
+    fi
+
+    "${cmd[@]}"
+}
+
+# --- MkDocs optional integration ---
+
+should_prompt_mkdocs() {
+    $NO_MKDOCS_PROMPT && return 1
+    $UNINSTALL_MODE && return 1
+    $LIST_SKILLS && return 1
+    [[ -n "$ADD_SKILL" || -n "$REMOVE_SKILL" ]] && return 1
+    $DRY_RUN && return 1
+    $WITH_MKDOCS && return 1
+    [[ ! -t 0 ]] && return 1
+    return 0
+}
+
+mkdocs_integration_complete() {
+    local project_root="$1"
+    local validate="$SPINE_DIR/scripts/validate-mkdocs-integration.sh"
+
+    if [[ ! -f "$validate" ]]; then
+        return 1
+    fi
+
+    (cd "$project_root" && bash "$validate" >/dev/null 2>&1)
+}
+
+prompt_mkdocs_opt_in() {
+    local project_root="$1"
+    local prompt_title="Optional: MkDocs"
+    local prompt_question="Enable MkDocs for this project? [Y/n]: "
+
+    if ! should_prompt_mkdocs; then
+        return 0
+    fi
+
+    if mkdocs_integration_complete "$project_root"; then
+        echo ""
+        echo "MkDocs: integration complete (config + build). Skipping opt-in prompt."
+        return 0
+    fi
+
+    echo ""
+    echo "==========================================="
+    echo "  $prompt_title"
+    echo "==========================================="
+    echo ""
+    echo "MkDocs generates a static documentation site from Markdown in docs/mkdocs/."
+    echo "Enabling seeds docs/mkdocs/mkdocs.yml, docs/mkdocs/index.md, and runs an initial build."
+    echo ""
+    echo "Recommended for:"
+    echo "  - projects with public APIs or libraries consumed by other teams"
+    echo "  - projects where onboarding documentation is valuable"
+    echo "  - teams practicing documentation-driven development"
+    echo ""
+    echo "Usually skip for:"
+    echo "  - internal microservices with no external consumers"
+    echo "  - small prototypes or scripts"
+    echo "  - when the memory bank (docs/memory/) is sufficient"
+    echo ""
+    echo "The memory bank (docs/memory/) remains the operational source of truth."
+    echo "MkDocs is the public-facing layer for humans reading the project."
+    echo ""
+
+    local response=""
+    while true; do
+        read -r -p "$prompt_question" response
+        response="$(printf '%s' "$response" | tr '[:upper:]' '[:lower:]')"
+        case "$response" in
+            y|yes|"")
+                WITH_MKDOCS=true
+                MKDOCS_INIT=true
+                echo ""
+                echo "MkDocs: enabled (template seed + initial build)"
+                break
+                ;;
+            n|no)
+                echo ""
+                echo "MkDocs: skipped. Re-run and press Enter to enable, or use:"
+                echo "  bash .spine/install.sh --with-mkdocs"
+                break
+                ;;
+            *)
+                echo "Please answer y or n."
+                ;;
+        esac
+    done
+}
+
+setup_project_mkdocs() {
+    local project_root="$1"
+
+    echo ""
+    echo "MkDocs (optional):"
+
+    local helper="$SPINE_DIR/scripts/install-mkdocs.sh"
+    if [[ ! -f "$helper" ]]; then
+        log_warn "MkDocs helper script not found: $helper"
+        return 1
+    fi
+
+    local cmd=(bash "$helper" "--project-root=$project_root")
+    if $MKDOCS_INIT; then
+        cmd+=("--init-mkdocs")
+    fi
+    if $MKDOCS_UNINSTALL; then
         cmd+=("--uninstall")
     fi
     if $DRY_RUN; then
@@ -1425,6 +1547,13 @@ if $GRAPHIFY_UNINSTALL; then
     exit 0
 fi
 
+# Handle --mkdocs-uninstall (MkDocs templates and config)
+if $MKDOCS_UNINSTALL; then
+    require_spine_symlink "$PROJECT_ROOT"
+    setup_project_mkdocs "$PROJECT_ROOT"
+    exit 0
+fi
+
 echo "Spine Project Installer"
 echo "Repository: $SPINE_DIR"
 echo "Project:    $PROJECT_ROOT"
@@ -1440,6 +1569,12 @@ if $WITH_GRAPHIFY; then
     fi
     if $GRAPHIFY_HOOKS; then
         echo "Graphify:   git hooks enabled"
+    fi
+fi
+if $WITH_MKDOCS; then
+    echo "MkDocs:     enabled"
+    if $MKDOCS_INIT; then
+        echo "MkDocs:     template seed + initial build"
     fi
 fi
 
@@ -1497,6 +1632,12 @@ add_gitignore_entries "$PROJECT_ROOT"
 prompt_graphify_opt_in "$PROJECT_ROOT"
 if $WITH_GRAPHIFY; then
     setup_project_graphify "$PROJECT_ROOT"
+fi
+
+# Optional MkDocs setup (interactive opt-in on fresh install)
+prompt_mkdocs_opt_in "$PROJECT_ROOT"
+if $WITH_MKDOCS; then
+    setup_project_mkdocs "$PROJECT_ROOT"
 fi
 
 # Cleanup dangling symlinks (only in update mode)
