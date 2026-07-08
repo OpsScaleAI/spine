@@ -27,7 +27,14 @@
 - Publicar versão com as otimizações de token para projetos consumidores existentes.
 - Consolidar rollout de Graphify opcional em projetos consumidores e medir delta de tokens por task.
 - Instalar `pytest` no ambiente de desenvolvimento para reativar validação automatizada completa no harvest.
+- Publicar release v1.4.0 com `/spine-roadmap` e demais features recentes.
 
 ## Issues Conhecidos
 - Catálogo de skills muito grande para uso irrestrito.
 - Risco de dispersão em frontend sem skill principal padronizada.
+
+## Delivery log (newest first)
+### 2026-07-08 — Add /spine-roadmap command with GIST-informed template
+**Task:** 015-spine-roadmap-command | **Branch:** feature/spine-roadmap-command
+**Tags:** type/feature, area/workflow, area/docs, area/governance
+**Description:** Wired up the long-reserved `/spine-roadmap` slot. Created the command with fill, `--review`, and `--add-ideas` modes using grill-me strategic discovery. Replaced roadmap stub with GIST-informed template (Goals + Idea Bank with ICE scoring). Added `templates/docs/governance/ice-scoring-guide.md` with objective 1-10 scoring criteria. Updated bootstrap, rules, install/validate scripts, task template (`roadmap_idea` field), harvest (passive review suggestion), plan (idea-ID linking), README, and AGENTS.md. 13 files changed/created. 86/91 tests pass (5 pre-existing failures in `test_opencode_template.py` unrelated). Graphify and MkDocs inactive — not applicable.

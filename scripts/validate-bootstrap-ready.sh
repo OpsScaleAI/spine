@@ -64,6 +64,7 @@ seed_paths=(
     docs/memory/active_tasks/_task-template.md
     docs/governance/skills-policy.md
     docs/governance/memory-tags-policy.md
+    docs/governance/ice-scoring-guide.md
     docs/quality/guardrails.md
     docs/workflow/gitflow-operacional.md
     docs/workflow/ciclo-de-entrega.md
