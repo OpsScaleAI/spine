@@ -129,7 +129,7 @@ If a new section is missing in an older consumer template, add the section durin
 
 **Out of scope:**
 
-- **`docs/memory/ledger/roadmap.md` — do not modify** (seed template; future `/spine-roadmap`)
+- **`docs/memory/ledger/roadmap.md` — do not modify** (seed template; use `/spine-roadmap`)
 - **`active_tasks/NNN-*.md` — do not create**
 
 ---
@@ -150,7 +150,7 @@ Always include:
 - **Next step:** `/spine-plan <goal>` — bootstrap does not produce plans or tasks
 - **Re-bootstrap:** idempotent enrichment only
 
-If user asks for a plan, task, or roadmap: "Bootstrap builds agent context only. Use `/spine-plan` for delivery planning. Roadmap structuring is a future command."
+If user asks for a plan, task, or roadmap: "Bootstrap builds agent context only. Use `/spine-plan` for delivery planning. Use `/spine-roadmap` to structure the roadmap."
 
 ---
 
@@ -163,7 +163,7 @@ If user asks for a plan, task, or roadmap: "Bootstrap builds agent context only.
 | Known risk | `tech-context.md` § Known Risks | Bootstrap |
 | Opportunity (unplanned) | `product-context.md` § Known Opportunities | Bootstrap |
 | Incident / recurrence | `learnings.md` | `/spine-harvest` only |
-| Scheduled milestone | `roadmap.md` | Future `/spine-roadmap` |
+| Scheduled milestone | `roadmap.md` | `/spine-roadmap` |
 
 ---
 
