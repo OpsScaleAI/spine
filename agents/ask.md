@@ -1,6 +1,7 @@
 ---
 description: Read-only thinking partner — explore, critique, and plan without modifying the codebase
 mode: primary
+variant: high
 temperature: 0.3
 permission:
   edit: deny

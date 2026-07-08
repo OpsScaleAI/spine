@@ -19,9 +19,14 @@ Act as a Tech Lead and Knowledge Manager.
 3. **Final Verification:** Run the full test suite to ensure there are no regressions.
 
 3.5. **Graphify refresh (only when Graphify is in use):**
-   - Proceed only if `graphify-out/graph.json` exists in the project root (Graphify is active for this consumer project).
-   - If `graphify` CLI is available, run `graphify update .` from the project root to refresh the exploration graph after delivery changes.
-   - If the CLI is missing or the update fails, note it in the harvest summary; do not block harvest or Git consolidation.
+    - Proceed only if `graphify-out/graph.json` exists in the project root (Graphify is active for this consumer project).
+    - If `graphify` CLI is available, run `graphify update .` from the project root to refresh the exploration graph after delivery changes.
+    - If the CLI is missing or the update fails, note it in the harvest summary; do not block harvest or Git consolidation.
+
+3.6. **MkDocs refresh (only when MkDocs is in use):**
+    - Proceed only if `docs/mkdocs/mkdocs.yml` exists in the project root (MkDocs is active for this consumer project).
+    - If `mkdocs` CLI is available, run `mkdocs build -f docs/mkdocs/mkdocs.yml --strict` from the project root to verify documentation builds cleanly with no broken links or missing pages.
+    - If the build fails, report the errors; do not block harvest or Git consolidation.
 
 4. **Memory Bank Update:**
 
@@ -39,21 +44,29 @@ Act as a Tech Lead and Knowledge Manager.
    - **Tags** required on new entries; copy from task frontmatter, refine if needed.
    - Mirror one-line pointer in task Delivery summary body.
 
-   **4c. Unchanged when applicable:**
-   - `docs/memory/global/decision-log.md` — architectural decisions only.
-   - `docs/memory/global/domain-glossary.md` — canonical terms promoted during discovery or delivery.
-   - `docs/memory/global/system-patterns.md` — new patterns established.
-   - `## Implementation Plan` in the task body is not copied to the delivery log (summary uses frontmatter `title`, `tags`, and delivery description only).
+    **4c. Unchanged when applicable:**
+    - `docs/memory/global/decision-log.md` — architectural decisions only.
+    - `docs/memory/global/domain-glossary.md` — canonical terms promoted during discovery or delivery.
+    - `docs/memory/global/system-patterns.md` — new patterns established.
+    - `## Implementation Plan` in the task body is not copied to the delivery log (summary uses frontmatter `title`, `tags`, and delivery description only).
+
+    **4d. MkDocs documentation (when `docs/mkdocs/mkdocs.yml` exists):**
+    - Load the `documentation-driven-development` skill for documentation update criteria.
+    - Review whether this task introduced public APIs, architectural patterns, or user-facing features.
+    - If so, update the relevant `docs/mkdocs/*.md` files and include them in the final commit with the `docs:` prefix.
+    - Run `mkdocs build -f docs/mkdocs/mkdocs.yml --strict` to verify the documentation builds cleanly.
+    - If the task does not warrant documentation updates, note the decision in the delivery summary.
 
 5. **Active Task Closure:**
    - Update frontmatter: `status: DONE`, `completed_at: YYYY-MM-DD`, `updated_at: YYYY-MM-DD`.
    - Set `related_learnings:` when linked to `LEARN-NNN` entries.
    - Add final **Delivery summary** block in task body.
    - Record learning: root cause + prevention + regression test.
-   - If there was UI/E2E with Playwright, also record:
-     - skill used (`playwright-cli` or `playwright-skill`);
-     - reason for the choice (short and objective);
-     - evidence of benefit (time, rework avoided, reduced risk).
+    - If there was UI/E2E with Playwright, also record:
+      - skill used (`playwright-cli` or `playwright-skill`);
+      - reason for the choice (short and objective);
+      - evidence of benefit (time, rework avoided, reduced risk).
+    - If MkDocs is active, record in delivery summary: files updated in `docs/mkdocs/`, mkdocs build status.
    - **`git mv`** `docs/memory/active_tasks/NNN-name.md` → `docs/memory/completed_tasks/NNN-name.md` (create dir if missing).
    - Include the move in the final commit before merge to `develop`.
 
@@ -62,4 +75,4 @@ Act as a Tech Lead and Knowledge Manager.
    - Merge only a valid `feature/<descriptive-name>` branch into `develop`.
    - Remove the local feature branch.
 
-7. **Summary:** Present a concise summary of what was learned and improved in the project. When step 3.5 ran (or was skipped/failed), include Graphify refresh status and whether `graphify query` was used during delivery exploration.
+7. **Summary:** Present a concise summary of what was learned and improved in the project. When step 3.5 ran (or was skipped/failed), include Graphify refresh status and whether `graphify query` was used during delivery exploration. When step 3.6 ran (or was skipped/failed), include MkDocs build status.

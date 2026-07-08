@@ -6,6 +6,7 @@ NO_PULL=false
 REPLACE_OPENCODE=false
 WITH_GRAPHIFY=false
 GRAPHIFY_INIT=false
+WITH_MKDOCS=false
 
 for arg in "$@"; do
     case "$arg" in
@@ -14,6 +15,7 @@ for arg in "$@"; do
         --replace-opencode) REPLACE_OPENCODE=true ;;
         --with-graphify) WITH_GRAPHIFY=true ;;
         --graphify-init) WITH_GRAPHIFY=true; GRAPHIFY_INIT=true ;;
+        --with-mkdocs) WITH_MKDOCS=true ;;
         -h|--help)
             cat <<'EOF'
 Usage: bash .spine/scripts/update.sh [OPTIONS]
@@ -29,7 +31,8 @@ Options:
   --no-pull            Skip git pull on .spine repository
   --replace-opencode   Replace opencode.json with template (default is merge)
   --with-graphify      Also run optional Graphify project setup
-  --graphify-init      Also build initial graph (implies --with-graphify)
+   --graphify-init      Also build initial graph (implies --with-graphify)
+   --with-mkdocs        Also run MkDocs project setup
 EOF
             exit 0
             ;;
@@ -95,6 +98,9 @@ if $WITH_GRAPHIFY; then
 fi
 if $GRAPHIFY_INIT; then
     INSTALL_CMD+=(--graphify-init)
+fi
+if $WITH_MKDOCS; then
+    INSTALL_CMD+=(--with-mkdocs)
 fi
 if $DRY_RUN; then
     INSTALL_CMD+=(--dry-run)
