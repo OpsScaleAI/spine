@@ -197,6 +197,7 @@ PROJECT_ROOT/
 ├── opencode.json           (3 rule URLs + compaction)
 ├── docs/memory/...         (memory bank)
 └── .graphifyignore         (optional — Graphify)
+└── docs/mkdocs/...         (optional — MkDocs public-facing docs)
 ```
 
 **Skill management:**
@@ -212,6 +213,7 @@ bash .spine/install.sh --update
 bash .spine/install.sh --uninstall
 bash .spine/install.sh --targets=cursor,opencode,claude
 bash .spine/install.sh --with-graphify   # non-interactive Graphify (prompt: answer yes during install)
+bash .spine/install.sh --with-mkdocs     # non-interactive MkDocs (prompt: answer yes during install)
 ```
 
 **Core skills** (the `--core` profile):
@@ -281,11 +283,33 @@ Canonical template: `templates/opencode.json`
 
 **Spine vs Graphify:** memory bank (`docs/memory/`) is source of truth for scope and delivery; Graphify maps source code via `GRAPH_REPORT.md` + `graphify query` (see `02-memory-bank.md` § Graphify Discovery Protocol). Co-install delegates platform hooks/plugins/rules to Graphify CLI; Spine orchestrates workflow and OpenCode `opencode.json` merge.
 
+**MkDocs** (public-facing documentation layer — optional):
+
+- Install CLI: `pip install mkdocs` (or `pip install mkdocs-material` for Material theme)
+- Co-install: answer **yes** at MkDocs prompt during `bash .spine/install.sh` (or `--update` when integration incomplete); non-interactive: `--with-mkdocs` or `bash .spine/scripts/update.sh --with-mkdocs`
+- Verify: `bash .spine/scripts/validate-mkdocs-integration.sh`
+- Uninstall: `bash .spine/install.sh --mkdocs-uninstall`
+- Preview: `mkdocs serve -f docs/mkdocs/mkdocs.yml`
+- Full guide: README § **Optional: MkDocs**
+
+**Spine vs MkDocs:** memory bank (`docs/memory/`) is source of truth for scope and delivery; MkDocs generates public-facing documentation from `docs/mkdocs/` source files. Agents follow the `documentation-driven-development` skill when MkDocs is active. Harvest verifies the build (step 3.6) without blocking delivery.
+
+## headroom (Context Compression)
+
+Token budget is a constrained resource. Use Headroom MCP tools proactively to manage it.
+
+Rules:
+- Before reasoning over any tool output, file content, or search result larger than ~2000 tokens, call `headroom_compress` to shrink it and keep only the compressed form plus its hash
+- When you need the original details later, call `headroom_retrieve` with the hash (optionally filtered by `query`)
+- Prefer compressing large `read`, `grep`, `glob`, `bash`, and web fetch results rather than keeping the full text in context
+- Do NOT compress small outputs (< ~2000 tokens) or content you will reference immediately in the next turn — the compression overhead is not worth it
+- Never paste full `graphify-out/graph.json` or other large JSON artifacts into context — compress first or query targeted slices
+
 ### Slash commands
 
 Available in `commands/`:
 
-- `install.sh` — deterministic setup: symlinks, `docs/` seed, `opencode.json`, Graphify opt-in
+- `install.sh` — deterministic setup: symlinks, `docs/` seed, `opencode.json`, Graphify and MkDocs opt-in
 - `/spine-update` — safe refresh via `scripts/update.sh`
 - `/spine-bootstrap` — initial assessment and memory bank fill
 - `/spine-plan` — task plan in memory bank (native Plan draft as input; conditional `@grill-me` discovery)
@@ -297,6 +321,7 @@ Available in `commands/`:
 ### Gitignore in consumer projects
 
 **Versioned:** `opencode.json`, `docs/`, `.graphifyignore`
+- `docs/mkdocs/mkdocs.yml` and `docs/mkdocs/*.md` source files (versioned); `docs/mkdocs/site/` (gitignored)
 
 **Machine-specific (gitignored):** `.spine`, `.agents/`, `.cursor/`, `.claude/`, `.opencode/`, `graphify-out/` (recommended)
 
