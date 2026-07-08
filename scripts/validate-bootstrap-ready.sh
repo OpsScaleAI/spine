@@ -98,3 +98,13 @@ if [[ -f graphify-out/graph.json ]] && [[ -f .spine/scripts/validate-graphify-in
         echo "      (non-interactive: bash .spine/install.sh --with-graphify)" >&2
     fi
 fi
+
+# Soft warning when mkdocs config exists but integration may be incomplete
+if [[ -f docs/mkdocs/mkdocs.yml ]] && [[ -f .spine/scripts/validate-mkdocs-integration.sh ]]; then
+    if ! bash .spine/scripts/validate-mkdocs-integration.sh >/dev/null 2>&1; then
+        echo "NOTE: docs/mkdocs/mkdocs.yml exists but integration may be incomplete." >&2
+        echo "      Run: bash .spine/scripts/validate-mkdocs-integration.sh" >&2
+        echo "      Or:  bash .spine/install.sh and answer yes at the MkDocs prompt" >&2
+        echo "      (non-interactive: bash .spine/install.sh --with-mkdocs)" >&2
+    fi
+fi

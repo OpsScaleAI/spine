@@ -63,6 +63,12 @@ bash .spine/scripts/update.sh --replace-opencode
 bash .spine/scripts/update.sh --with-graphify
 ```
 
+- Include MkDocs setup:
+
+```bash
+bash .spine/scripts/update.sh --with-mkdocs
+```
+
 - Include Graphify setup + initial graph build:
 
 ```bash
@@ -93,7 +99,31 @@ bash .spine/scripts/validate-graphify-integration.sh
 
 5. Refresh after large refactors: `graphify update .`
 
-Full guide: Spine repository README, section **Optional: Graphify**.
+### Adopt MkDocs on an existing project
+
+When the consumer project already uses Spine but MkDocs is not yet enabled:
+
+1. Install MkDocs CLI on the machine if needed: `pip install mkdocs` (or `pip install mkdocs-material` for Material theme).
+2. **Primary (interactive):** from project root, run install or update — answer **yes** at the MkDocs prompt:
+
+```bash
+bash .spine/install.sh
+# or: bash .spine/install.sh --update
+```
+
+3. **Non-interactive:** `bash .spine/scripts/update.sh --with-mkdocs` (pulls Spine, reconciles symlinks, seeds templates).
+
+This seeds `docs/mkdocs/mkdocs.yml`, `docs/mkdocs/index.md`, `docs/mkdocs/architecture.md`, runs `mkdocs build --strict`, and adds `docs/mkdocs/site/` to `.gitignore`. The memory bank (`docs/memory/`) is preserved untouched.
+
+4. Verify:
+
+```bash
+bash .spine/scripts/validate-mkdocs-integration.sh
+```
+
+5. Preview documentation: `mkdocs serve -f docs/mkdocs/mkdocs.yml`
+
+Full guide: Spine repository README, section **Optional: MkDocs**.
 
 ---
 
@@ -106,6 +136,7 @@ Always report:
 - `opencode.json` mode used (merge or replace).
 - Confirmation that `docs/memory/` was preserved.
 - Graphify status when `--with-graphify` or `--graphify-init` was used: `.graphifyignore`, `graphify-out/graph.json`, per-IDE integration (Cursor mdc, OpenCode plugin, Claude hook), result of `validate-graphify-integration.sh`, and refresh command if graph build failed.
+- MkDocs status when `--with-mkdocs` was used: `docs/mkdocs/mkdocs.yml`, `docs/mkdocs/index.md`, result of `validate-mkdocs-integration.sh`, and build command if build failed.
 - Any blockers and exact command to recover.
 
 ---

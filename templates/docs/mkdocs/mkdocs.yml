@@ -1,0 +1,8 @@
+site_name: PROJECT_NAME_PLACEHOLDER
+docs_dir: .
+site_dir: site
+nav:
+  - Home: index.md
+  - Architecture: architecture.md
+theme:
+  name: readthedocs
