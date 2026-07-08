@@ -88,7 +88,7 @@ Act as a Senior Software Architect. Follow the instructions provided in $ARGUMEN
    - **More than 7 acceptance criteria?** → Suggest splitting into smaller plans with tighter scope.
    - **Domains mixed** (e.g., infrastructure + UI + backend in the same plan)? → Suggest splitting along domain boundaries.
    - Present your evaluation to the user: "This plan covers [X domains / Y acceptance criteria]. I recommend splitting into [N] smaller plans. Proceed as-is or split?"
-   - If the user chooses to split: create the first plan immediately and note the remaining plans as suggestions in `docs/memory/ledger/roadmap.md`.
+    - If the user chooses to split: create the first plan immediately and note the remaining plans as suggestions in `docs/memory/ledger/roadmap.md`. If `docs/memory/ledger/roadmap.md` contains an `## Idea Bank` table with active ideas, link split suggestions to specific idea IDs (e.g., "Continue with I3 after this plan") instead of generic suggestions.
 
 7. **Test Strategy:** Define which tests will be created/updated in `tests/` and the execution command.
    - If there is UI/E2E, record in the strategy which Playwright skill will be used and why.

@@ -23,7 +23,7 @@ spine/
 │       │   ├── ledger/
 │       │   ├── active_tasks/
 │       │   └── completed_tasks/
-│       ├── governance/     # Skills policy (allowlist, trial criteria)
+│       ├── governance/     # Skills policy (allowlist, trial criteria), ICE scoring guide
 │       ├── quality/        # Guardrails documentation
 │       └── workflow/       # GitFlow and delivery cycle guides
 ├── docs/                   # Local memory bank for Spine development (NOT versioned)
@@ -315,6 +315,7 @@ Available in `commands/`:
 - `/spine-plan` — task plan in memory bank (native Plan draft as input; conditional `@grill-me` discovery)
 - `/spine-execute` — implement active task with validation
 - `/spine-harvest` — consolidate learnings and close task
+- `/spine-roadmap` — fill or update roadmap with GIST-informed Goals and ICE-scored Idea Bank
 - `/spine-commit` — commit with branch safety checks
 - `/spine-promote` — GitFlow branch promotion
 

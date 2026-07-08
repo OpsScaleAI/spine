@@ -23,7 +23,7 @@ docs/memory/
     tech-context.md          # Dev setup, constraints, infra; § Known Risks
     decision-log.md          # Record of architectural decisions with WHY
   ledger/                    # Current state (updated on each task)
-    roadmap.md               # Prioritized milestones (future /spine-roadmap — not filled at bootstrap)
+    roadmap.md               # Prioritized milestones (filled by /spine-roadmap — not filled at bootstrap)
     progress.md              # Current state + delivery log (append-only)
     learnings.md             # Recurrence registry (incidents, root causes — harvest only)
   active_tasks/              # Open work only (PLANNING | IN_PROGRESS | REVIEW)
@@ -42,7 +42,7 @@ docs/memory/
 | `system-patterns.md` | Yes | Architecture; § **Project-Specific Alterations** (custom payment, auth, etc.) — agents must not revert |
 | `tech-context.md` | Yes | Dev commands, env; § **Known Risks** |
 | `decision-log.md` | Yes | WHY for major alterations and bootstrap baseline |
-| `roadmap.md` | **No** | Seeded empty; future `/spine-roadmap`; optional write from `/spine-plan` when splitting plans |
+| `roadmap.md` | **No** | Seeded with GIST-informed template; filled by `/spine-roadmap`; optional write from `/spine-plan` when splitting plans |
 | `learnings.md` | Rarely at bootstrap | Incidents at `/spine-harvest` only |
 
 `/spine-bootstrap` runs after `bash .spine/install.sh` and fills placeholders in `global/` plus `progress.md` Current state. It does **not** create `active_tasks/` files — use `/spine-plan`.

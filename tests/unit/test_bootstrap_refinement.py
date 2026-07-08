@@ -27,8 +27,14 @@ def test_global_templates_have_knowledge_sections() -> None:
 
 def test_roadmap_template_english_placeholders() -> None:
     text = _read("templates/docs/memory/ledger/roadmap.md")
-    assert "[Name]" in text
+    assert "[Goal Name]" in text
     assert "[Nome]" not in text
+    assert "ice_method" in text
+    assert "last_updated" in text
+    assert "last_reviewed" in text
+    assert "review_cadence" in text
+    assert "goals_active" in text
+    assert "ideas_total" in text
 
 
 def test_memory_bank_documents_bootstrap_knowledge_mapping() -> None:
