@@ -965,6 +965,7 @@ memory/ledger/learnings.md
 memory/active_tasks/_task-template.md
 governance/skills-policy.md
 governance/memory-tags-policy.md
+governance/ice-scoring-guide.md
 quality/guardrails.md
 workflow/gitflow-operacional.md
 workflow/ciclo-de-entrega.md

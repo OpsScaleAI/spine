@@ -421,7 +421,7 @@ Operational source of truth: `docs/memory/` (Markdown in git). Tag policy: `docs
 docs/memory/
   global/              # Stable context (brief, glossary, patterns, decisions)
   ledger/
-    roadmap.md
+    roadmap.md        # GIST-informed: Goals + Idea Bank with ICE scoring (optional; filled by /spine-roadmap)
     progress.md        # Current state + append-only delivery log
     learnings.md       # Recurrence registry (LEARN-NNN)
   active_tasks/        # Open work (PLANNING | IN_PROGRESS | REVIEW)
@@ -454,6 +454,7 @@ Available command templates in `commands/`:
 - `/spine-plan` to create the active task plan in memory-bank.
 - `/spine-execute` to implement the selected active task with validation cycle.
 - `/spine-harvest` to consolidate delivery learnings and close the task.
+- `/spine-roadmap` to fill or update the roadmap with GIST-informed Goals and ICE-scored Idea Bank.
 - `/spine-commit` to create a high-quality commit with branch safety checks.
 
 `/spine-update` wraps `scripts/update.sh` and is the recommended maintenance path for existing consumer projects.

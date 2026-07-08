@@ -50,14 +50,19 @@ Act as a Tech Lead and Knowledge Manager.
     - `docs/memory/global/system-patterns.md` — new patterns established.
     - `## Implementation Plan` in the task body is not copied to the delivery log (summary uses frontmatter `title`, `tags`, and delivery description only).
 
-    **4d. MkDocs documentation (when `docs/mkdocs/mkdocs.yml` exists):**
+     **4d. Roadmap feedback (optional):**
+     - When task frontmatter contains `roadmap_idea`, suggest running `/spine-roadmap --review` to update confidence on the linked idea.
+     - Do not auto-edit `roadmap.md`.
+     - Include the suggestion in the harvest summary.
+
+     **4e. MkDocs documentation (when `docs/mkdocs/mkdocs.yml` exists):**
     - Load the `documentation-driven-development` skill for documentation update criteria.
     - Review whether this task introduced public APIs, architectural patterns, or user-facing features.
     - If so, update the relevant `docs/mkdocs/*.md` files and include them in the final commit with the `docs:` prefix.
     - Run `mkdocs build -f docs/mkdocs/mkdocs.yml --strict` to verify the documentation builds cleanly.
     - If the task does not warrant documentation updates, note the decision in the delivery summary.
 
-5. **Active Task Closure:**
+ 6. **Active Task Closure:**
    - Update frontmatter: `status: DONE`, `completed_at: YYYY-MM-DD`, `updated_at: YYYY-MM-DD`.
    - Set `related_learnings:` when linked to `LEARN-NNN` entries.
    - Add final **Delivery summary** block in task body.
@@ -70,9 +75,9 @@ Act as a Tech Lead and Knowledge Manager.
    - **`git mv`** `docs/memory/active_tasks/NNN-name.md` → `docs/memory/completed_tasks/NNN-name.md` (create dir if missing).
    - Include the move in the final commit before merge to `develop`.
 
-6. **Git Consolidation (GitFlow required):**
+ 7. **Git Consolidation (GitFlow required):**
    - Make the final commit with a semantic message.
    - Merge only a valid `feature/<descriptive-name>` branch into `develop`.
    - Remove the local feature branch.
 
-7. **Summary:** Present a concise summary of what was learned and improved in the project. When step 3.5 ran (or was skipped/failed), include Graphify refresh status and whether `graphify query` was used during delivery exploration. When step 3.6 ran (or was skipped/failed), include MkDocs build status.
+ 8. **Summary:** Present a concise summary of what was learned and improved in the project. When step 3.5 ran (or was skipped/failed), include Graphify refresh status and whether `graphify query` was used during delivery exploration. When step 3.6 ran (or was skipped/failed), include MkDocs build status. When step 4d applied, note whether `/spine-roadmap --review` was suggested.
