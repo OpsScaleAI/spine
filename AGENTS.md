@@ -30,7 +30,7 @@ spine/
 ├── commands/               # Slash-command templates (/spine-plan, /spine-bootstrap, etc.)
 ├── rules/                  # Source-of-truth rules in .md (Cursor, Claude Code, OpenCode)
 ├── skills/                 # Curated AI skill definitions (each has a SKILL.md)
-├── scripts/                # link-spine.sh, update.sh, install-graphify.sh
+├── scripts/                # link-spine.sh, install-vendor.sh, update.sh, install-graphify.sh
 ├── agents/                 # OpenCode agent definitions (e.g. ask.md)
 └── tests/                  # pytest scaffold (conftest.py + unit/ + integration/)
 ```
@@ -144,7 +144,7 @@ _Applies to consumer application code._
 
 Spine installs **per project only**. There is no global installer (`--global` and `--project` flags were removed in v1.3.0).
 
-**Setup flow:**
+**Setup flow (default — symlink mode):**
 
 ```bash
 # 1. Clone Spine once on the machine (outside consumer trees)
@@ -168,11 +168,26 @@ Readiness: `bash .spine/scripts/validate-bootstrap-ready.sh`
 
 After step 2, only `bash .spine/install.sh` works from the terminal — `/spine-*` commands are not available until step 3 creates `.cursor/commands/` and `.opencode/commands/` symlinks.
 
-**Update an existing consumer project:**
+**Update an existing consumer project (symlink mode):**
 
 ```bash
 bash .spine/scripts/update.sh
 ```
+
+**Vendor mode (optional — copy files, commit into the consumer repo):** for mixed-OS teams or when symlinks are unavailable. Does not replace the default symlink path.
+
+```bash
+# Install (maintainer) — copies .spine + materializes IDE trees as real files
+bash ~/Workspace/ide/spine/scripts/install-vendor.sh --spine-dir=~/Workspace/ide/spine
+# Convert from existing symlink install:
+bash ~/Workspace/ide/spine/scripts/install-vendor.sh --force --spine-dir=~/Workspace/ide/spine
+
+# Commit vendored trees, then teammates use git clone / pull only
+# Update (overwrite from upstream clone):
+bash .spine/scripts/install-vendor.sh --update --spine-dir=~/Workspace/ide/spine
+```
+
+Full notes: README § **Optional: Vendor install**.
 
 #### What `install.sh` creates
 
@@ -181,6 +196,14 @@ bash .spine/scripts/update.sh
 | `docs/` (memory bank templates) | `templates/docs/` via `.spine` | Yes |
 | `opencode.json` | `templates/opencode.json` (create or merge) | Yes |
 | `.spine`, `.agents/`, etc. | Symlinks via `install.sh` | No (machine-specific) |
+
+#### What `install-vendor.sh` creates
+
+| File | Source | Versioned in consumer project? |
+|---|---|---|
+| `docs/` | `templates/docs/` (seed only; never overwrite existing) | Yes |
+| `opencode.json` | merge from template | Yes |
+| `.spine/`, `.agents/`, `.cursor/`, `.opencode/`, `.claude/`, `.spine-vendor` | Real file copies | Yes (vendor mode) |
 
 #### Consumer project structure
 
@@ -324,6 +347,8 @@ Available in `commands/`:
 **Versioned:** `opencode.json`, `docs/`, `.graphifyignore`
 - `docs/mkdocs/mkdocs.yml` and `docs/mkdocs/*.md` source files (versioned); `docs/mkdocs/site/` (gitignored)
 
-**Machine-specific (gitignored):** `.spine`, `.agents/`, `.cursor/`, `.claude/`, `.opencode/`, `graphify-out/` (recommended)
+**Machine-specific (gitignored in symlink mode):** `.spine`, `.agents/`, `.cursor/`, `.claude/`, `.opencode/`, `graphify-out/` (recommended)
+
+**Vendor mode:** `.spine`, `.agents/`, `.cursor/`, `.claude/`, `.opencode/`, and `.spine-vendor` are committed (not gitignored).
 
 **Non-Spine projects** omit Spine URLs from `opencode.json` and do not run the install script. They remain free of Spine rules.

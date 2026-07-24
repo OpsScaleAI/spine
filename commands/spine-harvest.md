@@ -25,7 +25,11 @@ Act as a Tech Lead and Knowledge Manager.
 
 3.6. **MkDocs refresh (only when MkDocs is in use):**
     - Proceed only if `docs/mkdocs/mkdocs.yml` exists in the project root (MkDocs is active for this consumer project).
-    - If `mkdocs` CLI is available, run `mkdocs build -f docs/mkdocs/mkdocs.yml --strict` from the project root to verify documentation builds cleanly with no broken links or missing pages.
+    - Do **not** rely on bare `mkdocs` on PATH (often missing). From the project root, run the first command that works:
+      1. `uv run --extra docs mkdocs build -f docs/mkdocs/mkdocs.yml --strict` (preferred when `uv` + `docs` optional-dep / `requirements-docs.txt` exist)
+      2. `.venv/bin/mkdocs build -f docs/mkdocs/mkdocs.yml --strict` (when venv already has mkdocs)
+      3. `mkdocs build -f docs/mkdocs/mkdocs.yml --strict` (only if `command -v mkdocs` succeeds)
+    - If none work, install docs deps (`uv sync --extra docs` or `uv pip install -r requirements-docs.txt`) and retry step 1; if still failing, report the errors.
     - If the build fails, report the errors; do not block harvest or Git consolidation.
 
 4. **Memory Bank Update:**
@@ -59,7 +63,7 @@ Act as a Tech Lead and Knowledge Manager.
     - Load the `documentation-driven-development` skill for documentation update criteria.
     - Review whether this task introduced public APIs, architectural patterns, or user-facing features.
     - If so, update the relevant `docs/mkdocs/*.md` files and include them in the final commit with the `docs:` prefix.
-    - Run `mkdocs build -f docs/mkdocs/mkdocs.yml --strict` to verify the documentation builds cleanly.
+    - Run `uv run --extra docs mkdocs build -f docs/mkdocs/mkdocs.yml --strict` (fallback: `.venv/bin/mkdocs` or PATH `mkdocs`) to verify the documentation builds cleanly.
     - If the task does not warrant documentation updates, note the decision in the delivery summary.
 
  6. **Active Task Closure:**
