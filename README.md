@@ -175,6 +175,55 @@ bash .spine/scripts/update.sh --with-graphify      # see "Optional: Graphify"
 bash .spine/scripts/update.sh --graphify-init      # setup + first graph build
 ```
 
+## Optional: Vendor install (commit Spine into the project)
+
+**Default remains symlink mode** (`link-spine.sh` + `install.sh`). Use vendor mode when the team needs Spine as **real files** in the consumer repo (mixed OS without symlink privilege, or share via `git clone` with no per-machine Spine clone for day-to-day use).
+
+Vendor mode copies Spine into `.spine/` (no nested `.git`) and materializes `.agents/`, `.cursor/`, `.opencode/`, and `.claude/` as real files. Those trees are intended to be **committed**.
+
+### Install (maintainer)
+
+```bash
+cd /path/to/consumer-project
+bash /path/to/spine/scripts/install-vendor.sh --spine-dir=/path/to/spine
+# minimal skills: add --core
+```
+
+If the project already has symlink-mode Spine, conversion is refused unless you opt in:
+
+```bash
+bash /path/to/spine/scripts/install-vendor.sh --force --spine-dir=/path/to/spine
+```
+
+Then commit:
+
+```bash
+git add .spine .agents .cursor .opencode .claude .spine-vendor docs opencode.json .gitignore
+git commit -m "chore: vendor Spine into project"
+```
+
+Teammates only need `git pull` — no symlink privilege and no local Spine clone for IDE use.
+
+### Update (maintainer)
+
+Overwrite vendored trees from an upstream Spine clone (required `--spine-dir`; never use the project's own `.spine` as source):
+
+```bash
+bash .spine/scripts/install-vendor.sh --update --spine-dir=/path/to/spine
+git add .spine .agents .cursor .opencode .claude .spine-vendor
+git commit -m "chore: update vendored Spine"
+git push
+```
+
+`docs/memory/` content is never overwritten; `opencode.json` is merged non-destructively.
+
+### Notes
+
+- Marker file: `.spine-vendor` (signals vendor mode).
+- Do **not** ignore `.spine`, `.agents/`, `.cursor/`, `.claude/`, or `.opencode/` in vendor mode (the script strips those ignores when present).
+- Graphify / MkDocs: run existing `.spine/scripts/` helpers after vendor install if needed (not co-installed by `install-vendor.sh` in v1).
+- Uninstall vendor trees (leaves `docs/` and `opencode.json`): `bash .spine/scripts/install-vendor.sh --uninstall`
+
 ## Optional: Graphify
 
 Graphify is an optional **code-structure** layer for consumer projects. **Spine** owns conceptual/documentary context (`docs/memory/`); **Graphify** accelerates where to look in source via `GRAPH_REPORT.md` and `graphify query`. The memory bank remains the operational source of truth.
@@ -530,6 +579,7 @@ flowchart TD
 - `completed_tasks/`, `ledger/learnings.md`, structured delivery log in `progress.md`
 - Obsidian-style task frontmatter and `memory-tags-policy.md`
 - Tiered SYNC; OpenCode `ask` agent in template; native Plan input via `/spine-plan`
+- Optional vendor install: `scripts/install-vendor.sh` (copy Spine into the project, commit trees, overwrite update)
 
 <details>
 <summary>Version history</summary>
