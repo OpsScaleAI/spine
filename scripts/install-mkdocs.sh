@@ -61,20 +61,33 @@ run_cmd() {
 }
 
 mkdocs_cli_available() {
+    if command -v uv >/dev/null 2>&1; then
+        (cd "$PROJECT_ROOT" && uv run --extra docs mkdocs --version >/dev/null 2>&1) && return 0
+    fi
+    [[ -x "$PROJECT_ROOT/.venv/bin/mkdocs" ]] && return 0
     command -v mkdocs >/dev/null 2>&1
 }
 
 # Build from project root using the -f flag pointing to docs/mkdocs/mkdocs.yml
+# Prefer uv / project venv — bare mkdocs is often missing from PATH.
 run_mkdocs_build() {
     local strict=""
     if ${1:-true}; then
         strict="--strict"
     fi
+    local cmd=()
+    if command -v uv >/dev/null 2>&1; then
+        cmd=(uv run --extra docs mkdocs build -f docs/mkdocs/mkdocs.yml $strict)
+    elif [[ -x "$PROJECT_ROOT/.venv/bin/mkdocs" ]]; then
+        cmd=("$PROJECT_ROOT/.venv/bin/mkdocs" build -f docs/mkdocs/mkdocs.yml $strict)
+    else
+        cmd=(mkdocs build -f docs/mkdocs/mkdocs.yml $strict)
+    fi
     if $DRY_RUN; then
-        echo "    [DRY-RUN] Would run: mkdocs build -f docs/mkdocs/mkdocs.yml $strict"
+        echo "    [DRY-RUN] Would run: ${cmd[*]}"
         return 0
     fi
-    (cd "$PROJECT_ROOT" && mkdocs build -f docs/mkdocs/mkdocs.yml $strict)
+    (cd "$PROJECT_ROOT" && "${cmd[@]}")
 }
 
 ensure_gitignore_entry() {

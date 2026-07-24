@@ -34,6 +34,23 @@ fail() { echo "ERROR: $*" >&2; errors=$((errors + 1)); }
 warn() { echo "WARNING: $*" >&2; warnings=$((warnings + 1)); }
 ok() { echo "  $1: OK ($2)"; }
 
+# Resolve mkdocs without requiring it on PATH (uv / venv preferred).
+resolve_mkdocs_build() {
+    if command -v uv >/dev/null 2>&1; then
+        echo "uv run --extra docs mkdocs build -f docs/mkdocs/mkdocs.yml --strict"
+        return 0
+    fi
+    if [[ -x .venv/bin/mkdocs ]]; then
+        echo ".venv/bin/mkdocs build -f docs/mkdocs/mkdocs.yml --strict"
+        return 0
+    fi
+    if command -v mkdocs >/dev/null 2>&1; then
+        echo "mkdocs build -f docs/mkdocs/mkdocs.yml --strict"
+        return 0
+    fi
+    return 1
+}
+
 echo "MkDocs integration report"
 
 # --- MkDocs config ---
@@ -53,35 +70,44 @@ else
 fi
 
 # --- CLI ---
-if command -v mkdocs >/dev/null 2>&1; then
-    version="$(mkdocs --version 2>/dev/null | head -1 || echo 'unknown version')"
-    ok "CLI" "mkdocs — $version"
+MKDOCS_BUILD_CMD=""
+if MKDOCS_BUILD_CMD="$(resolve_mkdocs_build)"; then
+    if command -v uv >/dev/null 2>&1 && uv run --extra docs mkdocs --version >/dev/null 2>&1; then
+        version="$(uv run --extra docs mkdocs --version 2>/dev/null | head -1 || echo 'unknown version')"
+        ok "CLI" "uv run --extra docs mkdocs — $version"
+    elif [[ -x .venv/bin/mkdocs ]]; then
+        version="$(.venv/bin/mkdocs --version 2>/dev/null | head -1 || echo 'unknown version')"
+        ok "CLI" ".venv/bin/mkdocs — $version"
+    else
+        version="$(mkdocs --version 2>/dev/null | head -1 || echo 'unknown version')"
+        ok "CLI" "mkdocs — $version"
+    fi
 else
-    fail "mkdocs CLI not on PATH (pip install mkdocs)"
+    fail "mkdocs not available via uv, .venv/bin/mkdocs, or PATH (uv sync --extra docs / uv pip install -r requirements-docs.txt)"
 fi
 
 # --- Build ---
-if [[ -f docs/mkdocs/mkdocs.yml ]]; then
-    if command -v mkdocs >/dev/null 2>&1; then
-        if mkdocs build -f docs/mkdocs/mkdocs.yml --strict >/dev/null 2>&1; then
-            ok "Build" "mkdocs build --strict passes"
-        else
-            warn "mkdocs build --strict failed (check docs/mkdocs/*.md for broken links or invalid YAML)"
-        fi
+if [[ -f docs/mkdocs/mkdocs.yml && -n "$MKDOCS_BUILD_CMD" ]]; then
+    if eval "$MKDOCS_BUILD_CMD" >/dev/null 2>&1; then
+        ok "Build" "$MKDOCS_BUILD_CMD passes"
+    else
+        warn "mkdocs build --strict failed (check docs/mkdocs/*.md for broken links or invalid YAML)"
     fi
 
-    if [[ -d docs/mkdocs/site ]]; then
+    if [[ -d docs/mkdocs-site ]]; then
+        ok "Output" "docs/mkdocs-site/ present"
+    elif [[ -d docs/mkdocs/site ]]; then
         ok "Output" "docs/mkdocs/site/ present"
     else
-        warn "docs/mkdocs/site/ not found (run mkdocs build -f docs/mkdocs/mkdocs.yml)"
+        warn "site output not found (expected docs/mkdocs-site/ or docs/mkdocs/site/)"
     fi
 fi
 
 # --- Gitignore ---
-if [[ -f .gitignore ]] && grep -qF "docs/mkdocs/site/" .gitignore 2>/dev/null; then
-    ok "Gitignore" "docs/mkdocs/site/ is gitignored"
+if [[ -f .gitignore ]] && grep -qE 'docs/mkdocs(-site|/site)/' .gitignore 2>/dev/null; then
+    ok "Gitignore" "MkDocs site output is gitignored"
 else
-    warn "docs/mkdocs/site/ not in .gitignore (output may be accidentally committed)"
+    warn "docs/mkdocs/site/ or docs/mkdocs-site/ not in .gitignore (output may be accidentally committed)"
 fi
 
 if [[ $errors -gt 0 ]]; then

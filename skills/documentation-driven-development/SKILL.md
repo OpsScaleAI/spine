@@ -55,15 +55,16 @@ For each affected file:
 ## Step 4: Implement and verify
 
 1. Implement the code change
-2. Verify `mkdocs build -f docs/mkdocs/mkdocs.yml --strict` passes
+2. Verify docs build (prefer uv; bare `mkdocs` is often not on PATH):
+   `uv run --extra docs mkdocs build -f docs/mkdocs/mkdocs.yml --strict`
 3. Include `docs/mkdocs/*.md` changes in the commit with `docs:` prefix
-4. Run `mkdocs serve -f docs/mkdocs/mkdocs.yml` to preview if needed
+4. Preview if needed: `uv run --extra docs mkdocs serve -f docs/mkdocs/mkdocs.yml`
 
 ## Step 5: Harvest checklist
 
 At `/spine-harvest`:
 
-- [ ] `mkdocs build -f docs/mkdocs/mkdocs.yml --strict` passes (step 3.6)
+- [ ] `uv run --extra docs mkdocs build -f docs/mkdocs/mkdocs.yml --strict` passes (step 3.6)
 - [ ] Documentation reflects the delivered state (step 4d)
 - [ ] New architectural decisions are captured in `architecture.md`
 - [ ] `docs:` commit includes MkDocs file changes
@@ -84,10 +85,13 @@ When `docs/mkdocs/mkdocs.yml` exists in the project root AND the task:
 - CI/CD, build tooling, or dev-only changes
 - Memory bank updates only (those are separate)
 
-## Preview command
+## Preview / build commands
 
 ```bash
-cd docs/mkdocs && mkdocs serve
-# or from project root:
-mkdocs serve -f docs/mkdocs/mkdocs.yml
+# Install docs extra once (with other extras as needed)
+uv sync --extra docs --extra dev
+
+# From project root (preferred — do not assume mkdocs on PATH)
+uv run --extra docs mkdocs build -f docs/mkdocs/mkdocs.yml --strict
+uv run --extra docs mkdocs serve -f docs/mkdocs/mkdocs.yml
 ```
