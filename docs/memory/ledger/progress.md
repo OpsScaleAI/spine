@@ -17,8 +17,7 @@
 - **Rules core consolidadas:** removidas rules não usadas (`03-handoff`, `05-testing`, `06-gitflow`) e renomeada `04-code-quality.md` para `03-code-quality.md`.
 
 ## Em andamento
-- Curadoria inicial do catálogo de skills para reduzir escopo ativo.
-- Ajuste fino do ciclo piloto com testes e registro de aprendizado.
+- Nenhuma task ativa no momento.
 
 ## O que falta
 - Executar ciclo completo real (feature -> produção -> aprendizado).
@@ -26,7 +25,6 @@
 - Consolidar checklist de release no uso diário.
 - Publicar versão com as otimizações de token para projetos consumidores existentes.
 - Consolidar rollout de Graphify opcional em projetos consumidores e medir delta de tokens por task.
-- Instalar `pytest` no ambiente de desenvolvimento para reativar validação automatizada completa no harvest.
 - Publicar release v1.4.0 com `/spine-roadmap` e demais features recentes.
 
 ## Issues Conhecidos
@@ -34,6 +32,11 @@
 - Risco de dispersão em frontend sem skill principal padronizada.
 
 ## Delivery log (newest first)
+### 2026-07-08 — Sync opencode template tests with current schema
+**Task:** 016-opencode-template-test-sync | **Branch:** feature/opencode-template-test-sync
+**Tags:** type/bug, area/testing, area/config
+**Description:** Fixed 5 stale assertions in `test_opencode_template.py` to match the current `templates/opencode.json` schema. Removed 2 tests for `agent.build`/`agent.plan` (no longer in template — IDE-level config). Updated model assertion to `qwen3.7-max`, compaction check to `auto`/`prune`/`tail_turns`. Full suite: 89 passed, 0 failed. Graphify and MkDocs not active.
+
 ### 2026-07-08 — Add /spine-roadmap command with GIST-informed template
 **Task:** 015-spine-roadmap-command | **Branch:** feature/spine-roadmap-command
 **Tags:** type/feature, area/workflow, area/docs, area/governance
